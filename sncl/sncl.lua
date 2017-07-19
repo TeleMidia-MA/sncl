@@ -47,7 +47,6 @@ function beginParse(entrada, saida)
 			else
 				utils.printErro("ERRO NO ARQUIVO DE SAIDA")
 			end
-			print(output)
 		else
 			utils.printErro("ARQUIVO TEM ERRO")
 		end
