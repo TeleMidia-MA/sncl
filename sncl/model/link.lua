@@ -3,14 +3,15 @@ Link_mt = {}
 
 Link_mt.__index = Link
 
-function Link.new()
+function Link.new(linha)
 	local linkObject = {
 		xconnector = nil,
 		hasEnd = false,
 		father = nil,
+		linha = linha,
 		conditions = {},
 		actions = {},
-		params = {},
+		linkParams = {},
 	}
 	setmetatable(linkObject, Link_mt)
 	return linkObject
@@ -28,80 +29,82 @@ function Link:setFather (father) self.father = father end
 function Link:addCondition(condition)
 	table.insert(self.conditions, condition)
 end
-
 function Link:addAction(action)
 	table.insert(self.actions, action)
 end
 function Link:addLinkParam (name, value)
-	self.params[name] = value
+	self.linkParams[name] = value
 end
 
 function Link:createConnector()
 	local id = ""
-	local conditionsTable = {}
 	local nConditions = 0
 	local nActions = 0
-	local conditionParam = false
-	local actionParam = false
+	local conditionsTable = {}
+	local actionsTable = {}
 
 	for pos, val in pairs(self.conditions) do
-		local tempCondition = val.condition
-		if conditionsTable[tempCondition] then
-			conditionsTable[tempCondition].times = conditionsTable[tempCondition].times+1
-		else
-			conditionsTable[tempCondition] = {
-				times = 1,
-			}
-			if val.param then
-				conditionParam = true
-			end
-			tempCondition = tempCondition:sub(1,1):upper()..tempCondition:sub(2)
-			id = id..tempCondition
+		local condition = val.condition
+		if conditionsTable[condition] == nil then
+			conditionsTable[condition] = 1
 			nConditions = nConditions+1
+		else
+			conditionsTable[condition] = conditionsTable[condition]+1
+		end
+		condition = condition:sub(1,1):upper()..condition:sub(2)
+		if id:find(condition) then
+			local __,endCondition = id:find(condition)
+			id = id:sub(1, endCondition).."N"..id:sub(endCondition+1)
+		else
+			id = id..condition
 		end
 	end
 
-	local actionsTable = {}
 	for pos, val in pairs(self.actions) do
-		local tempAction = val:getAction()
-		if actionsTable[tempAction] then
-			actionsTable[tempAction].times = conditionsTable[tempAction].times+1
+		local action = val.action
+		local params = {}
+		for i, j in pairs(val.params) do
+			params[i] = true
+		end
+		if actionsTable[action] then
+			actionsTable[action].times = actionsTable[action].times+1
 		else
-			actionsTable[tempAction] = {
-				times = 1,
-			}
-			if val:hasParams() then
-				actionParam = true
-			end
-			tempAction = tempAction:sub(1,1):upper()..tempAction:sub(2)
-			id = id..tempAction
+			actionsTable[action] = {} 
+			actionsTable[action].times = 1
+			actionsTable[action].params = params
 			nActions = nActions+1
+		end
+		action = action:sub(1,1):upper()..action:sub(2)
+		if id:find(action) then
+			local __,endAction = id:find(action)
+			id = id:sub(1, endAction).."N"..id:sub(endAction+1)
+		else
+			id = id..action
 		end
 	end
 
 	if tabelaSimbolos.connectors[id] == nil then
+		print("xconnector: "..id)
 		local newConnector = Connector.new(id)
-		tabelaSimbolos.connectors[id] = newConnector
-		self.xconnector = id
-		for pos, val in pairs(self.params) do
-			newConnector:addLinkParam(pos, val)
-		end
 		newConnector:addConditions(conditionsTable)
 		newConnector:addActions(actionsTable)
-		newConnector:setNConditions(nConditions)
 		newConnector:setNActions(nActions)
-		newConnector:setConditionParam(conditionParam)
-		newConnector:setActionParam(actionParam)
-	else
+		newConnector:setNConditions(nConditions)
+		tabelaSimbolos.connectors[id] = newConnector
 	end
+	self.xconnector = id
 end
 
 function Link:toNCL(indent) --Fazer verificacao aqui
+	if self.hasEnd == false then
+		utils.printErro("Link does not have end.", self.linha)
+		return ""
+	end
 	self:createConnector()
 
 	local link = indent.."<link xconnector=\""..self.xconnector.."\">"
 	------ LinkParams 
-	for pos, val in pairs(self.params) do
+	for pos, val in pairs(self.linkParams) do
 		link = link..indent.."   <linkParam name=\""..pos.."\" value="..val.."/>" 
 	end
 
@@ -109,7 +112,7 @@ function Link:toNCL(indent) --Fazer verificacao aqui
 	for __,value  in pairs(self.conditions) do
 		link = link..indent.."   <bind role=\"".. value.condition.."\""
 		if tabelaSimbolos[value.media] == nil then
-			utils.printErro(value.media.." not declared.")
+			utils.printErro("Element "..value.media.." not declared.", self.linha)
 		end
 		link = link.." component=\""..value.media.."\""
 		if value.interface then
@@ -132,27 +135,3 @@ function Link:toNCL(indent) --Fazer verificacao aqui
 
 	return link
 end
---Tables
-local conditions = {
-	"onSelection","onBeginSelection","onEndSelection",
-	"onBeginAttribution","onEndAttribution",
-	"onAbortAttribution","onPauseAttribution",
-	"onResumeAttribution"
-}
-
-local actions = {
-	"start","stop","abort","pause","resume","set",
-	"startAttribution","stopAttribution",
-	"abortAttribution","pauseAttribution","resumeAttribution"
-}
-
-local conditionParams = {
-	"delay","key","eventType","transition"
-}
-
-local actionParams = {
-	"delay","eventType","actionType","value","repeat",
-	"repeatDelay","duration","by"
-}
-
-

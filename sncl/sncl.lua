@@ -2,26 +2,26 @@ lpeg = require("lpeg")
 argparse = require("argparse")
 ansicolors = require("ansicolors")
 
---[[
-package.path = package.path..";./model/init.lua;./grammar/init.lua"
-require("model")
-require("grammar")
-]]--
 utils = require("sncl.utils.utils")
+
 require("sncl.grammar.grammar_parser")
 require("sncl.grammar.util_parse")
 
 require("sncl.model.descriptor")
 require("sncl.model.connector")
-require("sncl.model.context")
 require("sncl.model.region")
+
+require("sncl.model.port")
+
+require("sncl.model.context")
 require("sncl.model.media")
-require("sncl.model.link")
 require("sncl.model.area")
+
+require("sncl.model.link")
 require("sncl.model.action")
 
 --Variaveis globais
-linha = 1
+linhaParser = 1
 
 tabelaSimbolos = {}
 tabelaSimbolos.regions = {}
@@ -35,7 +35,6 @@ function beginParse(entrada, saida)
 		utils.parse(snclGrammar, conteudoArquivoEntrada)
 		local output = utils.printNCL()
 		if hasError == false then
-			print(hasError)
 			arquivoSaida = nil
 			arquivoSaida = entrada:sub(1, entrada:len()-4)
 			arquivoSaida = arquivoSaida.."ncl"
@@ -45,13 +44,13 @@ function beginParse(entrada, saida)
 				io.write(output)
 				io.close(arquivoSaida)
 			else
-				utils.printErro("ERRO NO ARQUIVO DE SAIDA")
+				utils.printErro("Can not create output file.")
 			end
 		else
-			utils.printErro("ARQUIVO TEM ERRO")
+			utils.printErro("Input file has errors.")
 		end
 	else
-		utils.printErro("Arquivo nao é um sncl valido")
+		utils.printErro("Invalid file extension.")
 	end
 end
 
@@ -88,4 +87,3 @@ areaProperties = {
 	"begin","end","first","last","text","positon",
 	"coords","label","clip"
 }
-

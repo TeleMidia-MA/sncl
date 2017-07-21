@@ -14,7 +14,7 @@ snclGrammar = {
 	Espacos = lpeg.space
 	/function(str)
 		if str == "\n" then
-			linha = linha+1
+			linhaParser = linhaParser+1
 		end
 	end,
 	Inteiro = R("09"),
@@ -171,8 +171,7 @@ snclGrammar = {
 			utils.printErro("No element.")
 		end
 	end,
-	ContextPort = (P"port"), --TO-DO
-	Context = (V"ContextId" *(V"ContextProperty"+V"ContextPort"+ V"Media"+V"Context")^0*V"End"^-1),
+	Context = (V"ContextId" *(V"Port"+V"ContextProperty"+ V"Media"+V"Context")^0*V"End"^-1),
 	------ CONTEXT ------
 
 	------ ACTION ------
@@ -204,6 +203,11 @@ snclGrammar = {
 	Link = (V"LinkDo" *(V"Action"+V"LinkParam")^0 *V"End"^-1),
 	------ LINK ------
 
+	Port = (P"port" *V"OnlyEspace"^1* V"AlphaNumeric"^1*V"OnlyEspace"^1* V"AlphaNumeric"^1*SPC^0)
+	/function(str)
+		parsePort(str)
+	end,
+
 	-- START --
-	INICIAL = SPC^0 * (V"Region"+V"Media"+V"Context"+V"Link")^0,
+	INICIAL = SPC^0 * (V"Port"+V"Region"+V"Media"+V"Context"+V"Link")^0,
 }

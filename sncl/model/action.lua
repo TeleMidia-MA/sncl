@@ -3,13 +3,14 @@ Action_mt = {}
 
 Action_mt.__index = Action
 
-function Action.new(action, media)
+function Action.new(action, media, interface, linha)
 	local actionObject = {
-		hasEnd = false,
-		father = nil,
 		action = action,
 		media = media,
-		interface = nil,
+		hasEnd = false,
+		father = nil,
+		interface = interface,
+		linha = linha,
 		params = {},
 	}
 	setmetatable(actionObject, Action_mt)
@@ -34,10 +35,13 @@ end
 
 function Action:setFather(father) self.father = father end
 function Action:setEnd (bool) self.hasEnd = bool end
-function Action:setInterface (interface) self.interface = interface end
 function Action:addParam (name, value) self.params[name] = value end
 
 function Action:toNCL(indent)
+	if self.hasEnd == false then
+		utils.printErro("Action does not have end.", self.linha)
+		return ""
+	end
 	local action = indent.."<bind role=\""..self.action.."\" component=\""..self.media.."\""
 	if self.interface then
 		action = action.." interface=\""..self.interface.."\""

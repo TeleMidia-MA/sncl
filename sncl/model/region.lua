@@ -3,11 +3,12 @@ Region__mt = {}
 
 Region__mt.__index = Region
 
-function Region.new(id)
+function Region.new(id, linha)
 	local RegionObject = {
 		id = id,
 		father = nil,
 		hasEnd = false,
+		linha = linha,
 		sons = {},
 		properties = {},
 	}
@@ -33,6 +34,10 @@ end
 
 -- Gerador de codigo
 function Region:toNCL(indent)
+	if self.hasEnd == false then
+		utils.printErro("Region does not have end.", self.linha)
+		return ""
+	end
 	local newNCL = indent.."<region id=\""..self.id.."\">"
 
 	for pos,val in pairs(self.properties) do
@@ -46,10 +51,4 @@ function Region:toNCL(indent)
 	newNCL  = newNCL..indent.."</region>"
 	return newNCL
 end
-
-local regionProperties = {
-	"title","left","right","top","bottom","height",
-	"width","zIndex"
-}
-
 

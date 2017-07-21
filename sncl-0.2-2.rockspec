@@ -1,18 +1,18 @@
 package = "sncl"
-version = "0.2-0"
+version = "0.2-2"
 
 source = {
-	url = "git://github.com/lucastercas/sncl.git"
+	url = "git://github.com/TeleMidia-MA/sncl.git"
 }
 
 description = {
 	summary = "A tool that compiles sncl code to ncl",
 	detailed = [[
-		Descricao mais detalhada
+		TO-DO: Descricao mais detalhada
 	]],
-	homepage = "https://github.com/lucastercas/sNCL",
+	homepage = "https://github.com/TeleMidia-MA/sNCL",
 	maintainer = "Lucas de Macedo <lucastercas@gmail.com>",
-	license = "MIT/X11"
+	license = "GPL-3.0"
 }
 
 dependencies = {
@@ -37,8 +37,9 @@ build = {
 		["sncl.model.link"] = "sncl/model/link.lua",
 		["sncl.model.area"] = "sncl/model/area.lua",
 		["sncl.model.region"] = "sncl/model/region.lua",
-		["sncl.model.regionBase"] = "sncl/model/regionBase.lua",
 		["sncl.model.action"] = "sncl/model/action.lua",
+		["sncl.model.port"] = "sncl/model/port.lua",
+
 	},
 	install = {
 		bin = {"bin/sncl"}

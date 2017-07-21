@@ -6,17 +6,17 @@ Connector_mt.__index = Connector
 function Connector.new(id)
 	local connectorObject = {
 		id = id,
-		conditionParam = false,
-		actionParam = false,
 		nConditions = 0,
 		nActions = 0,
+		linkParams = {},
 		conditions = {},
 		actions = {},
-		params = {},
 	}
 	setmetatable(connectorObject, Connector_mt)
 	return connectorObject
 end
+
+function Connector:getId() return self.id end
 
 function Connector:setNConditions (n)
 	self.nConditions = n
@@ -24,86 +24,64 @@ end
 function Connector:setNActions (n)
 	self.nActions = n
 end
-function Connector:setConditionParam (bool)
-	self.conditionParam = bool
+function Connector:addLinkParam (param)
+	--TO-DO
 end
-function Connector:setActionParam (bool)
-	self.actionParam = bool
+function Connector:addConditions (conditions)
+	self.conditions = conditions
 end
-function Connector:addLinkParam (name)
-	self.params[name] = true
-end
-function Connector:getId() return self.id end
-
-function Connector:addConditions(conditions)
-	table.insert(self.conditions, conditions)
+function Connector:addActions (actions)
+	self.actions = actions
 end
 
-function Connector:addActions(actions)
-	table.insert(self.actions, actions)
-end
-
-function Connector:toNCL(indent)
+function Connector:toNCL (indent)
 	local connector = indent.."<causalConnector id=\""..self.id.."\">"
 
-	for pos, val in pairs(self.params) do
-		connector = connector..indent.."   <connectorParam name=\""..pos.."\" />"
-	end
-	if self.conditionParam then
-		connector = connector..indent.."   <connectorParam name=\"conditionVar\" />"
-	end
-	if self.actionParam then
-		connector = connector..indent.."   <connectorParam name=\"actionVar\" />"
-	end
-	local conditionString
-	local newIndent
+	-- Conditions
+	local conditionsString = ""
 	if self.nConditions > 1 then
-		conditionString = indent.."   <compoundCondition operator=\"and\">"
+		conditionsString = indent.."   <compoundCondition operator=\"and\">"
 		newIndent = indent.."   "
 	else
-		conditionString = ""
+		conditionsString = ""
 		newIndent = indent
 	end
-	for __, j in pairs(self.conditions) do
-		for pos, val in pairs(j) do
-			conditionString = conditionString..newIndent.."   <simpleCondition role=\""..pos.."\""
-			if val.times > 1 then
-				conditionString  = conditionString.." max=\"unbounded\" qualifier=\"par\""
-			end
-			conditionString = conditionString.."/>"
-		end
+	for pos, val in pairs(self.conditions) do
+		conditionsString = conditionsString..newIndent.."   <simpleCondition role=\""..pos.."\" />"
 	end
 	if self.nConditions > 1 then
 		conditionString = conditionString..indent.."   </compoundCondition>"
 	end
-		
-	connector = connector..conditionString
 
-	local conditionString
-	local newIndent
+	-- Actions
+	local actionsString = ""
 	if self.nActions > 1 then
-		actionString = indent.."   <compoundActions operator=\"seq\">"
+		actionsString = indent.."   <compoundAction operator=\"seq\">"
 		newIndent = indent.."   "
 	else
-		actionString = ""
+		actionsString = ""
 		newIndent = indent
 	end
-	for __, j in pairs(self.actions) do
-		for pos, val in pairs(j) do
-			actionString = actionString..newIndent.."   <simpleAction role=\""..pos.."\""
-			if val.times > 1 then
-				actionString  = actionString.." max=\"unbounded\" qualifier=\"par\""
-			end
-			actionString = actionString.."/>"
+	for pos, val in pairs(self.actions) do
+		for i, j in pairs(val.params) do
+			connector = connector..newIndent.."   <connectorParam name=\""..i.."\"/>"
 		end
+		actionsString = actionsString..newIndent.."   <simpleAction role=\""..pos.."\""
+		if val.times > 1 then
+				actionsString  = actionsString.." max=\"unbounded\" qualifier=\"par\""
+		end
+		for i, j in pairs(val.params) do
+			actionsString = actionsString.." "..i.." = \"$"..i.."\""
+		end
+		actionsString = actionsString.." />"
 	end
 	if self.nActions > 1 then
-		actionString = actionString..indent.."   </compoundAction>"
+		actionsString = actionsString..indent.."   </compoundAction>"
 	end
-		
-	connector = connector..actionString
 
-
+	connector = connector..conditionsString
+	connector = connector..actionsString
 	connector = connector..indent.."</causalConnector>"
+	print(connector)
 	return connector
 end

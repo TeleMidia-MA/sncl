@@ -16,10 +16,13 @@ end
 
 function parseProperty (str)
 	local sign = str:find("=")
-
-	local name = str:sub(1, sign-1)
-	local value = str:sub(sign+1)
-	return name, value
+	if sign then
+		local name = str:sub(1, sign-1)
+		local value = str:sub(sign+1)
+		return name, value
+	else
+		return str
+	end
 end
 
 function parseLinkCondition (str)
@@ -40,7 +43,7 @@ function parseLinkCondition (str)
 			param = mediaString:sub(arroba+1)
 			mediaString = mediaString:sub(1,arroba-1)
 		end
-		local barra = mediaString:find("/")
+		local barra = mediaString:find("%.")
 		if barra then
 			interface = mediaString:sub(barra+1)
 			mediaString = mediaString:sub(1, barra-1)
@@ -49,14 +52,14 @@ function parseLinkCondition (str)
 			condition = conditionString,
 			media = mediaString,
 			interface = interface,
-			param = param
+			param = param,
 		}
 		if currentElement ~= nil then
 			if currentElement:getType() == "link" then --Se for link, adicionar condicao
 				currentElement:addCondition(conditionTable)
 			else
 				if currentElement:getType() == "context" then --Se for context, adcionar link
-					local newLink = Link.new()
+					local newLink = Link.new(linhaParser)
 					newLink:setFather(currentElement)
 					currentElement = newLink
 					currentElement:addCondition(conditionTable)
@@ -64,7 +67,7 @@ function parseLinkCondition (str)
 				end
 			end
 		else --Se for nil, adicionar link
-			local newLink = Link.new()
+			local newLink = Link.new(linhaParser)
 			currentElement = newLink
 			currentElement:addCondition(conditionTable)
 			table.insert(tabelaSimbolos.body, newLink)
@@ -83,10 +86,10 @@ function parseLinkConditionParam (str)
 		if currentElement:getType() == "link" then
 			currentElement:addLinkParam(paramName, paramValue)
 		else
-			utils.printErro("Param is not inside a link.")
+			utils.printErro("Param is not inside a link.", linhaParser)
 		end
 	else
-		utils.printErro("Param is inside a nil element.")
+		utils.printErro("Param have to be inside a element.", linhaParser)
 	end
 
 end
@@ -98,35 +101,69 @@ function parseLinkAction (str)
 	end
 	local action = words[1]
 	local media = words[2]
+	local interface = nil
+
+	local barra = media:find("%.")
 
 	if currentElement ~= nil then
 		if currentElement:getType() == "link" then
-			local newAction = Action.new(action, media)
+			local newAction = Action.new(action, media, interface, linhaParser)
 			newAction:setFather(currentElement)
 			newAction:getFather():addAction(newAction)
 			currentElement = newAction
 		else
-			utils.printErro("Action can only be declared inside of a link.")
+			utils.printErro("Action can only be declared inside of a link.", linhaParser)
 		end
 	else
-		utils.printErro("Action can not be declared outside of a link")
+		utils.printErro("Action can not be declared outside of a link", linhaParser)
 	end
 end
 
 function parseLinkActionParam (str)
 	str = str:gsub("%s+", "")
 	local sign = str:find("=")
-	local interface = str:sub(1, sign-1)
+	local paramName = str:sub(1, sign-1)
 	local paramValue = str:sub(sign+1)
 
 	if currentElement ~= nil then
 		if currentElement:getType() == "action" then
-			currentElement:setInterface(interface)
-			currentElement:addParam("actionVar", paramValue)
+			currentElement:addParam(paramName, paramValue)
 		else
 			utils.printErro("Action parameter is not inside an action.")
 		end
 	else
-		utils.printErro("Action parameter can only be declare inside of an action")
+		utils.printErro("Action parameter can only be declared inside of an action")
 	end
 end
+
+function parsePort (str)
+	local words = {}
+	for word in str:gmatch("%S+") do
+		table.insert(words, word)
+	end
+
+	local id = words[2]
+	local media = words[3]
+	local interface = nil
+
+	local barra = media:find("%.")
+
+	local newPort = nil
+
+	if currentElement then
+		if currentElement.getType() == "context" then
+			newPort = Port.new(id, media, interface, currentElement, linhaParser)
+			currentElement:addSon(newPort)
+		else
+			utils.printErro("Element can not have a port.")
+		end
+	else
+		newPort = Port.new(id, media, nil)
+	end
+
+	if newPort ~= nil then
+		tabelaSimbolos[id] = newPort
+		tabelaSimbolos.body[id] = tabelaSimbolos[id]
+	end
+end
+

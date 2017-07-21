@@ -3,11 +3,12 @@ Context_mt = {}
 
 Context_mt.__index = Context
 
-function Context.new (id)
+function Context.new (id, linha)
 	local contextObject = {
 		id=id,
 		father = nil,
 		hasEnd = false,
+		linha = linha,
 		sons = {},
 		properties={},
 	}
@@ -34,6 +35,10 @@ function Context:addPort(id, component, interface) end
 
 -- Gerador de NCL
 function Context:toNCL(indent)
+	if self.hasEnd == false then
+		utils.printErro("Context does not have end.", self.linha)
+		return ""
+	end
 	local newNCL = indent.."<context id=\""..self.id.."\">"
 
 	for pos,val in pairs(self.properties) do

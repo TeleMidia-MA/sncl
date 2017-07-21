@@ -3,12 +3,13 @@ Media_mt = {}
 
 Media_mt.__index = Media
 
-function Media.new(id)
+function Media.new(id, linha)
 	local mediaObject = {
 		id = id, 
 		hasEnd = false,
 		father = nil,
 		descriptor = nil,
+		linha = linha,
 		properties = {},
 		sons = {}
 	}
@@ -60,6 +61,10 @@ end
 
 -- Gerador de NCL
 function Media:toNCL(indent) --Fazer checagens aqui
+	if self.hasEnd == false then
+		utils.printErro("Media "..self.id.." does not have end.", self.linha)
+		return ""
+	end
 	local media = indent.."<media id=\""..self.id.."\" "
 
 	self:createDescriptor()
@@ -80,7 +85,11 @@ function Media:toNCL(indent) --Fazer checagens aqui
 	for pos,val in pairs(self.properties) do
 		if utils.containsValue(mediaProperties, pos) or utils.containsValue(mediaRestrictedProperties, pos) then
 			if utils.containsValue(mediaProperties, pos) then
-				media = media..indent.."   <property name=\""..pos.."\" value="..val.."/>"
+				media = media..indent.."   <property name=\""..pos
+				if val then
+					media = media.."\" value="..val
+				end
+				media = media.."/>"
 			end
 		else
 			utils.printErro("Invalid media property "..pos..".")

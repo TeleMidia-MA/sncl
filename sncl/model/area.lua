@@ -2,11 +2,12 @@ Area = {}
 Area_mt = {}
 
 Area_mt.__index = Area
-function Area.new(id)
+function Area.new(id, linha)
 	local areaObject = {
 		id = id,
 		father = false,
 		hasEnd = false,
+		linha = linha,
 		properties = {},
 	}
 	setmetatable(areaObject, Area_mt)
@@ -31,6 +32,10 @@ end
 
 -- Gerador de NCL
 function Area:toNCL(indent)
+	if self.hasEnd == false then
+		utils.printErro("Area does not have end.", self.linha)
+		return ""
+	end
 	local newNCL = indent.."<area id=\""..self.id.."\">"
 
 	for pos,val in pairs(self.properties) do

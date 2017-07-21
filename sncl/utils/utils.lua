@@ -11,7 +11,6 @@ function utilsTable.isValidSncl(fileName)
 	end
 end
 
-
 function utilsTable.conteudoArquivo(fileLocation)
 	local file = io.open(fileLocation, 'r')
 
@@ -28,8 +27,12 @@ function utilsTable.parse(gramatica, input)
 	lpeg.match(gramatica, input)
 end
 
-function utilsTable.printErro(string)
-	print("ERRO: "..string.." Linha: "..linha-1)
+function utilsTable.printErro(string, linha)
+	if linha then
+		print("ERRO: "..string.." Linha: "..linha)
+	else
+		print("ERRO: "..string)
+	end
 	hasError = true
 end
 
