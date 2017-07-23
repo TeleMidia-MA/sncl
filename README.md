@@ -18,6 +18,7 @@ $ sncl <arquivo.sncl>
 Para usar sem o LuaRocks, o executavel é bin/sncl
 ``` bash
 $ git clone https://github.com/TeleMidia-MA/sncl
+$ cd sncl
 $ bin/sncl <arquivo.sncl>
 ```
 

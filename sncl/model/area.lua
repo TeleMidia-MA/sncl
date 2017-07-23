@@ -36,11 +36,12 @@ function Area:toNCL(indent)
 		utils.printErro("Area does not have end.", self.linha)
 		return ""
 	end
-	local newNCL = indent.."<area id=\""..self.id.."\">"
+	local newNCL = indent.."<area id=\""..self.id.."\" "
 
 	for pos,val in pairs(self.properties) do
-		newNCL = newNCL..indent.."   <property name=\""..pos.."\" value="..val.."/>"
+		newNCL = newNCL..pos.."="..val.." "
 	end
+	newNCL = newNCL..">"
 	newNCL = newNCL..indent.."</area>"
 
 	return newNCL

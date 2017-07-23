@@ -33,6 +33,8 @@ snclGrammar = {
 			else
 				currentElement = currentElement:getFather()
 			end
+		else
+			utils.printErro("No element to end.", linhaParser-1)
 		end
 	end,
 
@@ -119,6 +121,7 @@ snclGrammar = {
 			utils.printErro("Id "..id.." already declared.")
 		end
 	end,
+
 	MediaRegion = (P"rg" *V"OnlyEspace"^0* P"=" *V"OnlyEspace"^0* V"AlphaNumeric"^1 *SPC^0)
 	/function(str)
 		str = str:gsub("%s+", "")
@@ -139,7 +142,7 @@ snclGrammar = {
 			utils.printErro("No element")
 		end
 	end,
-	Media = (V"MediaId" * (V"Area"+V"MediaRegion"+V"MediaProperty")^0 * V"End"^-1),
+	Media = (V"MediaId" * (V"Area"+V"Refer"+V"MediaRegion"+V"MediaProperty")^0 * V"End"^-1),
 	------ MEDIA ------
 
 	------ CONTEXT ------
@@ -151,9 +154,13 @@ snclGrammar = {
 			tabelaSimbolos[id] = newContext
 			tabelaSimbolos.body[id] = tabelaSimbolos[id]
 			if currentElement ~= nil then --Se tiver dentro de um elemento
-				newContext:setFather(currentElement)
-				currentElement:addSon(newContext)
-				currentElement = newContext
+				if currentElement.getType == "context" then
+					newContext:setFather(currentElement)
+					currentElement:addSon(newContext)
+					currentElement = newContext
+				else
+					utils.printErro("Context "..id.." can only be declared inside of another Context.", linhaParser)
+				end
 			else --Se tiver fora de um elemento
 				currentElement = newContext
 			end
@@ -164,14 +171,16 @@ snclGrammar = {
 	ContextProperty = (V"AlphaNumeric"^1*V"OnlyEspace"^0*P"="*V"OnlyEspace"^0*V"String"*SPC^0)
 	/function(str)
 		str = str:gsub("%s+", "")
-		local name, value = parseProperty(str)
-		if currentElement ~= nil then
+		if currentElement then
+			local name, value = parseProperty(str)
 			currentElement:addProperty(name, value)
 		else
 			utils.printErro("No element.")
 		end
 	end,
-	Context = (V"ContextId" *(V"Port"+V"ContextProperty"+ V"Media"+V"Context")^0*V"End"^-1),
+	Context = (V"ContextId" *(V"Port"+V"ContextProperty"+ V"Media"+V"Context"+V"Link")^0*V"End"^-1)
+	/function(str)
+	end,
 	------ CONTEXT ------
 
 	------ ACTION ------
@@ -189,23 +198,25 @@ snclGrammar = {
 	------ LINK ------
 	LinkCondition = (V"AlphaNumeric"^1 *V"OnlyEspace"^1* V"AlphaNumeric"^1* V"OnlyEspace"^0 *(P"and"+P"do")*V"OnlyEspace"^0 )
 	/function(str)
-		--print("LinkCondition: "..str)
 		parseLinkCondition(str)
 	end,
 	LinkDo = ( (V"LinkCondition")^1 *SPC^0) 
 	/function(str)
 	end,
-	LinkParam = (V"AlphaNumeric"^1 *V"OnlyEspace"^0* P"=" *V"OnlyEspace"^0* P"\""* V"AlphaNumericSpace"^-1 *P"\""* SPC^0)
+	Link = (V"LinkDo" *(V"Action")^0 *V"End"^-1)
 	/function(str)
-		parseLinkConditionParam(str)
-		--print("LinkParam: "..str)
 	end,
-	Link = (V"LinkDo" *(V"Action"+V"LinkParam")^0 *V"End"^-1),
 	------ LINK ------
 
+	------ MISC ------
 	Port = (P"port" *V"OnlyEspace"^1* V"AlphaNumeric"^1*V"OnlyEspace"^1* V"AlphaNumeric"^1*SPC^0)
 	/function(str)
 		parsePort(str)
+	end,
+	Refer = (P"refer" *V"OnlyEspace"^0* P"=" *V"OnlyEspace"^0* V"AlphaNumeric"^1 *SPC^0)
+	/function(str)
+		str = str:gsub("%s+", "")
+		parseRefer(str)
 	end,
 
 	-- START --

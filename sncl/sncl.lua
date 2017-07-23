@@ -19,7 +19,7 @@ require("sncl.model.area")
 
 require("sncl.model.link")
 require("sncl.model.action")
-
+require("sncl.model.condition")
 --Variaveis globais
 linhaParser = 1
 

@@ -21,17 +21,6 @@ function Action:getFather() return self.father end
 function Action:getEnd() return self.hasEnd end
 function Action:getType() return "action" end
 function Action:getAction() return self.action end
-function Action:hasParams()
-	local i = 0
-	for __, __ in pairs(self.params) do
-		i = i+1
-	end
-	if i == 0 then
-		return false
-	else
-		return true
-	end
-end
 
 function Action:setFather(father) self.father = father end
 function Action:setEnd (bool) self.hasEnd = bool end
@@ -42,6 +31,27 @@ function Action:toNCL(indent)
 		utils.printErro("Action does not have end.", self.linha)
 		return ""
 	end
+
+	if tabelaSimbolos[self.media] == nil then
+		utils.printErro("Media "..self.media.." not declared.", self.linha)
+		return ""
+	else
+		if self.interface then
+			if not tabelaSimbolos[self.media]:getSon(self.interface) then
+				utils.printErro("Media "..self.media.." does not have interface "..self.interface, self.linha)
+				return ""
+			end
+		end
+	end
+
+	if (tabelaSimbolos.body[self.media]:getFather() == nil and self.father:getFather() == nil) or 
+		tabelaSimbolos.body[self.media]:getFather():getId() == self.father:getFather():getId() then
+	else
+			utils.printErro("Media "..self.media.." and Link not in the same context.", self.linha)
+			return ""
+	end
+
+
 	local action = indent.."<bind role=\""..self.action.."\" component=\""..self.media.."\""
 	if self.interface then
 		action = action.." interface=\""..self.interface.."\""

@@ -9,6 +9,7 @@ function Media.new(id, linha)
 		hasEnd = false,
 		father = nil,
 		descriptor = nil,
+		refer = nil,
 		linha = linha,
 		properties = {},
 		sons = {}
@@ -18,13 +19,27 @@ function Media.new(id, linha)
 end
 
 --Getters
-function Media:getId() return self.id end
-function Media:getSource() return self.source end
-function Media:getRegion() return self.region end
-function Media:getDescriptor() return self.descriptor end
-function Media:getMediaType() return self.mediaType end
-function Media:getType() return "media" end
-function Media:getFather() return self.father end
+function Media:getId () return self.id end
+function Media:getSource () return self.source end
+function Media:getRegion () return self.region end
+function Media:getDescriptor () return self.descriptor end
+function Media:getMediaType () return self.mediaType end
+function Media:getType () return "media" end
+function Media:getFather () return self.father end
+function Media:getSons () return self.sons end
+function Media:getSon (son)
+	for pos, val in pairs(self.sons) do
+		if val:getId() == son then
+			return val
+		end
+	end
+	for pos, val in pairs(self.properties) do
+		if pos == son then
+			return pos
+		end
+	end
+	return false
+end
 
 --Setters
 function Media:setId (id) self.id = id end
@@ -36,6 +51,12 @@ end
 function Media:addProperty(name, value)
 	self.properties[name] = value
 end
+function Media:setRefer (media, interface)
+	self.refer = {
+		media = media,
+		interface = interface,
+	}
+end
 
 function Media:createDescriptor() 
 	if self.properties["rg"] ~= nil then
@@ -44,7 +65,7 @@ function Media:createDescriptor()
 			id = id.."Desc"
 			self.descriptor = id
 
-			--if tabelaSimbolos[id] == nil then
+			--if tabelaSimbolos.descriptors[id] == nil then
 				local newDesc = Descriptor.new(id)
 				newDesc:setRegion(self.properties["rg"])
 				tabelaSimbolos[id] = newDesc
@@ -71,13 +92,28 @@ function Media:toNCL(indent) --Fazer checagens aqui
 	if self.descriptor then
 		media = media.."descriptor=\""..self.descriptor.."\" "
 	end
+	if self.refer then
+		media = media.." refer = \""..self.refer.media.."\" instance = \""..self.refer.interface.."\""
+	end
 
+	local hasType, hasSource = false, false
 	for pos, val in pairs(self.properties) do
 		if utils.containsValue(mediaRestrictedProperties, pos) then
+			if pos == "src" then
+				hasSource = true
+			end
+			if pos == "type" then
+				hasType = true
+			end
 			if pos ~= "rg" then
 				media = media..pos.."="..val.." "
 			end
 		end
+	end
+
+	if not hasType and not hasSource then
+		utils.printErro("Media "..self.id.." must have a source or a type.", self.linha)
+		return ""
 	end
 
 	media = media..">"

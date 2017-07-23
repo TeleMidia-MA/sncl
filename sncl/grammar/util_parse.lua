@@ -25,6 +25,42 @@ function parseProperty (str)
 	end
 end
 
+function parseRefer (str)
+	if currentElement then
+		if (currentElement.getType() == "context" or 	currentElement.getType() == "media" or
+				currentElement.getType() == "switch") then
+			local sign = str:find("=")
+			if sign then
+				local value = str:sub(sign+1)
+				local ponto = value:find("%.")
+				local interface, media = nil, nil
+				if ponto then
+					interface = value:sub(ponto+1)
+					media =  value:sub(1, ponto-1)
+				end
+				currentElement:setRefer (media, interface)
+			end
+
+		else
+			utils.printErro("Refer only inside of Context, Switch or Media.", linhaParser)
+		end
+	else
+		utils.printErro("Refer can not be declared outside of an element.", linhaParser)
+	end
+end
+
+function separateByDot (str)
+	local dot = str:find("%.")
+	local beforeDot, afterDot = nil, nil
+	if dot then
+		beforeDot = str:sub(1,dot-1)
+		afterDot = str:sub(dot+1)
+		return beforeDot, afterDot
+	else
+		return str
+	end
+end
+
 function parseLinkCondition (str)
 	--Separar as palavras por espaco
 	local words = {}
@@ -33,65 +69,41 @@ function parseLinkCondition (str)
 	end
 
 	if #words == 3 then
-		local conditionString = words[1]
-		local mediaString = words[2]
+		local condition = words[1]
+		local media= words[2]
+		
+		local condition, conditionParam = separateByDot(condition)
+		local media, interface = separateByDot(media)
 
-		local param, interface = nil, nil
-
-		local arroba = mediaString:find("@")
-		if arroba then
-			param = mediaString:sub(arroba+1)
-			mediaString = mediaString:sub(1,arroba-1)
-		end
-		local barra = mediaString:find("%.")
-		if barra then
-			interface = mediaString:sub(barra+1)
-			mediaString = mediaString:sub(1, barra-1)
-		end
-		local conditionTable = {
-			condition = conditionString,
-			media = mediaString,
-			interface = interface,
-			param = param,
-		}
 		if currentElement ~= nil then
 			if currentElement:getType() == "link" then --Se for link, adicionar condicao
-				currentElement:addCondition(conditionTable)
+				local newCondition = Condition.new(condition, conditionParam, media, interface, linhaParser)
+				newCondition:setFather(currentElement)
+				currentElement:addCondition(newCondition)
+			elseif currentElement.getType() == "context" then
+				local newLink = Link.new(linhaParser)
+				newLink:setFather(currentElement)
+				currentElement:addSon(newLink)
+				currentElement = newLink
+				table.insert(tabelaSimbolos.body, newLink)
+
+				local newCondition = Condition.new(condition, conditionParam, media, interface, linhaParser)
+				newCondition:setFather(currentElement)
+				currentElement:addCondition(newCondition)
 			else
-				if currentElement:getType() == "context" then --Se for context, adcionar link
-					local newLink = Link.new(linhaParser)
-					newLink:setFather(currentElement)
-					currentElement = newLink
-					currentElement:addCondition(conditionTable)
-					table.insert(tabelaSimbolos.body, newLink)
-				end
+				utils.printErro("Link can only be declared inside of a Link.", linhaParser)
 			end
-		else --Se for nil, adicionar link
-			local newLink = Link.new(linhaParser)
-			currentElement = newLink
-			currentElement:addCondition(conditionTable)
-			table.insert(tabelaSimbolos.body, newLink)
-		end
-	else
-		utils.printErro("Link do not have 3 things.")
-	end
-end
-
-function parseLinkConditionParam (str)
-	str = str:gsub("%s+", "")
-	local sign = str:find("=")
-	local paramName = str:sub(1, sign-1)
-	local paramValue = str:sub(sign+1)
-	if currentElement ~= nil then
-		if currentElement:getType() == "link" then
-			currentElement:addLinkParam(paramName, paramValue)
 		else
-			utils.printErro("Param is not inside a link.", linhaParser)
-		end
-	else
-		utils.printErro("Param have to be inside a element.", linhaParser)
-	end
+			local newLink = Link.new(linhaParser)
+			newLink:setFather(currentElement)
+			currentElement = newLink
+			table.insert(tabelaSimbolos.body, newLink)
 
+			local newCondition = Condition.new(condition, conditionParam, media, interface, linhaParser)
+			newCondition:setFather(currentElement)
+			currentElement:addCondition(newCondition)
+		end
+	end
 end
 
 function parseLinkAction (str)
@@ -105,11 +117,16 @@ function parseLinkAction (str)
 
 	local barra = media:find("%.")
 
+	if barra then
+		interface = media:sub(barra+1)
+		media = media:sub(1, barra-1)
+	end
+
 	if currentElement ~= nil then
 		if currentElement:getType() == "link" then
 			local newAction = Action.new(action, media, interface, linhaParser)
 			newAction:setFather(currentElement)
-			newAction:getFather():addAction(newAction)
+			currentElement:addAction(newAction)
 			currentElement = newAction
 		else
 			utils.printErro("Action can only be declared inside of a link.", linhaParser)

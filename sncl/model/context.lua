@@ -8,6 +8,7 @@ function Context.new (id, linha)
 		id=id,
 		father = nil,
 		hasEnd = false,
+		refer = nil,
 		linha = linha,
 		sons = {},
 		properties={},
@@ -22,6 +23,21 @@ function Context:getType() return "context" end
 function Context:getFather() return self.father end
 function Context:getEnd() return self.hasEnd end
 function Context:getProperties() return self.properties end
+function Context:getSon (son)
+	for pos, val in pairs(self.sons) do
+		if val:getType() ~= "link" then
+			if val:getId() == son then
+				return val
+			end
+		end
+	end
+	for pos, val in pairs(self.properties) do
+		if pos == son then
+			return pos
+		end
+	end
+	return false
+end
 
 ------- Setters -------
 function Context:setId (id) self.id = id end
@@ -32,13 +48,21 @@ function Context:addProperty (name, value)
 	self.properties[name] = value
 end
 function Context:addPort(id, component, interface) end
+function Context:setRefer (media, interface)
+	self.refer = {
+		media = media,
+		interface = interface,
+	}
+end
+
 
 -- Gerador de NCL
 function Context:toNCL(indent)
 	if self.hasEnd == false then
-		utils.printErro("Context does not have end.", self.linha)
+		utils.printErro("Context "..self.id.." does not have end.", self.linha)
 		return ""
 	end
+
 	local newNCL = indent.."<context id=\""..self.id.."\">"
 
 	for pos,val in pairs(self.properties) do

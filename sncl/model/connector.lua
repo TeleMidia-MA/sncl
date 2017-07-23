@@ -6,8 +6,8 @@ Connector_mt.__index = Connector
 function Connector.new(id)
 	local connectorObject = {
 		id = id,
-		nConditions = 0,
-		nActions = 0,
+		numConditions = 0,
+		numActions = 0,
 		linkParams = {},
 		conditions = {},
 		actions = {},
@@ -16,17 +16,13 @@ function Connector.new(id)
 	return connectorObject
 end
 
+function Connector:setNumCondsAndActions (numConds, numActions)
+	self.numConds = numConds
+	self.numActions = numActions
+end
+
 function Connector:getId() return self.id end
 
-function Connector:setNConditions (n)
-	self.nConditions = n
-end
-function Connector:setNActions (n)
-	self.nActions = n
-end
-function Connector:addLinkParam (param)
-	--TO-DO
-end
 function Connector:addConditions (conditions)
 	self.conditions = conditions
 end
@@ -35,6 +31,63 @@ function Connector:addActions (actions)
 end
 
 function Connector:toNCL (indent)
+	local connector = indent.."<causalConnector id=\""..self.id.."\">"
+	print(self.id)
+
+	--Conditions
+	local newIndent = indent
+	if self.numConds > 1 then
+		newIndent = indent.."   "
+	end
+	local condString = ""
+	for pos, val in pairs(self.conditions) do
+		condString = condString..newIndent.."   <simpleCondition role=\""..pos.. "\" "
+		if pos == "onSelection" and val.param == true then
+			condString = condString.."key=\"$keyCode\""
+			connector = connector..indent.."   <connectorParam name=\"keyCode\" />"
+		end
+		if val.times > 1 then
+			condString = condString.." max=\"unbounded\" qualifier=\"or\""
+		end
+		condString = condString.."/>"
+	end
+	if self.numConds > 1 then
+		condString = indent.."   <compoundCondition operator=\"and\">"..condString..indent.."   </compoundCondition>"
+	end
+
+
+	--Actions
+	newIndent = indent
+	if self.numActions > 1 then
+		newIndent = indent.."   "
+	end
+	local actionString = ""
+	for pos, val in pairs(self.actions) do
+		actionString = actionString..newIndent.."   <simpleAction role=\""..pos.."\" "
+		if val.times > 1 then
+			actionString = actionString.." max=\"unbounded\" qualifier=\"par\""
+		end
+		for __, j in pairs(val.params) do
+				connector = connector..indent.."   <connectorParam name=\""..j.."\"/>"
+				if j == "delay" then
+					actionString = actionString.." delay=\"$delay\""
+				else
+					actionString = actionString.." value=\""..j.."\""
+				end
+		end
+		actionString = actionString.."/>"
+	end
+	if self.numActions > 1 then
+		actionString = indent.."   <compoundAction operator=\"seq\">"..actionString..indent.."   </compoundAction>"
+	end
+
+	connector = connector..condString..actionString
+	connector = connector..indent.."</causalConnector>"
+
+	return connector
+end
+
+function Connector:toNCLOld (indent)
 	local connector = indent.."<causalConnector id=\""..self.id.."\">"
 
 	-- Conditions
@@ -47,7 +100,14 @@ function Connector:toNCL (indent)
 		newIndent = indent
 	end
 	for pos, val in pairs(self.conditions) do
-		conditionsString = conditionsString..newIndent.."   <simpleCondition role=\""..pos.."\" />"
+		conditionsString = conditionsString..newIndent.."   <simpleCondition role=\""..pos.."\" "
+		if val.times > 1 then
+			conditionsString = conditionsString.. " max=\"unbounded qualifier=\"or\" "
+		end
+		if val.param then
+			conditionsString = conditionsString.." key=\"$conditionVar\""
+		end
+		conditionsString = conditionsString.."/>"
 	end
 	if self.nConditions > 1 then
 		conditionString = conditionString..indent.."   </compoundCondition>"
@@ -64,7 +124,7 @@ function Connector:toNCL (indent)
 	end
 	for pos, val in pairs(self.actions) do
 		for i, j in pairs(val.params) do
-			connector = connector..newIndent.."   <connectorParam name=\""..i.."\"/>"
+			connector = connector..indent.."   <connectorParam name=\""..i.."\"/>"
 		end
 		actionsString = actionsString..newIndent.."   <simpleAction role=\""..pos.."\""
 		if val.times > 1 then
@@ -82,6 +142,5 @@ function Connector:toNCL (indent)
 	connector = connector..conditionsString
 	connector = connector..actionsString
 	connector = connector..indent.."</causalConnector>"
-	print(connector)
 	return connector
 end

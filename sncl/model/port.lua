@@ -18,6 +18,12 @@ end
 function Port:getFather()
 	return self.father
 end
+function Port:getId()
+	return self.id
+end
+function Port.getType()
+	return "port"
+end
 
 function Port:toNCL(indent)
 	if tabelaSimbolos[self.media] == nil then

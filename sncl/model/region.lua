@@ -38,11 +38,12 @@ function Region:toNCL(indent)
 		utils.printErro("Region does not have end.", self.linha)
 		return ""
 	end
-	local newNCL = indent.."<region id=\""..self.id.."\">"
+	local newNCL = indent.."<region id=\""..self.id.."\" "
 
 	for pos,val in pairs(self.properties) do
-		newNCL = newNCL..indent.."   <property name=\""..pos.."\" value="..val.."/>"
+		newNCL = newNCL..pos.."="..val.." "
 	end
+	newNCL = newNCL..">"
 
 	for pos,val in pairs(self.sons) do
 		newNCL = newNCL..val:toNCL(indent.."   ")

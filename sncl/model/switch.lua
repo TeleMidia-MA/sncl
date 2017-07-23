@@ -3,16 +3,17 @@ Switch_mt = {}
 
 Switch_mt.__index = Switch
 
-function Switch.new()
+function Switch.new(id, linha)
 	local switchObject = {
-		id = nil,
-		refer = nil
+		id = id,
+		father = nil,
+		refer = nil,
 	}
 	setmetatable(switchObject, Switch_mt)
 	return switchObject
 end
 
 function Switch:toNCL()
-	local NCL = ""
-	return NCL
+	local switch = ""
+	return switch
 end
