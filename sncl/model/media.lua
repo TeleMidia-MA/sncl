@@ -27,6 +27,9 @@ function Media:getMediaType () return self.mediaType end
 function Media:getType () return "media" end
 function Media:getFather () return self.father end
 function Media:getSons () return self.sons end
+function Media:getRefer() 
+	return self.refer
+end
 function Media:getSon (son)
 	for pos, val in pairs(self.sons) do
 		if val:getId() == son then
@@ -111,7 +114,7 @@ function Media:toNCL(indent) --Fazer checagens aqui
 		end
 	end
 
-	if not hasType and not hasSource then
+	if (not (hasType or hasSource)) and self.refer == nil then
 		utils.printErro("Media "..self.id.." must have a source or a type.", self.linha)
 		return ""
 	end

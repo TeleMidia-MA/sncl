@@ -121,7 +121,6 @@ snclGrammar = {
 			utils.printErro("Id "..id.." already declared.")
 		end
 	end,
-
 	MediaRegion = (P"rg" *V"OnlyEspace"^0* P"=" *V"OnlyEspace"^0* V"AlphaNumeric"^1 *SPC^0)
 	/function(str)
 		str = str:gsub("%s+", "")

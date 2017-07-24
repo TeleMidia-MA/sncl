@@ -1,13 +1,11 @@
 function parseId (str)
 	local words = {}
-
 	for word in str:gmatch("%S+") do -- Separar as palavras por espaco
 		table.insert(words, word)
 	end
 
 	if #words == 2 then
-		local id = words[2]
-		return id
+		return words[2]
 	else
 		utils.printErro("Context nao pode ter mais de 2 Ids.")
 		return nil

@@ -3,10 +3,10 @@ Action_mt = {}
 
 Action_mt.__index = Action
 
-function Action.new(action, media, interface, linha)
+function Action.new(action, component, interface, linha)
 	local actionObject = {
 		action = action,
-		media = media,
+		component = component,
 		hasEnd = false,
 		father = nil,
 		interface = interface,
@@ -32,27 +32,37 @@ function Action:toNCL(indent)
 		return ""
 	end
 
-	if tabelaSimbolos[self.media] == nil then
-		utils.printErro("Media "..self.media.." not declared.", self.linha)
+	if tabelaSimbolos[self.component] == nil then
+		utils.printErro("Media "..self.component.." not declared.", self.linha)
 		return ""
 	else
 		if self.interface then
-			if not tabelaSimbolos[self.media]:getSon(self.interface) then
-				utils.printErro("Media "..self.media.." does not have interface "..self.interface, self.linha)
+			if tabelaSimbolos[self.component]:getRefer() ~= nil then
+				local refer = tabelaSimbolos[self.component]:getRefer()
+				local referredMedia = tabelaSimbolos[refer.media]
+				if referredMedia ~= nil then
+					if referredMedia:getSon(self.interface) == false and tabelaSimbolos[self.component]:getSon(self.interface) == false then
+						utils.printErro("Interface "..self.interface.." of Media "..self.component.." not declared.", self.linha)
+					end
+				else
+				utils.printerro("Media "..self.component.." not declared.", self.linha)
+				end
+			elseif not tabelaSimbolos[self.component]:getSon(self.interface) then
+				utils.printErro("Media "..self.component.." does not have interface "..self.interface, self.linha)
 				return ""
 			end
 		end
 	end
 
-	if (tabelaSimbolos.body[self.media]:getFather() == nil and self.father:getFather() == nil) or 
-		tabelaSimbolos.body[self.media]:getFather():getId() == self.father:getFather():getId() then
+	if (tabelaSimbolos.body[self.component]:getFather() == nil and self.father:getFather() == nil) or 
+		tabelaSimbolos.body[self.component]:getFather():getId() == self.father:getFather():getId() then
 	else
-			utils.printErro("Media "..self.media.." and Link not in the same context.", self.linha)
+			utils.printErro("Media "..self.component.." and Link not in the same context.", self.linha)
 			return ""
 	end
 
 
-	local action = indent.."<bind role=\""..self.action.."\" component=\""..self.media.."\""
+	local action = indent.."<bind role=\""..self.action.."\" component=\""..self.component.."\""
 	if self.interface then
 		action = action.." interface=\""..self.interface.."\""
 	end

@@ -23,6 +23,12 @@ function Context:getType() return "context" end
 function Context:getFather() return self.father end
 function Context:getEnd() return self.hasEnd end
 function Context:getProperties() return self.properties end
+function Context:getRefer()
+	return self.refer
+end
+function Context:getSons ()
+	return self.sons
+end
 function Context:getSon (son)
 	for pos, val in pairs(self.sons) do
 		if val:getType() ~= "link" then

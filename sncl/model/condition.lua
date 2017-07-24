@@ -3,11 +3,11 @@ Condition_mt = {}
 
 Condition_mt.__index = Condition
 
-function Condition.new(condition, conditionParam, media, interface, linha)
+function Condition.new(condition, conditionParam, component, interface, linha)
 	local conditionObject = {
 		condition = condition,
 		conditionParam = conditionParam,
-		media = media,
+		component = component,
 		interface = interface,
 		linha = linha,
 		father = nil,
@@ -23,7 +23,7 @@ function Condition:addParam (param)
 end
 
 function Condition:getMedia ()
-	return self.media
+	return self.component
 end
 function Condition:getLinha()
 	return self.linha
@@ -39,28 +39,38 @@ function Condition:getParam()
 end
 
 function Condition:toNCL (indent)
-	if tabelaSimbolos[self.media] == nil then
-		utils.printErro("Media "..self.media.." not declared.", self.linha)
+	if tabelaSimbolos[self.component] == nil then --Checar se mídia existe
+		utils.printErro("Media "..self.component.." not declared.", self.linha)
 		return ""
-	else
-		if self.interface then
-			if not tabelaSimbolos[self.media]:getSon(self.interface) then
-				utils.printErro("Media "..self.media.." does not have interface "..self.interface, self.linha)
+	else --Se tiver mídia
+		if self.interface then -- Se tiver interface
+			if tabelaSimbolos[self.component]:getRefer() ~= nil then
+				local refer = tabelaSimbolos[self.component]:getRefer()
+				local referredMedia = tabelaSimbolos[refer.media]
+				if referredMedia ~= nil then
+					if referredMedia:getSon(self.interface) == false and tabelaSimbolos[self.component]:getSon(self.interface) == false then
+						utils.printErro("Interface "..self.interface.." of Media "..self.component.." not declared.", self.linha)
+					end
+				else
+					utils.printerro("Media "..self.component.." not declared.", self.linha)
+				end
+			elseif not tabelaSimbolos[self.component]:getSon(self.interface) then --Se interface não 
+				utils.printErro("Interface "..self.interface.." of Media "..self.component.." not declared.", self.linha)
 				return ""
 			end
 		end
 	end
 
 
-	if (tabelaSimbolos.body[self.media]:getFather() == nil and self.father:getFather() == nil)
-		or tabelaSimbolos.body[self.media]:getFather():getId() == self.father:getFather():getId() then
+	if (tabelaSimbolos.body[self.component]:getFather() == nil and self.father:getFather() == nil)
+		or (tabelaSimbolos.body[self.component]:getFather():getId() == self.father:getFather():getId()) then
 	else
-			utils.printErro("Media "..self.media.." and Link not in the same context.", self.linha)
+			utils.printErro("Media "..self.component.." and Link not in the same context.", self.linha)
 			return ""
 	end
 
 
-	local condition = indent.."<bind role=\""..self.condition.."\" component=\""..self.media.."\" "
+	local condition = indent.."<bind role=\""..self.condition.."\" component=\""..self.component.."\" "
 	if self.interface then
 		condition = condition.." interface=\""..self.interface.."\""
 	end

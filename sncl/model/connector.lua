@@ -32,7 +32,6 @@ end
 
 function Connector:toNCL (indent)
 	local connector = indent.."<causalConnector id=\""..self.id.."\">"
-	print(self.id)
 
 	--Conditions
 	local newIndent = indent
