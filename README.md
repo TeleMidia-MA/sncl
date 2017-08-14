@@ -10,7 +10,7 @@ sNCL é uma DSL que facilita a autoria de aplicacões multimídia que compila pa
 ### Com o LuaRocks:
 
 ``` bash
-# luarocks install lpeg
+# luarocks install sncl
 $ sncl <arquivo.sncl>
 ```
 
