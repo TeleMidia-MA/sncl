@@ -30,60 +30,60 @@ tabelaSimbolos.connectors = {}
 tabelaSimbolos.body = {}
 
 function beginParse(entrada, saida) 
-	if utils.isValidSncl(entrada) == true then
-		local conteudoArquivoEntrada = utils.conteudoArquivo(entrada)
-		utils.parse(snclGrammar, conteudoArquivoEntrada)
-		local output = utils.printNCL()
-		if hasError == false then
-			arquivoSaida = nil
-			arquivoSaida = entrada:sub(1, entrada:len()-4)
-			arquivoSaida = arquivoSaida.."ncl"
-			arquivoSaida = io.open(arquivoSaida, "w")
-			if arquivoSaida ~= nil then
-				io.output(arquivoSaida)
-				io.write(output)
-				io.close(arquivoSaida)
-			else
-				utils.printErro("Can not create output file.")
-			end
-		else
-			utils.printErro("Input file has errors.")
-		end
-	else
-		utils.printErro("Invalid file extension.")
-	end
+   if utils.isValidSncl(entrada) == true then
+      local conteudoArquivoEntrada = utils.conteudoArquivo(entrada)
+      utils.parse(snclGrammar, conteudoArquivoEntrada)
+      local output = utils.printNCL()
+      if hasError == false then
+         arquivoSaida = nil
+         arquivoSaida = entrada:sub(1, entrada:len()-4)
+         arquivoSaida = arquivoSaida.."ncl"
+         arquivoSaida = io.open(arquivoSaida, "w")
+         if arquivoSaida ~= nil then
+            io.output(arquivoSaida)
+            io.write(output)
+            io.close(arquivoSaida)
+         else
+            utils.printErro("Erro ao criar arquivo de saída.")
+         end
+      else
+         utils.printErro("Arquivo de entrada possui erros.")
+      end
+   else
+      utils.printErro("Extensão do arquivo inválida.")
+   end
 end
 
 mediaProperties = {
-	'style', 'player', 'reusePlayer', 'playerLife', 'deviceClass', 'explicitDur',
-	'focusIndex', 'moveLeft', 'moveRight', 'moveUp', 'moveDown', 'top', 'bottom',
-	'left', 'right', 'width', 'height', 'location', 'size', 'bounds', 'background',
-	'rgbChromakey', 'visible', 'transparency', 'fit', 'scroll', 'zIndex', 'plan',
-	'focusBorderColor', 'selBorderColor', 'focusBorderWidth', 'focusBorderTransparency',
-	'focusSrc', 'focusSelSrc', 'freeze', 'contentId', 'standby', 'soundLevel',
-	'balanceLevel', 'trebleLevel', 'bassLevel', 'transIn', 'transOut', 'fontColor',
-	'fontFamily', 'textAlign', 'fontStyle', 'fontSize', 'fontVariant', 'fontWeight',
-	'system.language', 'system.caption', 'system.subtitle', 'system.returnBitRate',
-	'system.screenSize', 'system.screenGraphicSize', 'system.audioType', 'system.devNumber',
-	'system.classType', 'system.parentDeviceRegion', 'system.info', 'system.classNumber',
-	'system.CPU', 'system.memory', 'system.operationgSystem', 'system.luaVesion',
-	'system.ncl.version', 'system.gingaNCL.version', 'system.xyz', 'service.currentFocus',
-	'service.currentKeyMaster', 'service.xyz', 'service.interactivity', 'region'
+   'style', 'player', 'reusePlayer', 'playerLife', 'deviceClass', 'explicitDur',
+   'focusIndex', 'moveLeft', 'moveRight', 'moveUp', 'moveDown', 'top', 'bottom',
+   'left', 'right', 'width', 'height', 'location', 'size', 'bounds', 'background',
+   'rgbChromakey', 'visible', 'transparency', 'fit', 'scroll', 'zIndex', 'plan',
+   'focusBorderColor', 'selBorderColor', 'focusBorderWidth', 'focusBorderTransparency',
+   'focusSrc', 'focusSelSrc', 'freeze', 'contentId', 'standby', 'soundLevel',
+   'balanceLevel', 'trebleLevel', 'bassLevel', 'transIn', 'transOut', 'fontColor',
+   'fontFamily', 'textAlign', 'fontStyle', 'fontSize', 'fontVariant', 'fontWeight',
+   'system.language', 'system.caption', 'system.subtitle', 'system.returnBitRate',
+   'system.screenSize', 'system.screenGraphicSize', 'system.audioType', 'system.devNumber',
+   'system.classType', 'system.parentDeviceRegion', 'system.info', 'system.classNumber',
+   'system.CPU', 'system.memory', 'system.operationgSystem', 'system.luaVesion',
+   'system.ncl.version', 'system.gingaNCL.version', 'system.xyz', 'service.currentFocus',
+   'service.currentKeyMaster', 'service.xyz', 'service.interactivity', 'region'
 }
 
 mediaTypes = {
-	'text/html', 'text/css', 'text/xml', 'text/plain', 'image/bmp', 'image/png', 'image/gif',
-	'image/jpeg', 'audio/basic', 'audio/x-wav', 'audio/mpeg', 'audio/mpeg4', 'video/mpeg',
-	'video/mp4', 'video/x-mng', 'video-quicktime', 'video/x-msvideo', 'application/x-ginga-NCL',
-	'application/x-ncl-NCL', 'application/x-ginga-NCLUA', 'application/x-ncl-NCLUA', 'application/x-ginga-NCLet',
-	'application/x-ginga-settings', 'application/x-ncl-settings', 'application/x-ginga-time', 'application/x-ncl-time'
+   'text/html', 'text/css', 'text/xml', 'text/plain', 'image/bmp', 'image/png', 'image/gif',
+   'image/jpeg', 'audio/basic', 'audio/x-wav', 'audio/mpeg', 'audio/mpeg4', 'video/mpeg',
+   'video/mp4', 'video/x-mng', 'video-quicktime', 'video/x-msvideo', 'application/x-ginga-NCL',
+   'application/x-ncl-NCL', 'application/x-ginga-NCLUA', 'application/x-ncl-NCLUA', 'application/x-ginga-NCLet',
+   'application/x-ginga-settings', 'application/x-ncl-settings', 'application/x-ginga-time', 'application/x-ncl-time'
 }
 
 mediaRestrictedProperties = {
-	"src", "descriptor", "type", "rg",
+   "src", "descriptor", "type", "rg",
 }
 
 areaProperties = {
-	"begin","end","first","last","text","positon",
-	"coords","label","clip"
+   "begin","end","first","last","text","positon",
+   "coords","label","clip"
 }
