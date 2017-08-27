@@ -7,6 +7,8 @@ utils = require("sncl.utils.utils")
 require("sncl.grammar.grammar_parser")
 require("sncl.grammar.util_parse")
 
+require("sncl.model.macro")
+
 require("sncl.model.descriptor")
 require("sncl.model.connector")
 require("sncl.model.region")
@@ -28,6 +30,7 @@ tabelaSimbolos.regions = {}
 tabelaSimbolos.descriptors = {}
 tabelaSimbolos.connectors = {}
 tabelaSimbolos.body = {}
+tabelaSimbolos.macros = {}
 
 function beginParse(entrada, saida) 
    if utils.isValidSncl(entrada) == true then

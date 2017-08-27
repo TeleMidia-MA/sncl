@@ -44,65 +44,24 @@ snclGrammar = {
    ------ REGION ------
    RegionId = (P"region" *V"OnlyEspace"^1 *V"Id"^1 *SPC^0)
    /function(str)
-      local id = parseId(str)
-      if tabelaSimbolos[id] == nil then
-         local newRegion = Region.new(id)
-         tabelaSimbolos[id] = newRegion
-         tabelaSimbolos.regions[id] = tabelaSimbolos[id]
-         if currentElement ~= nil then
-            newRegion:setFather(currentElement)
-            currentElement:addSon(newRegion)
-            currentElement = newRegion
-         else
-            currentElement = newRegion
-         end
-      else
-         utils.printErro("Id "..id.." already declared.")
-      end
+      local newRegion = Region.new(linhaParser)
+      newElement(str, newRegion)
    end,
    Region = (V"RegionId" * (V"Region"+V"Property")^0 * V"End"^-1),
-   ------ REGION ------
 
    ------ AREA ------
    AreaId = (P"area" *V"OnlyEspace"^1* V"Id"^1 *SPC^0)
    /function(str)
-      local id = parseId(str)
-      if tabelaSimbolos[id] == nil then
-         local newArea = Area.new(id)
-         tabelaSimbolos[id] = newArea
-         tabelaSimbolos.body[id] = tabelaSimbolos[id]
-         if currentElement ~= nil then
-            newArea:setFather(currentElement)
-            currentElement:addSon(newArea)
-            currentElement = newArea
-         else
-            currentElement = newArea
-         end
-      else
-         utils.printErro("Id "..id.." already declared.")
-      end
+      local newArea = Area.new(linhaParser)
+      newElement(str, newArea)
    end,
    Area = (V"AreaId" * V"Property"^0 *V"End"^-1),
-   ------ AREA ------
 
    ------ MEDIA ------
    MediaId = (P"media" *V"OnlyEspace"^1* V"Id"^1 *SPC^0)
    /function(str)
-      local id = parseId(str)
-      if tabelaSimbolos[id] == nil then
-         local newMedia = Media.new(id)
-         tabelaSimbolos[id] = newMedia
-         tabelaSimbolos.body[id] = tabelaSimbolos[id]
-         if currentElement ~= nil then
-            newMedia:setFather(currentElement)
-            currentElement:addSon(newMedia)
-            currentElement = newMedia
-         else
-            currentElement = newMedia
-         end
-      else
-         utils.printErro("Id "..id.." already declared.")
-      end
+      local newMedia = Media.new(linhaParser)
+      newElement(str, newMedia)
    end,
    MediaRegion = (P"rg" *V"OnlyEspace"^0* P":" *V"OnlyEspace"^0* V"AlphaNumeric"^1 *SPC^0)
    /function(str)
@@ -114,9 +73,29 @@ snclGrammar = {
          utils.printErro("No element")
       end
    end,
+   Media = (V"MediaId" * (V"MacroRefer"+V"Area"+V"Refer"+V"MediaRegion"+V"Property")^0 * V"End"^-1),
+   MacroRefer = (P"*" * V"AlphaNumericSymbols"^1 * SPC^0)
+   /function(str)
+      macroRefer(str)
+   end,
 
-   Media = (V"MediaId" * (V"Area"+V"Refer"+V"MediaRegion"+V"Property")^0 * V"End"^-1),
-   ------ MEDIA ------
+   ------ MACRO ------
+   MacroId = (P"macro" * V"OnlyEspace"^1 * V"Id"^1 * SPC^0)
+   /function(str)
+      local id = parseId(str)
+      if tabelaSimbolos[id] == nil then
+         local newMacro = Macro.new(id)
+         tabelaSimbolos[id] = newMacro
+         tabelaSimbolos.macros[id] = tabelaSimbolos[id]
+         if currentElement ~= nil then
+         else
+            currentElement = newMacro
+         end
+      else
+         utils.printErro("Id "..id.." já declarado.", linhaParser)
+      end
+   end,
+   Macro = (V"MacroId" *(V"Property")^0*V"End"^-1),
 
    ------ CONTEXT ------
    ContextId = (P"context"*V"OnlyEspace"^1*V"Id"^1*SPC^0)
@@ -138,7 +117,7 @@ snclGrammar = {
             currentElement = newContext
          end
       else
-         utils.printErro("Id "..id.." já declarado.")
+         utils.printErro("Id "..id.." já declarado.", linhaParser)
       end
    end,
    ContextProperty = (V"AlphaNumeric"^1*V"OnlyEspace"^0*P":"*V"OnlyEspace"^0*V"String"*SPC^0)
@@ -152,7 +131,6 @@ snclGrammar = {
       end
    end,
    Context = (V"ContextId" *(V"Port"+V"ContextProperty"+ V"Media"+V"Context"+V"Link"+V"Refer")^0*V"End"^-1),
-   ------ CONTEXT ------
 
    ------ LINK ------
    Condition = (V"AlphaNumericSymbols"^1 *V"OnlyEspace"^1* V"AlphaNumericSymbols"^1* V"OnlyEspace"^0 *(P"and"+P"do")*V"OnlyEspace"^0)
@@ -160,7 +138,7 @@ snclGrammar = {
       parseLinkCondition(str)
    end,
    Link = (V"Condition"^1 *SPC^0* (V"Action")^0 *V"End"^-1),
-   ------ LINK ------
+
    ------ ACTION ------
    ActionMedia = (V"AlphaNumeric"^1 *V"OnlyEspace"^1* V"AlphaNumericSymbols"^1 *SPC^1)
    /function(str)
@@ -171,7 +149,6 @@ snclGrammar = {
       parseLinkActionParam(str)
    end,
    Action = ( V"ActionMedia"*V"ActionParam"^0 *V"End"^-1),
-   ------ ACTION ------
 
    ------ MISC ------
    Property = (V"AlphaNumericSymbols"^1 *V"OnlyEspace"^0* P":" *V"OnlyEspace"^0*V"String"*SPC^0)
@@ -181,7 +158,7 @@ snclGrammar = {
       if currentElement ~= nil then
          currentElement:addProperty(name, value)
       else
-         utils.printErro("Propriedade somente pode ser declarada dentro de um elemento.")
+         utils.printErro("Propriedade so podem ser declaradas dentro de algum elemento.", linhaParser)
       end
    end,
    Port = (P"port" *V"OnlyEspace"^1* V"AlphaNumeric"^1*V"OnlyEspace"^1* V"AlphaNumeric"^1*SPC^0)
@@ -195,5 +172,5 @@ snclGrammar = {
    end,
 
    -- START --
-   INICIAL = SPC^0 * (V"Port"+V"Region"+V"Media"+V"Context"+V"Link")^0,
+   INICIAL = SPC^0 * (V"Macro"+V"Port"+V"Region"+V"Media"+V"Context"+V"Link")^0,
 }

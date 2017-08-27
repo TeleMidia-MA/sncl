@@ -171,7 +171,7 @@ function parsePort (str)
          newPort = Port.new(id, media, interface, currentElement, linhaParser)
          currentElement:addSon(newPort)
       else
-         utils.printErro("Element can not have a port.")
+         utils.printErro("Element não pode ter porta.")
       end
    else
       newPort = Port.new(id, media, nil)
@@ -183,3 +183,30 @@ function parsePort (str)
    end
 end
 
+function macroRefer (str)
+   str = str:gsub("*", "", 1)
+   str = str:gsub("%s+", "")
+   if tabelaSimbolos.macros[str] then --Se a macro existe
+      for pos, val in pairs(tabelaSimbolos.macros[str].properties) do
+         currentElement.properties[pos] = val
+      end
+   else
+      utils.printErro("Macro "..str.." não declarada.")
+   end
+end
+
+function newElement (str, element)
+   local id = parseId(str)
+   if tabelaSimbolos[id] == nil then
+      element:setId(id)
+      if currentElement ~= nil then
+         element:setFather(currentElement)
+         currentElement:addSon(element)
+         currentElement = element
+      else
+         currentElement = element
+      end
+   else
+      utils.printErro("Id "..id.." já declarado.")
+   end
+end

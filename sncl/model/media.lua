@@ -3,9 +3,9 @@ Media_mt = {}
 
 Media_mt.__index = Media
 
-function Media.new(id, linha)
+function Media.new(linha)
    local mediaObject = {
-      id = id, 
+      id = nil,
       hasEnd = false,
       father = nil,
       descriptor = nil,
@@ -20,16 +20,12 @@ end
 
 --Getters
 function Media:getId () return self.id end
-function Media:getSource () return self.source end
-function Media:getRegion () return self.region end
 function Media:getDescriptor () return self.descriptor end
 function Media:getMediaType () return self.mediaType end
 function Media:getType () return "media" end
 function Media:getFather () return self.father end
 function Media:getSons () return self.sons end
-function Media:getRefer() 
-   return self.refer
-end
+function Media:getRefer() return self.refer end
 function Media:getSon (son)
    for pos, val in pairs(self.sons) do
       if val:getId() == son then
@@ -45,7 +41,11 @@ function Media:getSon (son)
 end
 
 --Setters
-function Media:setId (id) self.id = id end
+function Media:setId (id) 
+   self.id = id 
+   tabelaSimbolos[id] = self
+   tabelaSimbolos.body[id] = tabelaSimbolos[id]
+end
 function Media:setFather(father) self.father = father end
 function Media:setEnd(bool) self.hasEnd = bool end
 function Media:addSon (son)
@@ -95,25 +95,22 @@ function Media:toNCL(indent) --Fazer checagens aqui
       media = media.."descriptor=\""..self.descriptor.."\" "
    end
    if self.refer then
-      media = media.." refer = \""..self.refer.media.."\" instance = \"instSame\""
+      media = media.." refer=\""..self.refer.media.."\" instance=\"instSame\""
    end
 
    local hasType, hasSource = nil, nil
    for pos, val in pairs(self.properties) do
-      if utils.containsValue(mediaRestrictedProperties, pos) then
-         if pos == "src" then
-            hasSource = true
-         end
-         if pos == "type" then
-            hasType = true
-         end
-         if pos ~= "rg" then
-            media = media..pos.."="..val.." "
-         end
+      if pos == "src" then
+         media = media.."src="..val.." "
+         hasSource = true
+      end
+      if pos == "type" then
+         media = media.."type="..val.." "
+         hasType = true
       end
    end
 
-   if not (hasType == nil or hasSource == nil or self.refer == nil) then
+   if not (hasType ~= nil or hasSource ~= nil or self.refer ~= nil) then
       utils.printErro("Media "..self.id.." deve ter source ou type.", self.linha)
       return ""
    end
@@ -121,7 +118,7 @@ function Media:toNCL(indent) --Fazer checagens aqui
    media = media..">"
 
    for pos,val in pairs(self.properties) do
-      if (pos ~= "src" and pos ~= "type") then
+      if (pos ~= "src" and pos ~= "type" and pos ~= "rg") then
          media = media..indent.."   <property name=\""..pos
          if val then
             media = media.."\" value="..val
