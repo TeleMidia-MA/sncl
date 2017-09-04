@@ -42,7 +42,7 @@ snclGrammar = {
       end
    end,
    ------ PORT ------
-   Port = (P"port" *V"OnlyEspace"^1* V"AlphaNumeric"^1*V"OnlyEspace"^1* V"AlphaNumeric"^1*SPC^0)
+   Port = (P"port" *V"OnlyEspace"^1* V"AlphaNumeric"^1*P" "^1* V"AlphaNumeric"^1*SPC^0)
    /function(str)
       parsePort(str)
    end,
