@@ -24,7 +24,7 @@ snclGrammar = {
    AlphaNumericSymbols = (V"Alpha"+V"Inteiro"+V"Symbols"),
    AlphaNumericSpace = (V"Alpha"+V"Inteiro"+SPC)^1,
    AlphaNumericSymbolsSpace = (V"Alpha"+V"Inteiro"+V"Symbols"+V"OnlyEspace")^1,
-   ParamCharacters = (V"Alpha"+V"Inteiro"+V"OnlyEspace"+P","+P"\""+P"%"),
+   ParamCharacters = (V"Alpha"+V"Inteiro"+P"\""+P"%"),
    Id = (V"Alpha"+V"Inteiro"+P"_"),
    String = (P"\""*V"AlphaNumericSymbolsSpace"^-1*P"\""),
 
@@ -68,15 +68,18 @@ snclGrammar = {
       local newMedia = Media.new(linhaParser)
       newElement(str, newMedia)
    end,
-   MacroRefer = (P"*" * V"AlphaNumericSymbols"^1 *V"OnlyEspace"^0* V"MacroParams" *SPC^0)
+
+   MacroParams2 = (V"ParamCharacters"^1*P" "^0* (P","*P" "^0*V"ParamCharacters"^1*P" "^0)^0),
+   MacroRefer = (P"*" * V"AlphaNumericSymbols"^1 *P" "^0*P"("*P" "^0*V"MacroParams2"^-1*P" "^0*P")" *SPC^0)
    /function(str)
       parseMacroRefer(str)
    end,
    Media = (V"MediaId" * (V"MacroRefer"+V"Area"+V"Refer"+V"Property")^0 * V"End"^-1),
 
    ------ MACRO ------
-   MacroParams = (P"(" *V"ParamCharacters"^0* P")"),
-   MacroId = (P"macro" *V"OnlyEspace"^1* V"Id"^1 *V"OnlyEspace"^0* V"MacroParams"*SPC^0)
+   MacroParams = (V"AlphaNumeric"^1*P" "^0* (P","*P" "^0*V"AlphaNumeric"^1*P" "^0)^0),
+
+   MacroId = (P"macro" *V"OnlyEspace"^1* V"Id"^1 *P" "^0*P"("*P" "^0*V"MacroParams"^-1*P" "^0*P")" *SPC^0)
    /function(str)
       local id, params = parseIdMacro(str)
       if id == nil then
@@ -96,10 +99,7 @@ snclGrammar = {
          utils.printErro("Id "..id.." já declarado.", linhaParser)
       end
    end,
-   Macro = (V"MacroId" *(V"Property")^0*V"End"^-1)
-   /function(str)
-      --print("MACRO: "..str)
-   end,
+   Macro = (V"MacroId" *(V"Property")^0*V"End"^-1),
 
    ------ CONTEXT ------
    ContextId = (P"context"*V"OnlyEspace"^1*V"Id"^1*SPC^0)

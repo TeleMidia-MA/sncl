@@ -15,10 +15,12 @@ end
 function parseIdMacro (str)
    local paramString = string.match(str,"%(.*%)")
    local id = parseId(str:gsub("%(.*%)", ""))
+   --paramString = paramString:gsub("%s+", "")
 
    local paramsTable = {}
    local count = 1
    for w in string.gmatch(paramString, "%w+") do
+      print(w)
       paramsTable[w] = count
       count = count+1
    end
