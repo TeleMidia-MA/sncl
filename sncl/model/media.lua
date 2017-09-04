@@ -48,9 +48,7 @@ function Media:setId (id)
 end
 function Media:setFather(father) self.father = father end
 function Media:setEnd(bool) self.hasEnd = bool end
-function Media:addSon (son)
-   table.insert(self.sons, son)
-end
+function Media:addSon (son) table.insert(self.sons, son) end
 function Media:addProperty(name, value)
    self.properties[name] = value
 end

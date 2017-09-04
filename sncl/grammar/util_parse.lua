@@ -7,9 +7,22 @@ function parseId (str)
    if #words == 2 then
       return words[2]
    else
-      utils.printErro("Context nao pode ter mais de 2 Ids.")
+      utils.printErro("Elemento nao pode ter mais de 2 Ids.", linhaParser)
       return nil
    end
+end
+
+function parseIdMacro (str)
+   local paramString = string.match(str,"%(.*%)")
+   local id = parseId(str:gsub("%(.*%)", ""))
+
+   local paramsTable = {}
+   local count = 1
+   for w in string.gmatch(paramString, "%w+") do
+      paramsTable[w] = count
+      count = count+1
+   end
+   return id, paramsTable
 end
 
 function parseProperty (str)
@@ -183,15 +196,40 @@ function parsePort (str)
    end
 end
 
-function macroRefer (str)
+function parseMacroRefer (str)
    str = str:gsub("*", "", 1)
    str = str:gsub("%s+", "")
-   if tabelaSimbolos.macros[str] then --Se a macro existe
-      for pos, val in pairs(tabelaSimbolos.macros[str].properties) do
-         currentElement.properties[pos] = val
+
+   local paramString = string.match(str,"%(.*%)")
+   local idMacro = str:gsub("%(.*%)", "")
+
+   if tabelaSimbolos.macros[idMacro] then --Se a macro existe
+      local macro = tabelaSimbolos.macros[idMacro]
+
+
+      paramString = paramString:gsub("%s+", "")
+      local paramsTable = {} -- Separar Parametros
+      for w in string.gmatch(paramString, "[^%,%(%)]*") do
+         if w ~= "" then
+            table.insert(paramsTable, w)
+         end
       end
+
+      local count = 1
+      for pos, val in pairs(macro.properties) do
+         if macro.params[val] then
+            if paramsTable[macro.params[val]] then
+               currentElement.properties[pos] = paramsTable[macro.params[val]]
+            else
+               --currentElement.properties[pos] = "\"default\""
+            end
+         else
+            currentElement.properties[pos] = val
+         end
+      end
+
    else
-      utils.printErro("Macro "..str.." não declarada.")
+      utils.printErro("Macro "..idMacro.." não declarada.")
    end
 end
 

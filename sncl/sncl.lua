@@ -35,7 +35,15 @@ tabelaSimbolos.macros = {}
 function beginParse(entrada, saida) 
    if utils.isValidSncl(entrada) == true then
       local conteudoArquivoEntrada = utils.conteudoArquivo(entrada)
+      local nLinhas = 0
+      for _ in io.lines(entrada) do
+         nLinhas = nLinhas+1
+      end
       utils.parse(snclGrammar, conteudoArquivoEntrada)
+      if linhaParser < nLinhas then
+         utils.printErro("Erro na linha "..linhaParser)
+         return
+      end
       local output = utils.printNCL()
       if hasError == false then
          arquivoSaida = nil

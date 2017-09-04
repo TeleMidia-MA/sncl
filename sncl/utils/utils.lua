@@ -43,7 +43,6 @@ function utilsTable.printAviso(string, linha)
 end
 
 function utilsTable.printNCL()
-   print("LINHA PARSER: "..linhaParser)
    local indent = "\n   "
    local NCL = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>"
    NCL = NCL.."\n<ncl id=\"main\" xmlns=\"http://www.ncl.org.br/NCL3.0/EDTVProfile\">"

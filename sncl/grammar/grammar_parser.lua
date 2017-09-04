@@ -23,7 +23,8 @@ snclGrammar = {
    AlphaNumeric = (V"Alpha"+V"Inteiro"),
    AlphaNumericSymbols = (V"Alpha"+V"Inteiro"+V"Symbols"),
    AlphaNumericSpace = (V"Alpha"+V"Inteiro"+SPC)^1,
-   AlphaNumericSymbolsSpace = (V"Alpha"+V"Inteiro"+V"Symbols"+SPC)^1,
+   AlphaNumericSymbolsSpace = (V"Alpha"+V"Inteiro"+V"Symbols"+V"OnlyEspace")^1,
+   ParamCharacters = (V"Alpha"+V"Inteiro"+V"OnlyEspace"+P","+P"\""+P"%"),
    Id = (V"Alpha"+V"Inteiro"+P"_"),
    String = (P"\""*V"AlphaNumericSymbolsSpace"^-1*P"\""),
 
@@ -37,10 +38,14 @@ snclGrammar = {
             currentElement = currentElement:getFather()
          end
       else
-         utils.printErro("No element to end.", linhaParser-1)
+         utils.printErro("End sem elemento.", linhaParser-1)
       end
    end,
-
+   ------ PORT ------
+   Port = (P"port" *V"OnlyEspace"^1* V"AlphaNumeric"^1*V"OnlyEspace"^1* V"AlphaNumeric"^1*SPC^0)
+   /function(str)
+      parsePort(str)
+   end,
    ------ REGION ------
    RegionId = (P"region" *V"OnlyEspace"^1 *V"Id"^1 *SPC^0)
    /function(str)
@@ -63,28 +68,24 @@ snclGrammar = {
       local newMedia = Media.new(linhaParser)
       newElement(str, newMedia)
    end,
-   MediaRegion = (P"rg" *V"OnlyEspace"^0* P":" *V"OnlyEspace"^0* V"AlphaNumeric"^1 *SPC^0)
+   MacroRefer = (P"*" * V"AlphaNumericSymbols"^1 *V"OnlyEspace"^0* V"MacroParams" *SPC^0)
    /function(str)
-      str = str:gsub("%s+", "")
-      local name, value = parseProperty(str)
-      if currentElement ~= nil then
-         currentElement:addProperty(name, value)
-      else
-         utils.printErro("No element")
-      end
+      parseMacroRefer(str)
    end,
-   Media = (V"MediaId" * (V"MacroRefer"+V"Area"+V"Refer"+V"MediaRegion"+V"Property")^0 * V"End"^-1),
-   MacroRefer = (P"*" * V"AlphaNumericSymbols"^1 * SPC^0)
-   /function(str)
-      macroRefer(str)
-   end,
+   Media = (V"MediaId" * (V"MacroRefer"+V"Area"+V"Refer"+V"Property")^0 * V"End"^-1),
 
    ------ MACRO ------
-   MacroId = (P"macro" * V"OnlyEspace"^1 * V"Id"^1 * SPC^0)
+   MacroParams = (P"(" *V"ParamCharacters"^0* P")"),
+   MacroId = (P"macro" *V"OnlyEspace"^1* V"Id"^1 *V"OnlyEspace"^0* V"MacroParams"*SPC^0)
    /function(str)
-      local id = parseId(str)
+      local id, params = parseIdMacro(str)
+      if id == nil then
+         utils.printErro("Id Invalido.", linhaParser)
+         return
+      end
       if tabelaSimbolos[id] == nil then
          local newMacro = Macro.new(id)
+         newMacro:setParams(params)
          tabelaSimbolos[id] = newMacro
          tabelaSimbolos.macros[id] = tabelaSimbolos[id]
          if currentElement ~= nil then
@@ -95,7 +96,10 @@ snclGrammar = {
          utils.printErro("Id "..id.." já declarado.", linhaParser)
       end
    end,
-   Macro = (V"MacroId" *(V"Property")^0*V"End"^-1),
+   Macro = (V"MacroId" *(V"Property")^0*V"End"^-1)
+   /function(str)
+      --print("MACRO: "..str)
+   end,
 
    ------ CONTEXT ------
    ContextId = (P"context"*V"OnlyEspace"^1*V"Id"^1*SPC^0)
@@ -151,7 +155,7 @@ snclGrammar = {
    Action = ( V"ActionMedia"*V"ActionParam"^0 *V"End"^-1),
 
    ------ MISC ------
-   Property = (V"AlphaNumericSymbols"^1 *V"OnlyEspace"^0* P":" *V"OnlyEspace"^0*V"String"*SPC^0)
+   Property= (V"AlphaNumericSymbols"^1 *V"OnlyEspace"^0* P":" *V"OnlyEspace"^0* (V"String"+V"AlphaNumeric"^1) *SPC^0)
    /function(str)
       str = str:gsub("%s+", "")
       local name, value = parseProperty(str)
@@ -160,10 +164,6 @@ snclGrammar = {
       else
          utils.printErro("Propriedade so podem ser declaradas dentro de algum elemento.", linhaParser)
       end
-   end,
-   Port = (P"port" *V"OnlyEspace"^1* V"AlphaNumeric"^1*V"OnlyEspace"^1* V"AlphaNumeric"^1*SPC^0)
-   /function(str)
-      parsePort(str)
    end,
    Refer = (P"refer" *V"OnlyEspace"^0* P":" *V"OnlyEspace"^0* V"AlphaNumeric"^1 *SPC^0)
    /function(str)
