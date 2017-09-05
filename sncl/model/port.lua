@@ -4,33 +4,33 @@ Port_mt = {}
 Port.__index = Port
 
 function Port.new (id, media, interface, father, linha)
-	local portObject = {
-		id = id,
-		father = father,
-		media = media,
-		interface = interface,
-		linha = linha,
-	}
-	setmetatable(portObject, Port)
-	return portObject
+   local portObject = {
+      id = id,
+      father = father,
+      media = media,
+      interface = interface,
+      linha = linha,
+   }
+   setmetatable(portObject, Port)
+   return portObject
 end
 
 function Port:getFather()
-	return self.father
+   return self.father
 end
 function Port:getId()
-	return self.id
+   return self.id
 end
 function Port.getType()
-	return "port"
+   return "port"
 end
 
 function Port:toNCL(indent)
-	if tabelaSimbolos[self.media] == nil then
-		utils.printErro("No element "..self.media)
-	end
+   if tabelaSimbolos[self.media] == nil then
+      utils.printErro("No element "..self.media)
+   end
 
-	local port = indent.."<port id=\""..self.id.."\" component=\""..self.media.."\" />"
+   local port = indent.."<port id=\""..self.id.."\" component=\""..self.media.."\" />"
 
-	return port
+   return port
 end

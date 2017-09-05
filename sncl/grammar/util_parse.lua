@@ -93,18 +93,28 @@ function parseLinkCondition (str)
             local newCondition = Condition.new(condition, conditionParam, media, interface, linhaParser)
             newCondition:setFather(currentElement)
             currentElement:addCondition(newCondition)
+
          elseif currentElement.getType() == "context" then
             local newLink = Link.new(linhaParser)
             newLink:setFather(currentElement)
             currentElement:addSon(newLink)
             currentElement = newLink
             table.insert(tabelaSimbolos.body, newLink)
-
             local newCondition = Condition.new(condition, conditionParam, media, interface, linhaParser)
             newCondition:setFather(currentElement)
             currentElement:addCondition(newCondition)
+
+         elseif currentElement.getType() == "macro" then
+            --To-Do
+            local newLink = Link.new()
+            currentElement:addSon(newLink)
+            local newCondition = Condition.new(condition, conditionParam, media, interface)
+            newCondition:setFather(newLink)
+            newLink:addCondition(newCondition)
+            currentElement = newLink
+
          else
-            utils.printErro("Link can only be declared inside of a Link.", linhaParser)
+            utils.printErro("Condição declarada em lugar errado.", linhaParser)
          end
       else
          local newLink = Link.new(linhaParser)
@@ -142,10 +152,10 @@ function parseLinkAction (str)
          currentElement:addAction(newAction)
          currentElement = newAction
       else
-         utils.printErro("Action can only be declared inside of a link.", linhaParser)
+         utils.printErro("Action somente pode ser declarada dentro de um link.", linhaParser)
       end
    else
-      utils.printErro("Action can not be declared outside of a link", linhaParser)
+      utils.printErro("Action somente pode ser declarada dentro de um link.", linhaParser)
    end
 end
 
@@ -159,10 +169,10 @@ function parseLinkActionParam (str)
       if currentElement:getType() == "action" then
          currentElement:addParam(paramName, paramValue)
       else
-         utils.printErro("Action parameter is not inside an action.")
+         utils.printErro("Parametro somente dentro de uma action.")
       end
    else
-      utils.printErro("Action parameter can only be declared inside of an action")
+      utils.printErro("Parametro somente dentro de uma action.")
    end
 end
 
@@ -185,7 +195,7 @@ function parsePort (str)
          newPort = Port.new(id, media, interface, currentElement, linhaParser)
          currentElement:addSon(newPort)
       else
-         utils.printErro("Element não pode ter porta.")
+         utils.printErro("Elemento não pode ter porta.")
       end
    else
       newPort = Port.new(id, media, nil)
@@ -204,7 +214,7 @@ function parseMacroRefer (str)
    local paramString = string.match(str,"%(.*%)")
    local idMacro = str:gsub("%(.*%)", "")
 
-   if tabelaSimbolos.macros[idMacro] then --Se a macro existe
+   if tabelaSimbolos.macros[idMacro] then --Se a macro foi declarada
       local macro = tabelaSimbolos.macros[idMacro]
 
       paramString = paramString:gsub("%s+", "")
@@ -215,9 +225,34 @@ function parseMacroRefer (str)
          end
       end
 
-      for pos, val in pairs(macro.sons) do
-         print(pos)
-         print(val:getId())
+      for _, son in pairs(macro.sons) do --Copiando filhos
+         local newSon = utils.newElementTable[son:getType()]
+         if newSon.getType() ~= "link" then
+            for pos, val in pairs(val.properties) do
+               if macro.params[val] then
+                  newSon:addProperty(pos, paramsTable[macro.params[val]])
+               else
+                  newSon:addProperty(pos, val)
+               end
+            end
+            if macro.params[val:getId()] then --Se o Id é parametro
+               newSon:setId(paramsTable[macro.params[val:getId()]]:gsub("\"","") )
+               newSon:setEnd(true)
+            end
+            currentElement:addSon(newSon)
+            newSon:setFather(currentElement)
+         else
+            --print(son:toNCL(""))
+
+            for _, b in pairs(son.conditions) do
+               print(b.condition)
+            end
+
+            for _, d in pairs(son.actions) do
+               print(d.action)
+            end
+
+         end
       end
 
       local count = 1 -- Copiando propriedades

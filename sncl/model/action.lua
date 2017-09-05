@@ -28,7 +28,7 @@ function Action:addParam (name, value) self.params[name] = value end
 
 function Action:toNCL(indent)
    if self.hasEnd == false then
-      utils.printErro("Action não possui end.", self.linha)
+      utils.printErro("Elemento Action não possui end.", self.linha)
       return ""
    end
 

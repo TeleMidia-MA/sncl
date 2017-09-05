@@ -18,6 +18,7 @@ end
 
 function Macro:getId() return self.id end
 function Macro:getFather() return self.father end
+function Macro:getType() return "macro" end
 
 function Macro:setEnd(bool) self.hasEnd = bool end
 function Macro:setParams(params) self.params = params end

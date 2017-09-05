@@ -116,6 +116,14 @@ function utilsTable.containsValue(table, value)
    return false
 end
 
+utilsTable.newElementTable = {
+   ["media"] = Media.new(),
+   ["context"] = Context.new(),
+   ["area"] = Area.new(),
+   ["link"] = Link.new(),
+   ["port"] = Port.new(),
+}
+
 return utilsTable
 
 

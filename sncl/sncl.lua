@@ -2,11 +2,6 @@ lpeg = require("lpeg")
 argparse = require("argparse")
 ansicolors = require("ansicolors")
 
-utils = require("sncl.utils.utils")
-
-require("sncl.grammar.grammar_parser")
-require("sncl.grammar.util_parse")
-
 require("sncl.model.macro")
 
 require("sncl.model.descriptor")
@@ -22,6 +17,11 @@ require("sncl.model.area")
 require("sncl.model.link")
 require("sncl.model.action")
 require("sncl.model.condition")
+utils = require("sncl.utils.utils")
+
+require("sncl.grammar.grammar_parser")
+require("sncl.grammar.util_parse")
+
 --Variaveis globais
 linhaParser = 1
 
