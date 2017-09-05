@@ -20,7 +20,6 @@ function parseIdMacro (str)
    local paramsTable = {}
    local count = 1
    for w in string.gmatch(paramString, "%w+") do
-      print(w)
       paramsTable[w] = count
       count = count+1
    end
@@ -208,7 +207,6 @@ function parseMacroRefer (str)
    if tabelaSimbolos.macros[idMacro] then --Se a macro existe
       local macro = tabelaSimbolos.macros[idMacro]
 
-
       paramString = paramString:gsub("%s+", "")
       local paramsTable = {} -- Separar Parametros
       for w in string.gmatch(paramString, "[^%,%(%)]*") do
@@ -217,7 +215,12 @@ function parseMacroRefer (str)
          end
       end
 
-      local count = 1
+      for pos, val in pairs(macro.sons) do
+         print(pos)
+         print(val:getId())
+      end
+
+      local count = 1 -- Copiando propriedades
       for pos, val in pairs(macro.properties) do
          if macro.params[val] then
             if paramsTable[macro.params[val]] then

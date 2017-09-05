@@ -22,7 +22,6 @@ function Macro:getFather() return self.father end
 function Macro:setEnd(bool) self.hasEnd = bool end
 function Macro:setParams(params) self.params = params end
 
-function Macro:addProperty(name, value)
-   self.properties[name] = value
-end
+function Macro:addProperty(name, value) self.properties[name] = value end
+function Macro:addSon(son) table.insert(self.sons, son) end
 

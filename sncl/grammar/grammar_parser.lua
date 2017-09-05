@@ -24,7 +24,7 @@ snclGrammar = {
    AlphaNumericSymbols = (V"Alpha"+V"Inteiro"+V"Symbols"),
    AlphaNumericSpace = (V"Alpha"+V"Inteiro"+SPC)^1,
    AlphaNumericSymbolsSpace = (V"Alpha"+V"Inteiro"+V"Symbols"+V"OnlyEspace")^1,
-   ParamCharacters = (V"Alpha"+V"Inteiro"+P"\""+P"%"),
+   ParamCharacters = (V"Alpha"+V"Inteiro"+P"\""+P"%"+P"/"),
    Id = (V"Alpha"+V"Inteiro"+P"_"),
    String = (P"\""*V"AlphaNumericSymbolsSpace"^-1*P"\""),
 
@@ -99,7 +99,7 @@ snclGrammar = {
          utils.printErro("Id "..id.." já declarado.", linhaParser)
       end
    end,
-   Macro = (V"MacroId" *(V"Property")^0*V"End"^-1),
+   Macro = (V"MacroId" *(V"Property"+V"Media")^0*V"End"^-1),
 
    ------ CONTEXT ------
    ContextId = (P"context"*V"OnlyEspace"^1*V"Id"^1*SPC^0)
@@ -134,7 +134,7 @@ snclGrammar = {
          utils.printErro("No element.")
       end
    end,
-   Context = (V"ContextId" *(V"Port"+V"ContextProperty"+ V"Media"+V"Context"+V"Link"+V"Refer")^0*V"End"^-1),
+   Context = (V"ContextId" *(V"Port"+V"MacroRefer"+V"ContextProperty"+ V"Media"+V"Context"+V"Link"+V"Refer")^0*V"End"^-1),
 
    ------ LINK ------
    Condition = (V"AlphaNumericSymbols"^1 *V"OnlyEspace"^1* V"AlphaNumericSymbols"^1* V"OnlyEspace"^0 *(P"and"+P"do")*V"OnlyEspace"^0)
