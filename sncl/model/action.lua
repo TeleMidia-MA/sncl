@@ -11,7 +11,7 @@ function Action.new(action, component, interface, linha)
       father = nil,
       interface = interface,
       linha = linha,
-      params = {},
+      properties = {},
    }
    setmetatable(actionObject, Action_mt)
    return actionObject
@@ -24,7 +24,9 @@ function Action:getAction() return self.action end
 
 function Action:setFather(father) self.father = father end
 function Action:setEnd (bool) self.hasEnd = bool end
-function Action:addParam (name, value) self.params[name] = value end
+function Action:addProperty (name, value) 
+   self.properties[name] = value 
+end
 
 function Action:toNCL(indent)
    if self.hasEnd == false then
@@ -42,42 +44,47 @@ function Action:toNCL(indent)
             local referredMedia = tabelaSimbolos[refer.media]
             if referredMedia ~= nil then
                if referredMedia:getSon(self.interface) == false and tabelaSimbolos[self.component]:getSon(self.interface) == false then
-                  utils.printErro("Interface "..self.interface.." da Media "..self.component.." não declarada.", self.linha)
+                  utils.printErro("Interface "..self.interface.." do elemento "..self.component.." não declarada.", self.linha)
                   return ""
                end
             else
-               utils.printErro("Media "..self.component.." não declarada.", self.linha)
+               utils.printErro("Elemento "..self.component.." não declarada.", self.linha)
                return ""
             end
          elseif not tabelaSimbolos[self.component]:getSon(self.interface) then
-            utils.printErro("Media "..self.component.." não possui interface "..self.interface, self.linha)
+            utils.printErro("Elemento "..self.component.." não possui interface "..self.interface, self.linha)
             return ""
          end
       end
    end
 
-   if tabelaSimbolos.body[self.component]:getFather() ~= nil then --Media tem pai
-      if self.father:getFather() ~= nil then --Link tem pai
-         if not ((self.component == self.father:getFather():getId()) -- Componente é o pai do Link
-            or (tabelaSimbolos.body[self.component]:getFather():getId() == self.father:getFather():getId())) then --Pai do Component é o pai do Link
-            utils.printErro("Media "..self.component.." e Link não estão no mesmo Context.", self.linha)
+   if self.father then
+      if tabelaSimbolos.body[self.component]:getFather() ~= nil then --Media tem pai
+         if self.father:getFather() ~= nil then --Link tem pai
+            if not ((self.component == self.father:getFather():getId()) -- Componente é o pai do Link
+               or (tabelaSimbolos.body[self.component]:getFather():getId() == self.father:getFather():getId())) then --Pai do Component é o pai do Link
+               utils.printErro("Elemento "..self.component.." e Link não estão no mesmo contexto.", self.linha)
+               return
+            end
+         end
+      else --Pai do Component é nil
+         if self.father:getFather() ~= nil then
+            utils.printErro("Elemento "..self.component.." e Link não estão no mesmo contexto.", self.linha)
+            return
          end
       end
-   else --Pai do Component é nil
-      if self.father:getFather() ~= nil then
-         utils.printErro("Media "..self.component.." e Link não estão no mesmo Context.", self.linha)
-      end
    end
-
 
    local action = indent.."<bind role=\""..self.action.."\" component=\""..self.component.."\""
    if self.interface then
       action = action.." interface=\""..self.interface.."\""
    end
    action = action..">"
-   for pos, val in pairs(self.params) do
+
+   for pos, val in pairs(self.properties) do
       action = action..indent.."   <bindParam name=\""..pos.."\" value="..val.."/>"
    end
+
    action = action..indent.."</bind>"
    return action
 end

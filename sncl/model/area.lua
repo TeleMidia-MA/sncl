@@ -23,6 +23,10 @@ function Area:getEnd() return self.hasEnd end
 
 --Setters
 function Area:setId(id) 
+   if tabelaSimbolos[id] then
+      utils.printErro("Elemento com id "..id.." já declarado.")
+      return
+   end
    self.id = id
    tabelaSimbolos[id] = self
    tabelaSimbolos.body[id] = tabelaSimbolos[id]
@@ -37,7 +41,7 @@ end
 -- Gerador de NCL
 function Area:toNCL(indent)
    if self.hasEnd == false then
-      utils.printErro("Area does not have end.", self.linha)
+      utils.printErro("Elemento area não possui end.", self.linha)
       return ""
    end
    local newNCL = indent.."<area id=\""..self.id.."\" "

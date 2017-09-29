@@ -32,7 +32,6 @@ function Link:addAction(action)
    table.insert(self.actions, action)
 end
 
-
 function Link:createConnector()
    local id = ""
    local nConditions = 0
@@ -74,13 +73,13 @@ function Link:createConnector()
 
    for pos, val in pairs(self.actions) do
       local action = val.action
-      if actionsTable[action] == nil then
-         actionsTable[action] = {
+      if actionsTable[action] == nil then --Se Link ainda não tiver essa Action
+         actionsTable[action] = { --Adicionar Action
             times = 1,
-            params = {},
+            properties = {},
          }
-         for i, __ in pairs(val.params) do
-            table.insert(actionsTable[action].params, i)
+         for i,__ in pairs(val.properties) do --Adicionar Propriedades da Action
+            table.insert(actionsTable[action].properties, i)
          end
       else
          actionsTable[action].times = actionsTable[action].times+1

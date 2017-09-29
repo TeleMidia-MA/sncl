@@ -42,13 +42,20 @@ end
 
 --Setters
 function Media:setId (id) 
+   if tabelaSimbolos[id] then
+      utils.printErro("Elemento com id "..id.." já declarado.")
+      return
+   end
+
    self.id = id 
-   tabelaSimbolos[id] = self
-   tabelaSimbolos.body[id] = tabelaSimbolos[id]
+   if insideMacro == false then
+      tabelaSimbolos[id] = self
+      tabelaSimbolos.body[id] = tabelaSimbolos[id]
+   end
 end
 function Media:setFather(father) self.father = father end
-function Media:setEnd(bool) self.hasEnd = bool end
-function Media:addSon (son) table.insert(self.sons, son) end
+function Media:setEnd(boolcontext1Media2) self.hasEnd = bool end
+function Media:addSon(son) table.insert(self.sons, son) end
 function Media:addProperty(name, value)
    self.properties[name] = value
 end
@@ -82,8 +89,13 @@ end
 
 -- Gerador de NCL
 function Media:toNCL(indent) --Fazer checagens aqui
+
    if self.hasEnd == false then
       utils.printErro("Media "..self.id.." não possui end.", self.linha)
+      return ""
+   end
+   if self.id == nil then
+      utils.printErro("Media sem id.", self.linha)
       return ""
    end
    local media = indent.."<media id=\""..self.id.."\" "
@@ -109,7 +121,7 @@ function Media:toNCL(indent) --Fazer checagens aqui
    end
 
    if not (hasType ~= nil or hasSource ~= nil or self.refer ~= nil) then
-      utils.printErro("Media "..self.id.." deve ter source ou type.", self.linha)
+      utils.printErro("Elemento "..self.id.." deve ter source ou type.", self.linha)
       return ""
    end
 

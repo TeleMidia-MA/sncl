@@ -14,7 +14,13 @@ function Descriptor.new(id)
 end
 
 -- Setters
-function Descriptor:setId(id) self.id = id end
+function Descriptor:setId(id) 
+   if tabelaSimbolos[id] then
+      utils.printErro("Elemento com id "..id.." já declarado.")
+      return
+   end
+   self.id = id 
+end
 function Descriptor:setRegion(region) self.region = region end
 
 --Getters

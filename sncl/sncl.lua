@@ -56,12 +56,15 @@ function beginParse(entrada, saida)
             io.close(arquivoSaida)
          else
             utils.printErro("Erro ao criar arquivo de saída.")
+            return
          end
       else
          utils.printErro("Arquivo de entrada possui erros.")
+         return
       end
    else
       utils.printErro("Extensão do arquivo inválida.")
+      return
    end
 end
 

@@ -15,22 +15,23 @@ function Port.new (id, media, interface, father, linha)
    return portObject
 end
 
-function Port:getFather()
-   return self.father
-end
-function Port:getId()
-   return self.id
-end
-function Port.getType()
-   return "port"
+function Port:getFather() return self.father end
+function Port:getId() return self.id end
+function Port.getType() return "port" end
+
+function Port:setFather (father) self.father = father end
+function Port:setId (id) 
+   if tabelaSimbolos[id] then
+      utils.printErro("Elemento com id "..id.." já declarado.")
+      return
+   end
+   seld.id = id 
 end
 
 function Port:toNCL(indent)
    if tabelaSimbolos[self.media] == nil then
-      utils.printErro("No element "..self.media)
+      utils.printErro("Nenhum elemento "..self.media)
    end
-
-   local port = indent.."<port id=\""..self.id.."\" component=\""..self.media.."\" />"
-
+   local port = indent.."<port id=\""..self.id.."\" component=\""..self.media.."\"/>"
    return port
 end

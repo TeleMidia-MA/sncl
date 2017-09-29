@@ -47,6 +47,13 @@ function utilsTable.printNCL()
    local NCL = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>"
    NCL = NCL.."\n<ncl id=\"main\" xmlns=\"http://www.ncl.org.br/NCL3.0/EDTVProfile\">"
 
+   for pos, val in pairs(tabelaSimbolos.macros) do
+      if val:getEnd() == false then
+         utils.printErro("Macro "..val:getId().." sem end.")
+         return
+      end
+   end
+
    local body = indent.."<body>"
    for pos, val in pairs(tabelaSimbolos.body) do
       if val:getFather() == nil then

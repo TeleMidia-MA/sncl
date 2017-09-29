@@ -8,22 +8,8 @@ function parseId (str)
       return words[2]
    else
       utils.printErro("Elemento nao pode ter mais de 2 Ids.", linhaParser)
-      return nil
+      return
    end
-end
-
-function parseIdMacro (str)
-   local paramString = string.match(str,"%(.*%)")
-   local id = parseId(str:gsub("%(.*%)", ""))
-   --paramString = paramString:gsub("%s+", "")
-
-   local paramsTable = {}
-   local count = 1
-   for w in string.gmatch(paramString, "%w+") do
-      paramsTable[w] = count
-      count = count+1
-   end
-   return id, paramsTable
 end
 
 function parseProperty (str)
@@ -38,29 +24,32 @@ function parseProperty (str)
 end
 
 function parseRefer (str)
-   if currentElement then
-      if (currentElement.getType() == "context" or currentElement.getType() == "media" or
-         currentElement.getType() == "switch") then
-         local sign = str:find(":")
-         if sign then
-            local value = str:sub(sign+1)
-            local ponto = value:find("%.")
-            local interface, media = nil, nil
-            if ponto then
-               interface = value:sub(ponto+1)
-               media =  value:sub(1, ponto-1)
-            else
-               media = value
-            end
-            currentElement:setRefer(media, interface)
-         end
-      else
-         utils.printErro("Refer somente dentro de Context, Switch ou Media.", linhaParser)
-      end
-   else
+   if currentElement == nil then
+      utils.printErro("Refer somente dentro de Context, Switch ou Media.", linhaParser)
+      return
+   end
+
+   local eleType = currentElement.getType()
+   if eleType ~= "context" and eleType ~= "media" and eleType ~= "switch" then
       utils.printErro("Refer não pode ser declarado fora de algum elemento.", linhaParser)
+      return
+   end
+
+   local sign = str:find(":")
+   if sign then
+      local value = str:sub(sign+1)
+      local ponto = value:find("%.")
+      local interface, media = nil, nil
+      if ponto then
+         interface = value:sub(ponto+1)
+         media =  value:sub(1, ponto-1)
+      else
+         media = value
+      end
+      currentElement:setRefer(media, interface)
    end
 end
+
 
 function separateByDot (str)
    local dot = str:find("%.")
@@ -105,9 +94,9 @@ function parseLinkCondition (str)
             currentElement:addCondition(newCondition)
 
          elseif currentElement.getType() == "macro" then
-            --To-Do
             local newLink = Link.new()
             currentElement:addSon(newLink)
+            newLink:setFather(currentElement)
             local newCondition = Condition.new(condition, conditionParam, media, interface)
             newCondition:setFather(newLink)
             newLink:addCondition(newCondition)
@@ -115,6 +104,7 @@ function parseLinkCondition (str)
 
          else
             utils.printErro("Condição declarada em lugar errado.", linhaParser)
+            return
          end
       else
          local newLink = Link.new(linhaParser)
@@ -145,18 +135,15 @@ function parseLinkAction (str)
       media = media:sub(1, barra-1)
    end
 
-   if currentElement ~= nil then
-      if currentElement:getType() == "link" then
-         local newAction = Action.new(action, media, interface, linhaParser)
-         newAction:setFather(currentElement)
-         currentElement:addAction(newAction)
-         currentElement = newAction
-      else
-         utils.printErro("Action somente pode ser declarada dentro de um link.", linhaParser)
-      end
-   else
+   if currentElement == nil or currentElement:getType() ~= "link" then
       utils.printErro("Action somente pode ser declarada dentro de um link.", linhaParser)
+      return
    end
+
+   local newAction = Action.new(action, media, interface, linhaParser)
+   newAction:setFather(currentElement)
+   currentElement:addAction(newAction)
+   currentElement = newAction
 end
 
 function parseLinkActionParam (str)
@@ -165,15 +152,12 @@ function parseLinkActionParam (str)
    local paramName = str:sub(1, sign-1)
    local paramValue = str:sub(sign+1)
 
-   if currentElement ~= nil then
-      if currentElement:getType() == "action" then
-         currentElement:addParam(paramName, paramValue)
-      else
-         utils.printErro("Parametro somente dentro de uma action.")
-      end
-   else
-      utils.printErro("Parametro somente dentro de uma action.")
+   if currentElement == nil or currentElement:getType() ~= "action" then
+      utils.printErro("Parametro somente dentro de uma action.", linhaParser)
+      return
    end
+
+   currentElement:addParam(paramName, paramValue)
 end
 
 function parsePort (str)
@@ -191,11 +175,12 @@ function parsePort (str)
    local newPort = nil
 
    if currentElement then
-      if currentElement.getType() == "context" then
+      if currentElement.getType() == "context" or currentElement:getType() == "macro" then
          newPort = Port.new(id, media, interface, currentElement, linhaParser)
          currentElement:addSon(newPort)
       else
-         utils.printErro("Elemento não pode ter porta.")
+         utils.printErro("Elemento não pode ter porta.", linhaParser)
+         return
       end
    else
       newPort = Port.new(id, media, nil)
@@ -207,6 +192,32 @@ function parsePort (str)
    end
 end
 
+function parseIdMacro (str)
+   local paramString = string.match(str,"%(.*%)")
+   local id = parseId(str:gsub("%(.*%)", ""))
+   --paramString = paramString:gsub("%s+", "")
+
+   local paramsTable = {}
+   local count = 1
+   for w in string.gmatch(paramString, "%w+") do
+      paramsTable[w] = count
+      count = count+1
+   end
+   return id, paramsTable, count-1
+end
+
+function isMacroSon(element)
+   if element then
+      while element  do
+         if element:getType() == "macro" then
+            return element:getId()
+         end
+         element = element.father
+      end
+   end
+   return false
+end
+
 function parseMacroRefer (str)
    str = str:gsub("*", "", 1)
    str = str:gsub("%s+", "")
@@ -214,77 +225,142 @@ function parseMacroRefer (str)
    local paramString = string.match(str,"%(.*%)")
    local idMacro = str:gsub("%(.*%)", "")
 
-   if tabelaSimbolos.macros[idMacro] then --Se a macro foi declarada
-      local macro = tabelaSimbolos.macros[idMacro]
-
-      paramString = paramString:gsub("%s+", "")
-      local paramsTable = {} -- Separar Parametros
-      for w in string.gmatch(paramString, "[^%,%(%)]*") do
-         if w ~= "" then
-            table.insert(paramsTable, w)
-         end
+   if isMacroSon(currentElement) then
+      if idMacro == isMacroSon(currentElement) then
+         utils.printErro("Macro não são recursivas", linhaParser-1)
+         return
       end
+   end
 
-      for _, son in pairs(macro.sons) do --Copiando filhos
-         local newSon = utils.newElementTable[son:getType()]
-         if newSon.getType() ~= "link" then
-            for pos, val in pairs(val.properties) do
-               if macro.params[val] then
-                  newSon:addProperty(pos, paramsTable[macro.params[val]])
-               else
-                  newSon:addProperty(pos, val)
-               end
-            end
-            if macro.params[val:getId()] then --Se o Id é parametro
-               newSon:setId(paramsTable[macro.params[val:getId()]]:gsub("\"","") )
-               newSon:setEnd(true)
-            end
-            currentElement:addSon(newSon)
-            newSon:setFather(currentElement)
+   if tabelaSimbolos.macros[idMacro] == nil then --Se a macro não foi declarada
+      utils.printErro("Macro "..idMacro.." não declarada.", linhaParser-1)
+      return
+   end
+
+   local macro = tabelaSimbolos.macros[idMacro]
+   paramString = paramString:gsub("%s+", "")
+   local paramsTable = {} -- Separar Parametros
+   for w in string.gmatch(paramString, "[^%,%(%)]*") do
+      if w ~= "" then
+         table.insert(paramsTable, w)
+      end
+   end
+
+   if (#paramsTable ~= macro.quantParams) then
+      utils.printErro("Macro recebe "..macro.quantParams.." parametros, "..#paramsTable.." estão sendo passados.", linhaParser)
+      return
+   end
+
+   for _, macroSon in pairs(macro.sons) do --Copiando filhos
+      parseMacroSon(macro, macroSon, paramsTable)
+   end
+
+   local count = 1 -- Copiando propriedades
+   for pos, val in pairs(macro.properties) do
+      if macro.params[val] then
+         if paramsTable[macro.params[val]] then
+            currentElement.properties[pos] = paramsTable[macro.params[val]]
          else
-            --print(son:toNCL(""))
-
-            for _, b in pairs(son.conditions) do
-               print(b.condition)
-            end
-
-            for _, d in pairs(son.actions) do
-               print(d.action)
-            end
-
+            --currentElement.properties[pos] = "\"default\""
          end
+      else
+         currentElement.properties[pos] = val
       end
+   end
+end
 
-      local count = 1 -- Copiando propriedades
-      for pos, val in pairs(macro.properties) do
-         if macro.params[val] then
-            if paramsTable[macro.params[val]] then
-               currentElement.properties[pos] = paramsTable[macro.params[val]]
-            else
-               --currentElement.properties[pos] = "\"default\""
-            end
-         else
-            currentElement.properties[pos] = val
-         end
+function parseMacroSon(macro, son, paramsTable)
+   local newElement
+   local sonType = son.getType()
+   local father = currentElement
+   if sonType == 'link' then
+      newElement = Link.new()
+      for __, condition in pairs(son.conditions) do
+         local component = paramsTable[macro.params[condition.component]]:gsub("\"","")
+         local newCondition = Condition.new(condition.condition, new, component)
+         newElement:addCondition(newCondition)
       end
+      for __, action in pairs(son.actions) do
+         local component = paramsTable[macro.params[action.component]]:gsub("\"","")
+         local newAction = Action.new(action.action, component)
+         for pos, val in pairs(action.properties) do --Adicionar as propriedades da action
+            local value = paramsTable[macro.params[val]]
+            newAction:addProperty(pos, "\""..value.."\"")
+         end
+         newAction:setEnd(true)
+         newElement:addAction(newAction)
+      end
+      newElement:setEnd(true)
+      table.insert(tabelaSimbolos.body, newElement)
+
+   elseif sonType == 'port' then
+      local id = paramsTable[macro.params[son.id]]:gsub("\"", "")
+      local component = paramsTable[macro.params[son.media]]:gsub("\"", "")
+      newElement = Port.new(id, component)
 
    else
-      utils.printErro("Macro "..idMacro.." não declarada.")
+      if sonType == 'media' then
+         newElement = Media.new()
+      elseif sonType == 'context' then
+         newElement = Context.new()
+      elseif sonType == 'area' then
+         newElement = Area.new()
+      end
+      currentElement = newElement
+
+      if macro.params[son:getId()] then --Se o Id é um argumento
+         local id = paramsTable[macro.params[son:getId()]]
+         newElement:setId(id:gsub("\"", ""))
+      else
+         newElement:setId(son:getId())
+      end
+
+      for name, val in pairs(son.properties) do --Copiar Propriedades
+         local value = paramsTable[macro.params[val]]
+         if value then
+            newElement:addProperty(name, value)
+         else
+            newElement:addProperty(name, val)
+         end
+      end
+
+      for __, aux in pairs(son.sons) do --Copiar Filhos
+         parseMacroSon(macro, aux, paramsTable)
+      end
+
+      newElement:setEnd(true)
    end
+
+   if newElement ~= nil then
+      if father ~= nil then
+         father:addSon(newElement)
+         newElement:setFather(father)
+      else
+         if newElement.id then
+            if tabelaSimbolos[newElement:getId()] == nil then
+               tabelaSimbolos[newElement:getId()] = newElement
+               tabelaSimbolos.body[newElement:getId()] = tabelaSimbolos[newElement:getId()]
+            end
+         end
+      end
+   end
+
+   currentElement = father
 end
 
 function newElement (str, element)
    local id = parseId(str)
-   if tabelaSimbolos[id] == nil then
-      element:setId(id)
-      if currentElement ~= nil then
-         element:setFather(currentElement)
-         currentElement:addSon(element)
-         currentElement = element
-      else
-         currentElement = element
-      end
+   if tabelaSimbolos[id]  then
+      utils.printErro("Id "..id.." já declarado.", linhaParser)
+      return
+   end
+
+   element:setId(id)
+   if currentElement ~= nil then
+      element:setFather(currentElement)
+      currentElement:addSon(element)
+      currentElement = element
    else
-      utils.printErro("Id "..id.." já declarado.")
+      currentElement = element
    end
 end

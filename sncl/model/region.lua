@@ -24,6 +24,10 @@ function Region:getEnd() return self.hasEnd end
 
 -- Setters
 function Region:setId (id)
+   if tabelaSimbolos[id] then
+      utils.printErro("Elemento com id "..id.." já declarado.")
+      return
+   end
    self.id = id
    tabelaSimbolos[id] = self
    tabelaSimbolos.regions[id] = tabelaSimbolos[id]
@@ -41,7 +45,7 @@ end
 -- Gerador de codigo
 function Region:toNCL(indent)
    if self.hasEnd == false then
-      utils.printErro("Region does not have end.", self.linha)
+      utils.printErro("Elemento nao possui end.", self.linha)
       return ""
    end
    local newNCL = indent.."<region id=\""..self.id.."\" "

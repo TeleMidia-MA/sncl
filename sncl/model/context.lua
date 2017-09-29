@@ -46,7 +46,18 @@ function Context:getSon (son)
 end
 
 ------- Setters -------
-function Context:setId (id) self.id = id end
+function Context:setId (id) 
+   if tabelaSimbolos[id] then
+      utils.printErro("Elemento com id "..id.." já declarado.")
+      return
+   end
+   self.id = id 
+
+   if insideMacro == false then
+      tabelaSimbolos[id] = self
+      tabelaSimbolos.body[id] = tabelaSimbolos[id]
+   end
+end
 function Context:setFather (father) self.father = father end
 function Context:setEnd(bool) self.hasEnd = bool end
 function Context:addSon (son) table.insert(self.sons, son) end
@@ -61,11 +72,14 @@ function Context:setRefer (media, interface)
    }
 end
 
-
 -- Gerador de NCL
 function Context:toNCL(indent)
    if self.hasEnd == false then
       utils.printErro("Context "..self.id.." não possui end.", self.linha)
+      return ""
+   end
+   if self.id == nil then
+      utils.printErro("Context sem Id.", self.linha)
       return ""
    end
 
