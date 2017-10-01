@@ -29,6 +29,7 @@ end
 
 function utilsTable.printErro(string, linha)
    linha = linha or ""
+   local arquivo = arquivo or ""
    io.write(colors("%{bright}"..arquivo..":"..linha..": %{red}erro:%{reset} "..string))
    hasError = true
 end

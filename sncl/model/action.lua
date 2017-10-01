@@ -34,6 +34,10 @@ function Action:toNCL(indent)
       utils.printErro("Elemento "..self.component.." não declarado.", self.linha)
       return ""
    else
+      if tabelaSimbolos[self.component].tipo == "region" then
+         utils.printErro("Elemento inválido em ação.", self.linha)
+         return ""
+      end
       if self.interface then
          if tabelaSimbolos[self.component].refer ~= nil then
             local refer = tabelaSimbolos[self.component].refer

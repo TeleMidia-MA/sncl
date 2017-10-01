@@ -39,7 +39,7 @@ function beginParse(entrada, saida)
       end
       utils.parse(snclGrammar, conteudoArquivoEntrada)
       if linhaParser < nLinhas then
-         utils.printErro("Erro de análise.")
+         utils.printErro("Erro de análise.", linhaParser)
          return
       end
       local output = utils.printNCL()

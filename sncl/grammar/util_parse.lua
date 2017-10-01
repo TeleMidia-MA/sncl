@@ -9,7 +9,7 @@ function parseId(str)
    elseif #words == 2 then
       return words[2]
    else
-      utils.printErro("Elemento nao pode ter mais de 2 Ids.", linhaParser)
+      utils.printErro("Declaração \'"..str.."\' de elemento invalida.", linhaParser)
       return
    end
 end
@@ -266,6 +266,7 @@ function parseMacroSon(macro, son, paramsTable)
          local component = paramsTable[macro.params[condition.component]]:gsub("\"","")
          local newCondition = Condition.new(condition.condition, new, component)
          newElement:addCondition(newCondition)
+         newCondition.pai = newElement
       end
       for __, action in pairs(son.actions) do
          local component = paramsTable[macro.params[action.component]]:gsub("\"","")
@@ -298,6 +299,8 @@ function parseMacroSon(macro, son, paramsTable)
          newElement = Elemento.novo("context", linhaParser)
       elseif son.tipo == 'area' then
          newElement = Elemento.novo("area", linhaParser)
+      elseif son.tipo == "region" then
+         newElement = Elemento.novo("region", linhaParser)
       end
       currentElement = newElement
 
@@ -310,9 +313,9 @@ function parseMacroSon(macro, son, paramsTable)
 
       for name, val in pairs(son.propriedades) do --Copiar Propriedades
          local value = paramsTable[macro.params[val]]
-         if value then
+         if value then --Se a propriedade é parametro
             newElement:addPropriedade(name, value)
-         else
+         else --Se a propriedade não é parametro
             newElement:addPropriedade(name, val)
          end
       end
@@ -361,7 +364,7 @@ function newElement (str, element)
    local id = parseId(str)
 
    if tabelaSimbolos[id]  then
-      utils.printErro("Id "..id.." já declarado.", linhaParser)
+      --utils.printErro("Id "..id.." já declarado.", linhaParser)
       return
    end
 

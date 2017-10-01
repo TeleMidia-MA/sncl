@@ -1,5 +1,5 @@
 package = "sncl"
-version = "0.2-4"
+version = "0.3-1"
 
 source = {
    url = "git://github.com/TeleMidia-MA/sncl.git"

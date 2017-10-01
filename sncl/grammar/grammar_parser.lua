@@ -54,7 +54,7 @@ snclGrammar = {
       local newRegion = Elemento.novo("region", linhaParser)
       newElement(str, newRegion)
    end,
-   Region = (V"RegionId" *(V"Comentario"+V"Region"+V"Property")^0* V"End"^-1),
+   Region = (V"RegionId" *(V"Comentario"+V"Region"+V"Property"+V"MacroRefer")^0* V"End"^-1),
 
    ------ CONTEXT ------
    ContextId = (P"context"*P" "^1*V"Id"^1*SPC^0)
@@ -122,7 +122,7 @@ snclGrammar = {
       end
       insideMacro = true
    end,
-   Macro = (V"MacroId" *(V"Comentario"+V"MacroRefer"+V"Property"+V"Media"+V"Area"+V"Context"+V"Link"+V"Port")^0* V"End"^-1),
+   Macro = (V"MacroId" *(V"Comentario"+V"MacroRefer"+V"Property"+V"Media"+V"Area"+V"Context"+V"Link"+V"Port"+V"Region")^0* V"End"^-1),
    ------ LINK ------
    Condition = (V"AlphaNumericSymbols"^1 *P" "^1* V"AlphaNumericSymbols"^1* P" "^0 *(P"and"+P"do")*P" "^0)
    /function(str)

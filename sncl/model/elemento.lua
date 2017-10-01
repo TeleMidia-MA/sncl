@@ -92,11 +92,7 @@ end
 --Misc
 function Elemento:toNCL(indent)
    if not self.temEnd then
-      utils.printErro("Elemento sem end.", self.linha)
-      return ""
-   end
-   if not self.id then
-      utils.printErro("Elemento sem id.", self.linha)
+      utils.printErro("Elemento "..self.id.." sem end.", self.linha)
       return ""
    end
 
