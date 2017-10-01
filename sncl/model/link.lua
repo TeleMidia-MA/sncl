@@ -6,24 +6,19 @@ Link_mt.__index = Link
 function Link.new(linha)
    local linkObject = {
       xconnector = nil,
-      hasEnd = false,
-      father = nil,
+      temEnd = false,
+      pai = nil,
       linha = linha,
       conditions = {},
       actions = {},
+      tipo = "link",
    }
    setmetatable(linkObject, Link_mt)
    return linkObject
 end
 
-function Link:getType() return "link" end
 function Link:getActions() return self.actions end
 function Link:getConditions() return self.conditions end
-function Link:getEnd() return self.hasEnd end
-function Link:getFather() return self.father end
-
-function Link:setEnd (bool) self.hasEnd = bool end
-function Link:setFather (father) self.father = father end
 
 function Link:addCondition(condition)
    table.insert(self.conditions, condition)
@@ -76,10 +71,10 @@ function Link:createConnector()
       if actionsTable[action] == nil then --Se Link ainda não tiver essa Action
          actionsTable[action] = { --Adicionar Action
             times = 1,
-            properties = {},
+            propriedades = {},
          }
-         for i,__ in pairs(val.properties) do --Adicionar Propriedades da Action
-            table.insert(actionsTable[action].properties, i)
+         for i,__ in pairs(val.propriedades) do --Adicionar Propriedades da Action
+            table.insert(actionsTable[action].propriedades, i)
          end
       else
          actionsTable[action].times = actionsTable[action].times+1

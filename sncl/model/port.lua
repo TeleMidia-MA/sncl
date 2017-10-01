@@ -3,35 +3,60 @@ Port_mt = {}
 
 Port.__index = Port
 
-function Port.new (id, media, interface, father, linha)
+function Port.new (media, interface, pai, linha)
    local portObject = {
-      id = id,
-      father = father,
+      id,
+      pai = pai,
       media = media,
       interface = interface,
       linha = linha,
+      tipo = "port",
    }
    setmetatable(portObject, Port)
    return portObject
 end
 
-function Port:getFather() return self.father end
-function Port:getId() return self.id end
-function Port.getType() return "port" end
-
-function Port:setFather (father) self.father = father end
 function Port:setId (id) 
    if tabelaSimbolos[id] then
       utils.printErro("Elemento com id "..id.." já declarado.")
       return
    end
-   seld.id = id 
+   self.id = id 
+
+   if not insideMacro then
+      tabelaSimbolos[id] = self
+      tabelaSimbolos.body[id] = tabelaSimbolos[id]
+   end
+end
+
+function Port:setComponent(component)
+   self.media = component
+end
+
+function Port:setInterface(interface)
+   self.interface = interface
 end
 
 function Port:toNCL(indent)
+
    if tabelaSimbolos[self.media] == nil then
-      utils.printErro("Nenhum elemento "..self.media)
+      utils.printErro("Nenhum elemento "..self.media..".", self.linha)
+      return ""
    end
+
+   if tabelaSimbolos[self.media].pai ~= self.pai then
+      utils.printErro("O Elemento "..self.media.." deve estar no mesmo contexto do elemento port "..self.id..".", self.linha)
+      return ""
+   end
+
+   if self.interface then
+      if tabelaSimbolos[self.media]:getFilho(self.interface) == nil then
+         utils.printErro("O elemento apontado pela interface é inválido.", self.linha)
+         return ""
+      end
+   end
+
    local port = indent.."<port id=\""..self.id.."\" component=\""..self.media.."\"/>"
+
    return port
 end

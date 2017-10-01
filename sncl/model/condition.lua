@@ -10,19 +10,16 @@ function Condition.new(condition, conditionParam, component, interface, linha)
       component = component,
       interface = interface,
       linha = linha,
-      father = nil,
+      pai = nil,
+      tipo = "condition"
    }
    setmetatable(conditionObject, Condition_mt)
    return conditionObject
 end
 
-function Condition:setFather (father) self.father = father end
 function Condition:addParam (param) end
-
 function Condition:getMedia () return self.component end
 function Condition:getLinha() return self.linha end
-function Condition:getFather() return self.father end
-function Condition:getType() return "condition" end
 function Condition:getParam() return self.conditionParam end
 
 function Condition:toNCL (indent)
@@ -35,29 +32,25 @@ function Condition:toNCL (indent)
             local refer = tabelaSimbolos[self.component]:getRefer()
             local referredMedia = tabelaSimbolos[refer.media]
             if referredMedia ~= nil then
-               if referredMedia:getSon(self.interface) == false and tabelaSimbolos[self.component]:getSon(self.interface) == false then
+               if referredMedia:getFilho(self.interface) == false and referredMedia:getPropriedade(self.interface) == false and tabelaSimbolos[self.component]:getFilho(self.interface) == false then
                   utils.printErro("Interface "..self.interface.." do elemento"..self.component.." nao declarado.", self.linha)
                end
             else
-               utils.printerro("Elemento "..self.component.." nao declarada.", self.linha)
+               utils.printErro("Elemento "..self.component.." nao declarada.", self.linha)
             end
-         elseif not tabelaSimbolos[self.component]:getSon(self.interface) then --Se interface não 
+         elseif not tabelaSimbolos[self.component]:getFilho(self.interface) then --Se interface não 
             utils.printErro("Interface "..self.interface.." do elemento "..self.component.." nao declarado.", self.linha)
             return ""
          end
       end
    end
 
-
-   if self.father then
-      if (tabelaSimbolos.body[self.component]:getFather() == nil and self.father:getFather() == nil)
-         or (tabelaSimbolos.body[self.component]:getFather():getId() == self.father:getFather():getId()) then
-      else
-         utils.printErro("Elemento "..self.component.." e Link nao estao no mesmo contexto.", self.linha)
+   if self.pai then
+      if self.pai.pai.id ~= self.component and tabelaSimbolos.body[self.component].pai.id ~= self.pai.pai.id then
+         utils.printErro("Elemento "..self.component.." não é válido nesse contexto.", self.linha)
          return ""
       end
    end
-
 
    local condition = indent.."<bind role=\""..self.condition.."\" component=\""..self.component.."\" "
    if self.interface then

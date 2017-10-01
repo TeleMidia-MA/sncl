@@ -1,18 +1,13 @@
 lpeg = require("lpeg")
 argparse = require("argparse")
-ansicolors = require("ansicolors")
+colors = require("ansicolors")
 
 require("sncl.model.macro")
+require("sncl.model.elemento")
 
-require("sncl.model.descriptor")
 require("sncl.model.connector")
-require("sncl.model.region")
 
 require("sncl.model.port")
-
-require("sncl.model.context")
-require("sncl.model.media")
-require("sncl.model.area")
 
 require("sncl.model.link")
 require("sncl.model.action")
@@ -25,15 +20,18 @@ require("sncl.grammar.util_parse")
 --Variaveis globais
 linhaParser = 1
 
-tabelaSimbolos = {}
-tabelaSimbolos.regions = {}
-tabelaSimbolos.descriptors = {}
-tabelaSimbolos.connectors = {}
-tabelaSimbolos.body = {}
-tabelaSimbolos.macros = {}
+tabelaSimbolos = {
+   regions = {},
+   descriptors = {},
+   connectors = {},
+   body = {},
+   macros = {},
+}
+arquivo = nil
 
 function beginParse(entrada, saida) 
    if utils.isValidSncl(entrada) == true then
+      arquivo = entrada
       local conteudoArquivoEntrada = utils.conteudoArquivo(entrada)
       local nLinhas = 0
       for _ in io.lines(entrada) do
@@ -41,7 +39,7 @@ function beginParse(entrada, saida)
       end
       utils.parse(snclGrammar, conteudoArquivoEntrada)
       if linhaParser < nLinhas then
-         utils.printErro("Erro na linha "..linhaParser)
+         utils.printErro("Erro de análise.")
          return
       end
       local output = utils.printNCL()
@@ -58,12 +56,9 @@ function beginParse(entrada, saida)
             utils.printErro("Erro ao criar arquivo de saída.")
             return
          end
-      else
-         utils.printErro("Arquivo de entrada possui erros.")
-         return
       end
    else
-      utils.printErro("Extensão do arquivo inválida.")
+      utils.printErro("Extensão do arquivo inválida.") 
       return
    end
 end

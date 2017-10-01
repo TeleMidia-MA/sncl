@@ -7,29 +7,25 @@ function Action.new(action, component, interface, linha)
    local actionObject = {
       action = action,
       component = component,
-      hasEnd = false,
-      father = nil,
+      temEnd = false,
+      pai = nil,
       interface = interface,
       linha = linha,
-      properties = {},
+      propriedades = {},
+      tipo = "action",
    }
    setmetatable(actionObject, Action_mt)
    return actionObject
 end
 
-function Action:getFather() return self.father end
-function Action:getEnd() return self.hasEnd end
-function Action:getType() return "action" end
 function Action:getAction() return self.action end
 
-function Action:setFather(father) self.father = father end
-function Action:setEnd (bool) self.hasEnd = bool end
-function Action:addProperty (name, value) 
-   self.properties[name] = value 
+function Action:addPropriedade (name, value) 
+   self.propriedades[name] = value 
 end
 
 function Action:toNCL(indent)
-   if self.hasEnd == false then
+   if self.temEnd == false then
       utils.printErro("Elemento Action não possui end.", self.linha)
       return ""
    end
@@ -39,11 +35,11 @@ function Action:toNCL(indent)
       return ""
    else
       if self.interface then
-         if tabelaSimbolos[self.component]:getRefer() ~= nil then
-            local refer = tabelaSimbolos[self.component]:getRefer()
+         if tabelaSimbolos[self.component].refer ~= nil then
+            local refer = tabelaSimbolos[self.component].refer
             local referredMedia = tabelaSimbolos[refer.media]
             if referredMedia ~= nil then
-               if referredMedia:getSon(self.interface) == false and tabelaSimbolos[self.component]:getSon(self.interface) == false then
+               if referredMedia:getFilho(self.interface) == false and tabelaSimbolos[self.component]:getFilho(self.interface) == false then
                   utils.printErro("Interface "..self.interface.." do elemento "..self.component.." não declarada.", self.linha)
                   return ""
                end
@@ -51,28 +47,28 @@ function Action:toNCL(indent)
                utils.printErro("Elemento "..self.component.." não declarada.", self.linha)
                return ""
             end
-         elseif not tabelaSimbolos[self.component]:getSon(self.interface) then
+         elseif not tabelaSimbolos[self.component]:getFilho(self.interface) then
             utils.printErro("Elemento "..self.component.." não possui interface "..self.interface, self.linha)
             return ""
          end
       end
    end
 
-   if self.father then
-      if tabelaSimbolos.body[self.component]:getFather() ~= nil then --Media tem pai
-         if self.father:getFather() ~= nil then --Link tem pai
-            if not ((self.component == self.father:getFather():getId()) -- Componente é o pai do Link
-               or (tabelaSimbolos.body[self.component]:getFather():getId() == self.father:getFather():getId())) then --Pai do Component é o pai do Link
-               utils.printErro("Elemento "..self.component.." e Link não estão no mesmo contexto.", self.linha)
-               return
-            end
+   if self.pai then
+      if tabelaSimbolos.body[self.component].pai then --Se component tem pai
+         if self.pai.pai ~= tabelaSimbolos.body[self.component].pai then --Se pai do Link e do Component são diferentes
+            utils.printErro("O elemento "..self.component.." não é um elemento válido nesse contexto.", self.linha)
+            return ""
          end
-      else --Pai do Component é nil
-         if self.father:getFather() ~= nil then
-            utils.printErro("Elemento "..self.component.." e Link não estão no mesmo contexto.", self.linha)
-            return
+      else --Se component não tem pai
+         if self.pai.pai then --Se Link tem pai
+            utils.printErro("O elemento "..self.component.." não é um elemento válido nesse contexto.", self.linha)
+            return ""
          end
       end
+   else
+      utils.printErro("Action \'"..self.action.." "..self.component.."\' sem pai.", self.linha)
+      return ""
    end
 
    local action = indent.."<bind role=\""..self.action.."\" component=\""..self.component.."\""
@@ -81,7 +77,7 @@ function Action:toNCL(indent)
    end
    action = action..">"
 
-   for pos, val in pairs(self.properties) do
+   for pos, val in pairs(self.propriedades) do
       action = action..indent.."   <bindParam name=\""..pos.."\" value="..val.."/>"
    end
 

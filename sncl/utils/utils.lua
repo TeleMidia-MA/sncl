@@ -20,7 +20,7 @@ function utilsTable.conteudoArquivo(fileLocation)
          return fileContent
       end
    end
-   print("Arquivo não pode ser aberto.")
+   utils.printErro("Arquivo não pode ser aberto.", "")
 end
 
 function utilsTable.parse(gramatica, input)
@@ -28,18 +28,9 @@ function utilsTable.parse(gramatica, input)
 end
 
 function utilsTable.printErro(string, linha)
-   if linha then
-      print("ERRO: "..string.." Linha: "..linha)
-   else
-      print("ERRO: "..string)
-   end
+   linha = linha or ""
+   io.write(colors("%{bright}"..arquivo..":"..linha..": %{red}erro:%{reset} "..string))
    hasError = true
-end
-
-function utilsTable.printAviso(string, linha)
-   if string ~= nil then
-      print("AVISO: linha "..linha..": "..string)
-   end
 end
 
 function utilsTable.printNCL()
@@ -56,7 +47,7 @@ function utilsTable.printNCL()
 
    local body = indent.."<body>"
    for pos, val in pairs(tabelaSimbolos.body) do
-      if val:getFather() == nil then
+      if val.pai == nil then
          body = body..val:toNCL(indent.."   ")
       end
    end
@@ -68,7 +59,7 @@ function utilsTable.printNCL()
    local i = 0
    for pos, val in pairs(tabelaSimbolos.regions) do
       i = i+1
-      if val:getFather() == nil then
+      if val.pai == nil then
          regionBase = regionBase..val:toNCL(indent.."      ")
       end
    end
@@ -122,14 +113,6 @@ function utilsTable.containsValue(table, value)
    end
    return false
 end
-
-utilsTable.newElementTable = {
-   ["media"] = Media.new(),
-   ["context"] = Context.new(),
-   ["area"] = Area.new(),
-   ["link"] = Link.new(),
-   ["port"] = Port.new(),
-}
 
 return utilsTable
 

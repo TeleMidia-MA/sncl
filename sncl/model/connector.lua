@@ -66,7 +66,7 @@ function Connector:toNCL (indent)
       if val.times > 1 then
          actionString = actionString.." max=\"unbounded\" qualifier=\"par\""
       end
-      for __, j in pairs(val.properties) do
+      for __, j in pairs(val.propriedades) do
          connector = connector..indent.."   <connectorParam name=\""..j.."\"/>"
          if j == "delay" then
             actionString = actionString.." delay=\"$delay\""

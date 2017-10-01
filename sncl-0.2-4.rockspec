@@ -33,19 +33,14 @@ build = {
 
       ["sncl.model.macro"] = "sncl/model/macro.lua",
 
-      ["sncl.model.descriptor"] = "sncl/model/descriptor.lua",
       ["sncl.model.connector"] = "sncl/model/connector.lua",
-      ["sncl.model.region"] = "sncl/model/region.lua",
 
       ["sncl.model.port"] = "sncl/model/port.lua",
-
-      ["sncl.model.context"] = "sncl/model/context.lua",
-      ["sncl.model.media"] = "sncl/model/media.lua",
-      ["sncl.model.area"] = "sncl/model/area.lua",
 
       ["sncl.model.link"] = "sncl/model/link.lua",
       ["sncl.model.action"] = "sncl/model/action.lua",
       ["sncl.model.condition"] = "sncl/model/condition.lua",
+      ["sncl.model.elemento"] = "sncl/model/elemento.lua",
    },
    install = {
       bin = {"bin/sncl"}
