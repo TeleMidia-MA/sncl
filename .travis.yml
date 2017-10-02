@@ -1,0 +1,18 @@
+language: lua
+sudo: false
+
+env:
+   - LUA=lua5.1
+   - LUA=lua5.2
+   - LUA=lua5.3
+
+before_install:
+   - apt-get install luarocks
+
+install:
+   - luarocks install sncl
+   - luarocks make
+
+branches:
+   only:
+      - master
