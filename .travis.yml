@@ -5,12 +5,16 @@ env:
    - LUA=lua5.2
    - LUA=lua5.3
 
+branches:
+   only:
+      - master
+
 before_install:
    - sudo apt-get install luarocks
 
 install:
    - sudo luarocks make
 
-branches:
-   only:
-      - master
+script:
+   - 
+
