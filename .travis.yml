@@ -9,7 +9,6 @@ before_install:
    - sudo apt-get install luarocks
 
 install:
-   - sudo luarocks install sncl
    - sudo luarocks make
 
 branches:
