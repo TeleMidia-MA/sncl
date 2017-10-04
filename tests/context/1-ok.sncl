@@ -1,0 +1,5 @@
+-- Teste simples de contexto
+context context1
+end
+context context2
+end

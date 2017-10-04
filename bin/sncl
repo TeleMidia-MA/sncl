@@ -1,12 +1,12 @@
 #!/usr/bin/env lua
 
-require("sncl.sncl")
+require("sncl.main")
 
 local argparse = require("argparse")
 
 local argParser = argparse() {
-	name = "sncl",
-	description = "A sNCl compiler to NCL",
+   name = "sncl",
+   description = "A sNCl compiler to NCL",
 }
 argParser:argument("input", "Input File"):args(1)
 

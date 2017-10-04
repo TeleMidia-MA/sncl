@@ -65,7 +65,7 @@ function Elemento:addPropriedade(nome, valor)
             return
          end
       end
-      utils.printErro("Propriedade invalida em area.", self.linha)
+      utils.printErro("Propriedade "..nome.." invalida em elemento area.", self.linha)
       return
    end
    self.propriedades[nome] = valor
@@ -128,17 +128,34 @@ function Elemento:toNCL(indent)
    end
 
    if self.tipo == "area" then
-      for pos, val in pairs(self.propriedades) do
-         NCL = NCL.." "..pos.."="..val
-      end
-      NCL = NCL..">"
-   else
-      for pos, val in pairs(self.propriedades) do
-         NCL = NCL..indent.."   <property name=\""..pos.."\""
-         if val then
-            NCL = NCL.." value="..val
+      if testing then
+         for pos, val in test.pairsByProperty(self.propriedades) do
+            NCL = NCL.." "..pos.."="..val
          end
-         NCL = NCL.."/>"
+         NCL = NCL..">"
+      else
+         for pos, val in pairs(self.propriedades) do
+            NCL = NCL.." "..pos.."="..val
+         end
+         NCL = NCL..">"
+      end
+   else
+      if testing then
+         for pos, val in test.pairsByProperty(self.propriedades) do
+            NCL = NCL..indent.."   <property name=\""..pos.."\""
+            if val then
+               NCL = NCL.." value="..val
+            end
+            NCL = NCL.."/>"
+         end
+      else
+         for pos, val in pairs(self.propriedades) do
+            NCL = NCL..indent.."   <property name=\""..pos.."\""
+            if val then
+               NCL = NCL.." value="..val
+            end
+            NCL = NCL.."/>"
+         end
       end
    end
 

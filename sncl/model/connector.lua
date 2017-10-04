@@ -8,6 +8,7 @@ function Connector.new(id)
       id = id,
       numConditions = 0,
       numActions = 0,
+      pai = nil,
       linkParams = {},
       conditions = {},
       actions = {},

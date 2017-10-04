@@ -1,0 +1,16 @@
+-- Teste de elementos do contexto
+
+context c1
+   port pc1 m1
+   media m1
+      type: "text/html"
+   end
+   media m2
+      type: "text/html"
+   end
+   context c1context
+   end
+   onBegin m1 do
+      start m2 end
+   end
+end

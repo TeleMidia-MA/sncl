@@ -105,7 +105,7 @@ function Link:toNCL(indent)
       utils.printErro("Elemento Link não tem end.", self.linha)
       return ""
    end
-   self:createConnector()
+   --self:createConnector()
 
    local link = indent.."<link xconnector=\""..self.xconnector.."\">"
 

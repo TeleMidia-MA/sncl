@@ -26,24 +26,26 @@ dependencies = {
 build = {
    type = "builtin",
    modules = {
-      ["sncl.sncl"] = "sncl/sncl.lua",
-      ["sncl.utils.utils"] = "sncl/utils/utils.lua",
-      ["sncl.grammar.grammar_parser"] = "sncl/grammar/grammar_parser.lua",
-      ["sncl.grammar.util_parse"] = "sncl/grammar/util_parse.lua",
+      ["sncl.main"]            = "sncl/main.lua",
+      ["sncl.utils"]           = "sncl/utils/misc.lua",
+      ["sncl.testing"]           = "sncl/utils/testing.lua",
 
-      ["sncl.model.macro"] = "sncl/model/macro.lua",
+      ["sncl.grammar.parser"]  = "sncl/grammar/parser.lua",
+      ["sncl.grammar.utils"]   = "sncl/grammar/utils.lua",
+      ["sncl.model.require"]   = "sncl/model/require.lua",
 
+      ["sncl.model.macro"]     = "sncl/model/macro.lua",
       ["sncl.model.connector"] = "sncl/model/connector.lua",
-
-      ["sncl.model.port"] = "sncl/model/port.lua",
-
-      ["sncl.model.link"] = "sncl/model/link.lua",
-      ["sncl.model.action"] = "sncl/model/action.lua",
+      ["sncl.model.port"]      = "sncl/model/port.lua",
+      ["sncl.model.link"]      = "sncl/model/link.lua",
+      ["sncl.model.action"]    = "sncl/model/action.lua",
       ["sncl.model.condition"] = "sncl/model/condition.lua",
-      ["sncl.model.elemento"] = "sncl/model/elemento.lua",
+      ["sncl.model.elemento"]  = "sncl/model/elemento.lua",
    },
    install = {
-      bin = {"bin/sncl"}
+      bin = {
+         "bin/sncl"
+      }
    }
 }
 

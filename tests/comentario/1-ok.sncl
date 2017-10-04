@@ -1,0 +1,30 @@
+-- Checando comentario
+-- Comentario Comeco
+
+context context1
+   port pContext1 media1
+   --comentario dentro de context
+   media media1
+      type: "text/html"
+      --comentario dentro de media
+      area area1
+         --comentario dentro de area
+      end
+   end
+end
+
+
+--1234567890
+--!@#$%*()_+-=~`"';:{}[]|\?><,./
+
+onBegin context1.pContext1 do
+   --comentario dentro de context
+   start media2 
+      --Comentario dentro de action
+   end
+end
+
+media media2
+   type: "text/html"
+end
+--comentatio fim

@@ -29,15 +29,15 @@ end
 
 function utilsTable.printErro(string, linha)
    linha = linha or ""
-   local arquivo = arquivo or ""
-   io.write(colors("%{bright}"..arquivo..":"..linha..": %{red}erro:%{reset} "..string))
+   local arquivo = arquivoEntrada or ""
+   io.write(colors("%{bright}"..arquivo..":"..linha..": %{red}erro:%{reset} "..string.."\n"))
    hasError = true
 end
 
 function utilsTable.printNCL()
    local indent = "\n   "
-   local NCL = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>"
-   NCL = NCL.."\n<ncl id=\"main\" xmlns=\"http://www.ncl.org.br/NCL3.0/EDTVProfile\">"
+   local NCL = [[<?xml version="1.0" encoding="ISO-8859-1"?>
+                 <ncl id="main" xmlns="http://www.ncl.org.br/NCL3.0/EDTVProfile">]]
 
    for pos, val in pairs(tabelaSimbolos.macros) do
       if val:getEnd() == false then

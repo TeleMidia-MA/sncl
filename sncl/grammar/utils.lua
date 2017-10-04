@@ -90,7 +90,6 @@ function parseLinkCondition(str)
             newLink.pai = currentElement
             currentElement:addFilho(newLink)
             currentElement = newLink
-            table.insert(tabelaSimbolos.body, newLink)
             local newCondition = Condition.new(condition, conditionParam, media, interface, linhaParser)
             newCondition.pai = currentElement
             currentElement:addCondition(newCondition)
@@ -363,10 +362,12 @@ end
 function newElement (str, element)
    local id = parseId(str)
 
+   --[[
    if tabelaSimbolos[id]  then
-      --utils.printErro("Id "..id.." já declarado.", linhaParser)
+      utils.printErro("Id "..id.." já declarado.", linhaParser)
       return
    end
+   ]]
 
    element:setId(id)
    if currentElement then

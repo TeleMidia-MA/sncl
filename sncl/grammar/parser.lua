@@ -35,6 +35,9 @@ snclGrammar = {
          insideMacro = false
       end
       currentElement.temEnd = true
+      if currentElement.tipo == "link" then
+         currentElement:createConnector()
+      end
       if currentElement.pai == nil then
          currentElement = nil
       else
@@ -149,7 +152,7 @@ snclGrammar = {
       if currentElement ~= nil then
          currentElement:addPropriedade(nome, valor)
       else
-         utils.printErro("Propriedade so podem ser declaradas dentro de algum elemento.", linhaParser)
+         utils.printErro("Propriedade "..str.." declarada em contexto inválido.", linhaParser)
       end
    end,
    Refer = (P"refer" *P" "^0* P":" *P" "^0* t.alnum^1 *SPC^0)
