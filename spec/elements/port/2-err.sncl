@@ -1,0 +1,8 @@
+port pBody c1.pc1
+
+context c1
+   port pc2 m1
+   media m1
+      type: "text/html"
+   end
+end

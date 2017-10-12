@@ -1,0 +1,39 @@
+port pBody media1
+
+macro createMedia(mName, source)
+   media mName
+      src: source
+   end
+end
+
+-- Link Simples no body
+onBegin media1 do
+   start media2 end
+end
+
+*createMedia("media1", "medias/image1.jpg")
+*createMedia("media2", "medias/image2.jpg")
+
+-- Interacao Link - Contexto
+onBegin media1 do
+   start context1.pC1 end
+end
+context context1
+   port pC1 media3
+   *createMedia("media3", "medias/image3.jpg")
+   *createMedia("media4", "medias/image3.jpg")
+   onBegin media3 do
+      start media4 end
+   end
+end
+
+-- bindParams
+onBegin media1 do
+   delay: "20s"
+   start media2
+      delay: "30s"
+   end
+end
+
+
+

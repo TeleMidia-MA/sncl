@@ -1,0 +1,22 @@
+images = {i1, i2, i3,
+         "images/img1.jpg","images/img2.jpg",
+         "images/img3.jpg"}
+media 
+   src: 
+end
+
+---------------------------
+
+images = {i1, i2, i3}
+sources = {"images/img1.jpg",
+         "images/img2.jpg",
+         "images/img3.jpg"}
+
+media #images
+   src: #sources
+end
+
+onEnd #images do
+   start #images+1 end
+end
+

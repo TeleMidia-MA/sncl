@@ -1,0 +1,3 @@
+-- Teste de area no body
+area area1 -- Area não pode ficar dentro do body
+end

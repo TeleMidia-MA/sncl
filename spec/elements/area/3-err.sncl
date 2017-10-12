@@ -1,0 +1,5 @@
+-- Area dentro de contexto
+context c1 --Area não é aceita dentro de context
+   area a1
+   end
+end

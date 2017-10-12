@@ -26,25 +26,22 @@ dependencies = {
 build = {
    type = "builtin",
    modules = {
-      ["sncl.main"]            = "sncl/main.lua",
-      ["sncl.utils"]           = "sncl/utils/misc.lua",
-      ["sncl.testing"]           = "sncl/utils/testing.lua",
-
-      ["sncl.grammar.parser"]  = "sncl/grammar/parser.lua",
-      ["sncl.grammar.utils"]   = "sncl/grammar/utils.lua",
-      ["sncl.model.require"]   = "sncl/model/require.lua",
-
-      ["sncl.model.macro"]     = "sncl/model/macro.lua",
-      ["sncl.model.connector"] = "sncl/model/connector.lua",
-      ["sncl.model.port"]      = "sncl/model/port.lua",
-      ["sncl.model.link"]      = "sncl/model/link.lua",
-      ["sncl.model.action"]    = "sncl/model/action.lua",
-      ["sncl.model.condition"] = "sncl/model/condition.lua",
-      ["sncl.model.elemento"]  = "sncl/model/elemento.lua",
+      ["main"]               = "src/main.lua",
+      ["utils"]              = "src/utils/misc.lua",
+      ["parser.grammar"]     = "src/parser/grammar.lua",
+      ["parser.parse"]       = "src/parser/parse.lua",
+      ["elements.require"]   = "src/elements/require.lua",
+      ["elements.macro"]     = "src/elements/macro.lua",
+      ["elements.connector"] = "src/elements/connector.lua",
+      ["elements.port"]      = "src/elements/port.lua",
+      ["elements.link"]      = "src/elements/link.lua",
+      ["elements.action"]    = "src/elements/action.lua",
+      ["elements.condition"] = "src/elements/condition.lua",
+      ["elements.elemento"]  = "src/elements/elemento.lua",
    },
    install = {
       bin = {
-         "bin/sncl"
+         "src/bin/sncl"
       }
    }
 }

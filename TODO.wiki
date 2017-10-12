@@ -1,0 +1,21 @@
+* Bugs:
+   1. When the macro son do not have end, ex:
+      macro m1() 
+         media media1
+            type: "text/html"
+      end
+   2. 
+
+* Features:
+   1. Element reuse
+   2. Switch
+   3. Multiples parameters in Macro
+   4. 
+
+* Fix:
+   1. linkParam should be bindParam of Condition
+   2. Check value of properties of Area element
+   3. Macro params should only accept strings
+   4. Properties with value "default" in sNCL should have no value in NCL
+   5. 
+

@@ -1,0 +1,18 @@
+-- Teste dos elementos do context
+macro macro1(mName, source)
+   media mName
+      src: source
+   end
+end
+
+port pBody c1.pC1
+context c1
+   port pC1 media1
+   media media1
+      src: "medias/image1.jpg"
+   end
+   *macro1("media2", "medias/image2.jpg")
+   onBegin media1 do
+      start media2 end
+   end
+end

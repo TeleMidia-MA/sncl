@@ -1,0 +1,10 @@
+media m1
+   type: "text/html"
+end
+media m2
+   type: "text/html"
+end
+
+onBegin m1 and onEnd m2 do
+   start m1 end
+end

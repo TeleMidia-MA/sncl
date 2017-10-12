@@ -1,0 +1,21 @@
+#!/usr/bin/env lua
+
+require("main")
+
+local argparse = require("argparse")
+
+local parser = argparse() {
+   name = "sncl",
+   description = "A sNCl compiler to NCL",
+}
+
+parser:argument("input", "sNCL Input File"):args(1)
+parser:option("-o --output", "Set the output NCL file")
+parser:flag("-p --play", "Play the file in ginga")
+
+local args = parser:parse()
+
+-- (args.input) Arquivo de entrada
+-- (args.output) Arquivo de saida
+-- (args.play) -- Se é pra tocar no ginga ou não
+beginParse(args.input, args.output, args.play)

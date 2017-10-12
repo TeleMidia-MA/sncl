@@ -1,0 +1,7 @@
+macro m1() --macro sem parametro
+   left: prop
+end
+
+media media1
+   *m1("50%")
+end

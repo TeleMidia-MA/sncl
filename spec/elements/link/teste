@@ -1,0 +1,83 @@
+-- Param do link
+-- Não Tem suporte, e nem vai ter
+onBegin m1 do
+   delay: "10s"
+   start m2 end
+end
+<causalConnector id=“onBeginStart”>
+   <connectorParam name="vDelay" />
+   <simpleCondition role="onBegin" />
+   <simpleAction role="start" delay="$vDelay"/>
+</causalConnector>
+
+<link xconnector="onBeginStart">
+   <linkParam name="delay" value="10s"/>
+   <bind role="onBegin" component="m1"/>
+   <bind role="start" component="m2">
+</link>
+
+-- Param da ação
+-- Ja tem suporte
+onBegin m1 do
+   start m2
+      delay: "10s"
+   end
+end
+<causalConnector id=“onBeginStart”>
+   <connectorParam name="vDelay" />
+   <simpleCondition role="onBegin" />
+   <simpleAction role="start" delay="$vDelay"/>
+</causalConnector>
+
+<link xconnector="onBeginStart">
+   <bind role="onBegin" component="m1"/>
+   <bind role="start" component="m2">
+      <bindParam name="delay" value="10s"/>
+   </bind>
+</link>
+
+-- Param da condição
+-- Ja tem suporte
+onBegin m1 do
+   delay: "10s"
+   start m2 end
+end
+<causalConnector id=“onBeginStart”>
+   <connectorParam name="vDelay" />
+   <simpleCondition role="onBegin" delay="$vDelay"/>
+   <simpleAction role="start" />
+</causalConnector>
+
+<link xconnector="onBeginStart">
+   <bind role="onBegin" component="m1">
+      <bindParam name="delay" value="10s">
+   </bind>
+   <bind role="start" component="m2"/>
+</link>
+
+-- Param quando tem multiplas condições
+-- ?????
+onBegin m1 and onEnd m2 do
+   delay: "10s"
+   start m3 end
+end
+<causalConnector id=“onBeginStart”>
+   <connectorParam name="vDelay" />
+   <compoundCondition operator="and">
+      <simpleCondition role="onBegin" delay="$vDelay"/>
+      <simpleCondition role="onEnd" delay="$vDelay"/>
+   </compoundCondition>
+   <simpleAction role="start" />
+</causalConnector>
+
+<link xconnector="onBeginStart">
+   <bind role="onBegin" component="m1">
+      <bindParam name="delay" value="10s">
+   </bind>
+   <bind role="onEnd" component="m1">
+      <bindParam name="delay" value="10s">
+   </bind>
+   <bind role="start" component="m2"/>
+</link>
+
+
