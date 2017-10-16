@@ -1,3 +1,4 @@
+local utils = require("utils")
 local link = {}
 local Link = {}
 
@@ -109,11 +110,12 @@ function Link:toNCL(indent)
       return ""
    end
 
+   self:createConnector()
    local NCL = indent.."<link xconnector=\""..self.xconnector.."\">"
 
    -- Link Params
    for pos, val in pairs(self.propriedades) do
-      NCL = NCL..indent.."   <linkParam name=\""..pos.."\" val="..val..">"
+      NCL = NCL..indent.."   <linkParam name=\""..pos.."\" value="..val.."/>"
    end
 
    -- Conditions

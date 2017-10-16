@@ -22,11 +22,13 @@ end
 
 --Set
 function Elemento:setId(id)
-   if tabelaSimbolos[id] then
+   if tabelaSimbolos[id] then -- Se ja existe o Id
       utils.printErro("Id "..id.." já declarado.", self.linha)
       return nil
    end
    self.id = id
+   -- Não é pra adicionar a tabela de simbolos
+   -- se o elemento tiver dentro de uma macro
    if not insideMacro then
       tabelaSimbolos[id] = self
       if self.tipo == "region" then
@@ -60,6 +62,7 @@ function Elemento:addPropriedade(nome, valor)
          self.region = valor
          return
       end
+   -- Checar se o atributo de area é valido
    elseif self.tipo == "area" then
       for __, val in pairs(self.areaAttributes) do
          if val == nome then
@@ -124,11 +127,11 @@ function Elemento:toNCL(indent)
    if self._type then
       NCL = NCL.." type="..self._type
    end
-   if self.tipo ~= "area" then
+   if self.tipo ~= "area" and self.tipo ~= "region" and self.tipo ~= "descriptor" then
       NCL = NCL..">"
    end
 
-   if self.tipo == "area" then
+   if self.tipo == "area" or self.tipo == "region" or self.tipo == "descriptor" then
       for pos, val in pairs(self.propriedades) do
          NCL = NCL.." "..pos.."="..val
       end
@@ -160,6 +163,7 @@ function Elemento:criarDescritor()
       self.descritor = id
       local newDesc = elemento.novo("descriptor", 0)
       newElement(id, newDesc)
+      newDesc:addPropriedade("region", "\""..self.region.."\"")
       newDesc.temEnd = true
    end
 end

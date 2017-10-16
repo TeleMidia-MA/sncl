@@ -1,5 +1,6 @@
-local action = {}
+local utils = require("utils")
 
+local action = {}
 local Action = {}
 
 function action.new(action, component, interface, linha)
@@ -44,22 +45,22 @@ function Action:toNCL(indent)
          local referredMedia = tabelaSimbolos[refer.media]
          if referredMedia ~= nil then --Se o refer do component tem a interface
             if not (referredMedia:getFilho(self.interface) and tabelaSimbolos[self.component]:getFilho(self.interface)) then
-               utils.printErro("Interface "..self.interface.." do elemento "..self.component.." não declarada.", self.linha)
+               utils.printErro("Interface "..self.interface.." do elemento "..self.component.." nao declarada.", self.linha)
                return ""
             end
          else
-            utils.printErro("Elemento "..self.component.." não declarada.", self.linha)
+            utils.printErro("Elemento "..self.component.." nao declarada.", self.linha)
             return ""
          end
       elseif not tabelaSimbolos[self.component]:getFilho(self.interface) then --Se o component tem interface
-         utils.printErro("Elemento "..self.component.." não possui interface "..self.interface, self.linha)
+         utils.printErro("Elemento "..self.component.." nao possui interface "..self.interface, self.linha)
          return ""
       end
    end
 
    if tabelaSimbolos.body[self.component].pai then --Se component tem pai
       if self.pai.pai ~= tabelaSimbolos.body[self.component].pai then --Se pai do Link e do Component são diferentes
-         utils.printErro("O elemento "..self.component.." não é um elemento válido nesse contexto.", self.linha)
+         utils.printErro("O elemento "..self.component.." nao é um elemento válido nesse contexto.", self.linha)
          return ""
       end
    else --Se component não tem pai

@@ -283,16 +283,33 @@ function parseMacroSon(macro, son, paramsTable)
    local father = currentElement
    if son.tipo == 'link' then
       newElement = Link.new()
-      for _, condition in pairs(son.conditions) do
-         local component = paramsTable[macro.params[condition.component]]:gsub("\"","")
-         local newCondition = Condition.new(condition.condition, new, component)
+
+      for _, condition in pairs(son.conditions) do --Copiar condicoes
+         -- Check if condition and component are parameters
+         local cond = condition.condition
+         if macro.params[condition.condition] then
+            cond = paramsTable[macro.params[condition.condition]]:gsub("\"","")
+         end
+         local component = condition.component
+         if macro.params[condition.component] then
+            component = paramsTable[macro.params[condition.component]]:gsub("\"","")
+         end
+         local newCondition = Condition.new(cond, new, component)
          newElement:addCondition(newCondition)
          newCondition.pai = newElement
       end
-      for _, action in pairs(son.actions) do
-         local component = paramsTable[macro.params[action.component]]:gsub("\"","")
-         local newAction = Action.new(action.action, component)
-         for pos, val in pairs(action.propriedades) do --Adicionar as propriedades da action
+
+      for _, action in pairs(son.actions) do -- Copiar acoes
+         local act = action.action
+         if macro.params[action.action] then
+            act = paramsTable[macro.params[action.action]]:gsub("\"","")
+         end
+         local component = action.component
+         if macro.params[action.component] then
+            component = paramsTable[macro.params[action.component]]:gsub("\"","")
+         end
+         local newAction = Action.new(act, component)
+         for pos, val in pairs(action.propriedades) do
             local value = paramsTable[macro.params[val]]
             newAction:addProperty(pos, "\""..value.."\"")
          end
@@ -300,6 +317,7 @@ function parseMacroSon(macro, son, paramsTable)
          newElement:addAction(newAction)
          newAction.pai = newElement
       end
+
       newElement.temEnd = true
       table.insert(tabelaSimbolos.body, newElement)
 

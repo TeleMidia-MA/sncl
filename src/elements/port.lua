@@ -1,9 +1,9 @@
+local utils = require("utils")
 
 local port = {}
-
 local Port = {}
 
-function port.novo (media, interface, pai, linha)
+function port.novo(media, interface, pai, linha)
    local self = {
       id = nil,
       pai = pai,
@@ -16,7 +16,7 @@ function port.novo (media, interface, pai, linha)
    return self
 end
 
-function Port:setId (id)
+function Port:setId(id)
    if tabelaSimbolos[id] then
       utils.printErro("Elemento com id "..id.." já declarado.")
       return

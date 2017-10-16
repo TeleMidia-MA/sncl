@@ -1,5 +1,0 @@
-port pBody m1
-
-media m1
-   type: "text/html"
-end

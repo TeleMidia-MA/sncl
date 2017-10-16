@@ -1,6 +1,0 @@
--- Teste de elementos invalidos
-
-context c1 -- Region não pode ficar dentro de context
-   region r1
-   end
-end

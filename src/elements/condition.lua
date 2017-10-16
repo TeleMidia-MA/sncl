@@ -1,3 +1,4 @@
+local utils = require("utils")
 local condition = {}
 local Condition = {}
 
@@ -47,18 +48,15 @@ function Condition:toNCL (indent)
          end
       end
    end
-
-   if self.pai then
-      if self.pai.pai then --Se Link tiver pai
-         if self.pai.pai.id ~= self.component and tabelaSimbolos.body[self.component].pai.id ~= self.pai.pai.id then
-            utils.printErro("Elemento "..self.component.." não é válido nesse contexto.", self.linha)
-            return ""
-         end
-      else
-         if tabelaSimbolos.body[self.component].pai then
-            utils.printErro("Elemento "..self.component.." não é válido nesse contexto.", self.linha)
-            return ""
-         end
+   if tabelaSimbolos.body[self.component].pai then --Se component tem pai
+      if self.pai.pai ~= tabelaSimbolos.body[self.component].pai then --Se pai do Link e do Component são diferentes
+         utils.printErro("O elemento "..self.component.." nao é um elemento válido nesse contexto.", self.linha)
+         return ""
+      end
+   else --Se component não tem pai
+      if self.pai.pai then --Se Link tem pai
+         utils.printErro("O elemento "..self.component.." não é um elemento válido nesse contexto.", self.linha)
+         return ""
       end
    end
 

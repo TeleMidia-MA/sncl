@@ -33,9 +33,6 @@ gramaticaSncl = {
          insideMacro = false
       end
       currentElement.temEnd = true
-      if currentElement.tipo == "link" then
-         currentElement:createConnector()
-      end
       if currentElement.pai == nil then
          currentElement = nil
       else

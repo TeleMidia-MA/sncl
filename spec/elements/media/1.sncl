@@ -1,4 +1,0 @@
-port pBody media1
-media media1
-   src: "medias/image1.jpg"
-end
