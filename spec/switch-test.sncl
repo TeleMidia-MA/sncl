@@ -1,0 +1,30 @@
+-- Não da pra fazer compositeRule
+-- So da pra fazer comparação igual
+-- Port?
+switch "system.language":
+   case "eng":
+      media firstImage
+         src: "medias/image1.jpg"
+      end
+   case "pt":
+      media secondImage
+         src: "medias/image2.jpg"
+      end
+   default:
+      --blah blah blah
+   end
+end
+
+-- Port?
+-- Quando o switch é em um port de um contexto?
+if "system.language" == "en" then
+   media firstImage
+      src: "medias/image1.jpg"
+   end
+else if "system.language" == "pt" then
+   media secondImage
+      src: "medias/image2.jpg"
+   end
+else
+   -- blah blah blah
+end

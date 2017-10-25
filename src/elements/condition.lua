@@ -22,11 +22,11 @@ function Condition:getParam() return self.conditionParam end
 
 function Condition:toNCL (indent)
    if tabelaSimbolos[self.component] == nil then --Checar se mídia existe
-      utils.printErro("Elemento "..self.component.." nao declarado.", self.linha)
+      utils.printErro("Invalid element "..self.component, self.linha)
       return ""
    else --Se tiver component
       if tabelaSimbolos[self.component].tipo == "region" then
-         utils.printErro("Elemento inválido em condição.", self.linha)
+         utils.printErro("Invalid element in condition", self.linha)
          return ""
       end
       if self.interface then -- Se tiver interface
@@ -35,27 +35,27 @@ function Condition:toNCL (indent)
             local referredMedia = tabelaSimbolos[refer.media]
             if referredMedia ~= nil then
                if referredMedia:getFilho(self.interface) == false and referredMedia:getPropriedade(self.interface) == false and tabelaSimbolos[self.component]:getFilho(self.interface) == false then
-                  utils.printErro("Interface "..self.interface.." do elemento"..self.component.." nao declarado.", self.linha)
+                  utils.printErro("Invalid interface "..self.interface, self.linha)
                   return ""
                end
             else
-               utils.printErro("Elemento "..self.component.." nao declarado.", self.linha)
+               utils.printErro("Element "..self.component.." not declared.", self.linha)
                return ""
             end
-         elseif not tabelaSimbolos[self.component]:getFilho(self.interface) then --Se interface não 
-            utils.printErro("Interface "..self.interface.." do elemento "..self.component.." nao declarado.", self.linha)
+         elseif not tabelaSimbolos[self.component]:getFilho(self.interface) then --Se interface não
+            utils.printErro("Invalid interface "..self.interface, self.linha)
             return ""
          end
       end
    end
    if tabelaSimbolos.body[self.component].pai then --Se component tem pai
       if self.pai.pai ~= tabelaSimbolos.body[self.component].pai then --Se pai do Link e do Component são diferentes
-         utils.printErro("O elemento "..self.component.." nao é um elemento válido nesse contexto.", self.linha)
+         utils.printErro("Invalid element "..self.component, self.linha)
          return ""
       end
    else --Se component não tem pai
       if self.pai.pai then --Se Link tem pai
-         utils.printErro("O elemento "..self.component.." não é um elemento válido nesse contexto.", self.linha)
+         utils.printErro("Invalid element "..self.component, self.linha)
          return ""
       end
    end

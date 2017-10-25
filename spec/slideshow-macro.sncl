@@ -1,0 +1,25 @@
+port pBody context1.pContext
+
+macro nextPhoto(media1, media2)
+   onEnd media1 do
+      start media2 end
+   end
+end
+
+macro makeMedia(mName, src)
+   media mName
+      src: src
+      explicitDur: "5s"
+   end
+end
+
+context context1
+   port pContext media1
+   *makeMedia("media1", "medias/image1.jpg")
+   *makeMedia("media2", "medias/image2.jpg")
+   *makeMedia("media3", "medias/image3.jpg")
+   *makeMedia("media4", "medias/image4.jpg")
+   *nextPhoto("media1", "media2")
+   *nextPhoto("media2", "media3")
+   *nextPhoto("media3", "media4")
+end

@@ -1,0 +1,5 @@
+port pBody imagem-ola-mundo
+
+media imagem-ola-mundo
+   src: "medias/image1.jpg"
+end

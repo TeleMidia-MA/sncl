@@ -18,7 +18,7 @@ end
 
 function Port:setId(id)
    if tabelaSimbolos[id] then
-      utils.printErro("Elemento com id "..id.." já declarado.")
+      utils.printErro("Element "..id.." already declared", self.linha)
       return
    end
    self.id = id
@@ -40,18 +40,18 @@ end
 function Port:toNCL(indent)
 
    if tabelaSimbolos[self.media] == nil then
-      utils.printErro("Nenhum elemento "..self.media..".", self.linha)
+      utils.printErro("No element "..self.media, self.linha)
       return ""
    end
 
    if tabelaSimbolos[self.media].pai ~= self.pai then
-      utils.printErro("O Elemento "..self.media.." deve estar no mesmo contexto do elemento port "..self.id..".", self.linha)
+      utils.printErro("Element "..self.media.." is invalid in this context", self.linha)
       return ""
    end
 
    if self.interface then
       if tabelaSimbolos[self.media]:getFilho(self.interface) == nil then
-         utils.printErro("O elemento apontado pela interface é inválido.", self.linha)
+         utils.printErro("Element "..self.interface.." is invalid", self.linha)
          return ""
       end
    end

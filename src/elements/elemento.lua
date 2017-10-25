@@ -10,9 +10,7 @@ function elemento.novo(tipo, linha)
       id = "",
       tipo = tipo,
       temEnd = false,
-      pai,
-      linha,
-      refer,
+      pai, linha, refer,
       propriedades = {},
       filhos = {},
    }
@@ -22,8 +20,8 @@ end
 
 --Set
 function Elemento:setId(id)
-   if tabelaSimbolos[id] then -- Se ja existe o Id
-      utils.printErro("Id "..id.." já declarado.", self.linha)
+   if tabelaSimbolos[id] and self.tipo ~= "descriptor" then -- Se ja existe o Id
+      utils.printErro("Element "..id.." already declared", self.linha)
       return nil
    end
    self.id = id
@@ -48,7 +46,9 @@ function Elemento:setRefer(component, interface)
 end
 --Add
 function Elemento:addFilho(filho)
-   table.insert(self.filhos, filho)
+   if self.tipo ~= "descriptor" then
+      table.insert(self.filhos, filho)
+   end
 end
 function Elemento:addPropriedade(nome, valor)
    if self.tipo == "media" then
@@ -64,13 +64,13 @@ function Elemento:addPropriedade(nome, valor)
       end
    -- Checar se o atributo de area é valido
    elseif self.tipo == "area" then
-      for __, val in pairs(self.areaAttributes) do
+      for _, val in pairs(self.areaAttributes) do
          if val == nome then
             self.propriedades[nome] = valor
             return
          end
       end
-      utils.printErro("Propriedade "..nome.." invalida em elemento area.", self.linha)
+      utils.printErro("Invalid property "..nome, self.linha)
       return
    end
    self.propriedades[nome] = valor
@@ -78,7 +78,7 @@ end
 
 --Get
 function Elemento:getFilho(filho)
-   for pos, val in pairs(self.filhos) do
+   for _, val in pairs(self.filhos) do
       if val.tipo ~= "link" then
          if val.id == filho then
             return val
@@ -90,7 +90,19 @@ end
 function Elemento:getPropriedade(propriedade)
    for pos, val in pairs(self.propriedades) do
       if pos == propriedade then
-         return pos
+         return pos, val
+      end
+   end
+end
+
+function Elemento:filhoTemPropriedade(prop)
+   for _, val in pairs(self.filhos) do
+      if val.propriedades then
+         if val.propriedades[prop] then
+            return val
+         else
+            val:filhoTemPropriedade(prop)
+         end
       end
    end
 end
@@ -104,7 +116,7 @@ function Elemento:toNCL(indent)
 
    if self.tipo == "media" then
       if self.src==nil and self._type==nil and self.refer==nil then
-         utils.printErro("Media deve ter source ou type ou refer.", self.linha)
+         utils.printErro("Media must have a type, source or refer", self.linha)
          return ""
       end
       self:criarDescritor()
@@ -138,15 +150,17 @@ function Elemento:toNCL(indent)
       NCL = NCL..">"
    else
       for pos, val in pairs(self.propriedades) do
-         NCL = NCL..indent.."   <property name=\""..pos.."\""
-         if val then
-            NCL = NCL.." value="..val
+         if pos ~= "map" then
+            NCL = NCL..indent.."   <property name=\""..pos.."\""
+            if val then
+               NCL = NCL.." value="..val
+            end
+            NCL = NCL.."/>"
          end
-         NCL = NCL.."/>"
       end
    end
 
-   for pos, val in pairs(self.filhos) do
+   for _, val in pairs(self.filhos) do
       NCL = NCL..val:toNCL(indent.."   ")
    end
 
@@ -162,13 +176,37 @@ function Elemento:criarDescritor()
       local id = self.region.."Desc"
       self.descritor = id
       local newDesc = elemento.novo("descriptor", 0)
-      newElement(id, newDesc)
+      utils.newElement(id, newDesc)
       newDesc:addPropriedade("region", "\""..self.region.."\"")
       newDesc.temEnd = true
    end
 end
 
-Elemento.areaAttributes = {
+function Elemento:parseProperty(str)
+   local name, value = utils.separateSymbol(str)
+   if name and value then
+      if utils.isMacroSon(self) then
+         local macro = utils.isMacroSon(self)
+         if not value:match('".-"') then
+            if not macro.params[value] and name~="rg" then
+               utils.printErro("Value of property "..name.." in "..self.tipo.." invalid.")
+               return
+            end
+         end
+      else
+         if not value:match('".-"') then
+            if name ~= "rg" and name ~= "default" then
+               utils.printErro("Value of property "..name.." in "..self.tipo.." invalid.")
+               return
+            end
+         end
+         self:addPropriedade(name, value)
+      end
+   else
+   end
+end
+
+Elemento.areaAttributes = { --TODO: Tirar isso daqui, fazer global?
    "coords", "begin", "end", "text", "position", "first",
    "last", "label"
 }

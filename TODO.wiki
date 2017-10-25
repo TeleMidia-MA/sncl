@@ -1,16 +1,18 @@
 * Bugs:
    1. [ ] When the macro son do not have end, ex:
-      macro m1() 
+      macro m1()
          media media1
             type: "text/html"
       end
-   2. [ ] 
-
+   2. [ ]
+   3. 
+   
 * Features:
    1. [ ] Element reuse
    2. [ ] Switch
    3. [ ] Multiples parameters in Macro
-   4. [ ] 
+   4. [ ] Web Editor with Web NCL
+   5. [ ] 
 
 * Fix:
    1. [ ] linkParam should be bindParam of Condition

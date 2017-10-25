@@ -1,23 +1,20 @@
 --Variaveis globais
-local argparse = require("argparse")
 local lpeg = require("lpeg")
 
 -- Globals
 linhaParser = 1
 arquivoEntrada = nil
-testing = false
 insideMacro = false
 hasError = false
-
-insideMacro = false
 currentElement = nil
 
 tabelaSimbolos = {
+   macros = {},
+   rules = {},
    regions = {},
    descriptors = {},
    connectors = {},
    body = {},
-   macros = {},
 }
 
 local utils = require("utils")
@@ -29,13 +26,14 @@ require("elements.require")
 function beginParse(entrada, saida, play)
    arquivoEntrada = entrada
    if not entrada:find(".sncl") then
-      utils.printErro("Extensão do arquivo inválida.") 
+      utils.printErro("Invalid file extension")
       return
    end
 
    local conteudoEntrada = utils.lerArquivo(entrada)
    if not conteudoEntrada then
-      return -1
+      utils.printErro("Error reading input file")
+      return
    end
 
    lpeg.match(gramaticaSncl, conteudoEntrada)
@@ -46,16 +44,16 @@ function beginParse(entrada, saida, play)
       nLinhas = nLinhas+1
    end
    if linhaParser < nLinhas then
-      utils.printErro("Erro de análise.", linhaParser)
+      utils.printErro("Parsing error", linhaParser)
       return
    end
 
    local output = utils.printNCL()
    if hasError then
-      utils.printErro("Erro ao criar arquivo de saída.")
-      return nil
+      utils.printErro("Error creating output file")
+      return
    end
-   if saida then 
+   if saida then
       utils.escreverArquivo(saida, output)
    else
       saida = entrada:sub(1, entrada:len()-4)

@@ -27,7 +27,7 @@ build = {
    type = "builtin",
    modules = {
       ["main"]               = "src/main.lua",
-      ["utils"]              = "src/utils/misc.lua",
+      ["utils"]              = "src/misc.lua",
       ["parser.grammar"]     = "src/parser/grammar.lua",
       ["parser.parse"]       = "src/parser/parse.lua",
       ["elements.require"]   = "src/elements/require.lua",
@@ -37,6 +37,8 @@ build = {
       ["elements.link"]      = "src/elements/link.lua",
       ["elements.action"]    = "src/elements/action.lua",
       ["elements.condition"] = "src/elements/condition.lua",
+      ["elements.switch"] = "src/elements/switch.lua",
+      ["elements.rule"] = "src/elements/rule.lua",
       ["elements.elemento"]  = "src/elements/elemento.lua",
    },
    install = {

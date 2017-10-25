@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
    <ncl id="main" xmlns="http://www.ncl.org.br/NCL3.0/EDTVProfile">
    <head>
+      <ruleBase>
+         <rule id="formsecond" var="display-image" value="second" comparator="eq"/>
+         <rule id="formfirst" var="display-image" value="first" comparator="eq"/>
+      </ruleBase>
       <regionBase>
-         <region id="region1" top="10%" right="10%" left="10%" bottom="10%">
+         <region id="region1" left="10%" top="10%" bottom="10%" right="10%">
          </region>
       </regionBase>
       <descriptorBase>
@@ -38,9 +42,6 @@
             <bindParam name="delay" value="20s"/>
          </bind>
       </link>
-      <media id="media2" src="medias/image1.jpg" type="text/html">
-      </media>
-      <port id="pBody" component="media1"/>
       <context id="context1">
          <port id="pContext1" component="context1media1"/>
          <media id="context1media1" src="medias/image1.jpg" type="text/html">
@@ -64,11 +65,28 @@
             </bind>
          </link>
       </context>
-      <media id="media1" descriptor="region1Desc" src="medias/image1.jpg">
-         <area id="area1" end="30s" begin="20s">
-         </area>
+      <switch id="form">
+         <switchPort id="formPort">
+         </switchPort>
+         <defaultComponent component="firstImage"/>
+         <media id="secondImage" src="medias/image2.jpg">
+         </media>
+         <bindRule constituent="secondImage" rule="formsecond"/>
+         <media id="firstImage" src="medias/image1.jpg">
+         </media>
+         <bindRule constituent="firstImage" rule="formfirst"/>
+      </switch>
+      <media id="media2" src="medias/image1.jpg" type="text/html">
+      </media>
+      <port id="pBody" component="media1"/>
+      <media id="noSettings" type="application/x-ncl-settings">
+         <property name="display-image" value="second"/>
       </media>
       <media id="media3" src="medias/image1.jpg" type="text/html">
+      </media>
+      <media id="media1" descriptor="region1Desc" src="medias/image1.jpg">
+         <area id="area1" begin="20s" end="30s">
+         </area>
       </media>
    </body>
 </ncl>

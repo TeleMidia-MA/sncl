@@ -106,7 +106,7 @@ end
 
 function Link:toNCL(indent)
    if self.hasEnd == false then
-      utils.printErro("Elemento Link não tem end.", self.linha)
+      utils.printErro("Element Link does not have end", self.linha)
       return ""
    end
 
@@ -132,13 +132,21 @@ function Link:toNCL(indent)
       hasAction = true
    end
    if not hasCondition or not hasAction then
-      utils.printErro("Elemento Link deve ter ao menos 1 ação e 1 condição.", self.linha)
+      utils.printErro("Link element must have at least 1 action and 1 condition", self.linha)
       return ""
    end
 
    NCL = NCL..indent.."</link>"
 
    return NCL
+end
+
+function Link:parseProperty(str)
+   local name, value = utils.separateSymbol(str)
+   if name and value then
+      self.propriedades[name] = value
+   else
+   end
 end
 
 return link

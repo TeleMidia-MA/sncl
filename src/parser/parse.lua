@@ -1,10 +1,7 @@
 local utils = require("utils")
 
 function parseId(str)
-   local words = {}
-   for word in str:gmatch("%S+") do -- Separar as palavras por espaco
-      table.insert(words, word)
-   end
+   local words = utils.separarEspaco(str)
 
    if #words == 1 then
       return words[1]
@@ -13,40 +10,6 @@ function parseId(str)
    else
       utils.printErro("Declaração \'"..str.."\' de elemento invalida.", linhaParser)
       return nil
-   end
-end
-
-function parseProperty(str)
-   local sign = str:find(":")
-   if sign then
-      local name = str:sub(1, sign-1) --nome da propriedade
-      local value = str:sub(sign+1) --valor da propriedade
-      if currentElement.tipo == "macro"  then
-         if not value:match('".-"') then --Se não tem aspas, entao o valor tem que ser um parametro
-            if not currentElement.params[value] then
-               utils.printErro("Valor da propriedade "..name.." em macro inválida.", linhaParser-1)
-               return nil
-            end
-         end
-      elseif isMacroSon(currentElement) then
-         local macro = isMacroSon(currentElement)
-         if not value:match('".-"') then
-            if not macro.params[value] then
-               utils.printErro("Valor da propriedade "..name.." em macro inválida.", linhaParser-1)
-               return nil
-            end
-         end
-      else
-         if not value:match('".-"') then --se não tiver em macro, então tem que ter aspas
-            if name ~= "rg" then
-               utils.printErro("Valor da propriedade "..name.." invalida.", linhaParser-1)
-            return nil
-            end
-         end
-      end
-      return name, value
-   else
-      return str
    end
 end
 
@@ -77,18 +40,6 @@ function parseRefer(str)
    end
 end
 
-
-function separateByDot(str)
-   local dot = str:find("%.")
-   if dot then
-      beforeDot = str:sub(1,dot-1)
-      afterDot = str:sub(dot+1)
-      return beforeDot, afterDot
-   else
-      return str
-   end
-end
-
 function parseLinkCondition(str)
    --Separar as palavras por espaco
    local words = {}
@@ -101,10 +52,10 @@ function parseLinkCondition(str)
       local media= words[2]
       local conditionParam
 
-      condition, conditionParam = separateByDot(condition)
+      condition, conditionParam = utils.separarPonto(condition)
 
       local interface
-      media, interface = separateByDot(media)
+      media, interface = utils.separarPonto(media)
 
       if currentElement ~= nil then
          if currentElement.tipo == "link" then --Se for link, adicionar condicao
@@ -196,7 +147,7 @@ function parsePort(str)
    end
 
    local id = words[2]
-   local media, interface = separateByDot(words[3])
+   local media, interface = utils.separarPonto(words[3])
 
    local newPort = Port.novo(media, interface, currentElement, linhaParser-1)
    newPort:setId(id)
@@ -219,19 +170,6 @@ function parseIdMacro(str)
    end
    return id, paramsTable, count-1
 end
-
-function isMacroSon(element) --TODO: essa funcao tem que ta em utilsTable
-   if element then
-      while element  do
-         if element.tipo == "macro" then
-            return element
-         end
-         element = element.pai
-      end
-   end
-   return false
-end
-
 function parseMacroChamada (str)
    str = str:gsub("*", "", 1)
    str = str:gsub("%s+", "")
@@ -239,8 +177,8 @@ function parseMacroChamada (str)
    local paramString = string.match(str,"%(.*%)")
    local idMacro = str:gsub("%(.*%)", "")
 
-   if isMacroSon(currentElement) then
-      if idMacro == isMacroSon(currentElement) then
+   if utils.isMacroSon(currentElement) then
+      if idMacro == utils.isMacroSon(currentElement) then
          utils.printErro("Macro "..idMacro.." não declarada neste contexto.", linhaParser-1)
          return
       end
@@ -399,29 +337,3 @@ function parseMacroSon(macro, son, paramsTable)
    currentElement = father
 end
 
-function newElement (str, element)
-   local id = parseId(str)
-
-   --[[
-   if tabelaSimbolos[id]  then
-      utils.printErro("Id "..id.." já declarado.", linhaParser)
-      return
-   end
-   ]]
-
-   element:setId(id)
-   if currentElement then
-      if element.tipo == "context" then
-         if currentElement.tipo ~= "context" and
-            currentElement.tipo ~= "macro" then
-            utils.printErro("Context não pode ser declarado dentro de "..currentElement.tipo..".", linhaParser)
-            return
-         end
-      end
-      element.pai = currentElement
-      currentElement:addFilho(element)
-      currentElement = element
-   else
-      currentElement = element
-   end
-end
