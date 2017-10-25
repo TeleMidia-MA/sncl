@@ -50,8 +50,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'sncl'
-copyright = '2017, Lucas Terças'
-author = 'Lucas Terças'
+copyright = '2017, Lucas Tercas'
+author = 'Lucas Tercas'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -67,7 +67,7 @@ release = '0.3'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = 'pt-br'
+language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
