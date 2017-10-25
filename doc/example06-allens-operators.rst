@@ -1,6 +1,8 @@
 Exemplo 6: Operadores de Allen (macros)
 =======================================
 
+.. todo:: Seria interessante colocar uma introdução sobre o que são os
+          operadores de Allen.
 
 Precedes e Preceded By
 ----------------------

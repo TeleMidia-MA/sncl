@@ -17,6 +17,7 @@ Welcome to sncl's documentation!
    example05-slideshow-buttons
    example06-allens-operators
 
+   todo
 
 Indices and tables
 ==================
