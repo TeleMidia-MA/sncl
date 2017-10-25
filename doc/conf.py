@@ -36,6 +36,7 @@ extensions = ['sphinx.ext.todo',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode']
 
+todo_include_todos = True
 todo_link_only = True
 
 # Add any paths that contain templates here, relative to this directory.

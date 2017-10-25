@@ -17,7 +17,11 @@ Welcome to sncl's documentation!
    example05-slideshow-buttons
    example06-allens-operators
 
+   sncl_full_grammar
+
    todo
+
+.. todo:: Adicionar os exemplos do Garrincha
 
 Indices and tables
 ==================
