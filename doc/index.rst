@@ -15,6 +15,7 @@ Welcome to sncl's documentation!
    example03-video-loop
    example04-slideshow
    example05-slideshow-buttons
+   example06-allens-operators
 
 
 Indices and tables
