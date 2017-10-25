@@ -1,5 +1,5 @@
-Operadores de Allen (macros)
-============================
+Exemplo 6: Operadores de Allen (macros)
+=======================================
 
 
 Precedes e Preceded By
