@@ -1,0 +1,12 @@
+
+media media1
+   type: "text/html"
+end
+
+onBegin media1 and
+   start media1 end
+end
+
+onBegin media1 do onEnd media1 do
+   start media1 end
+end

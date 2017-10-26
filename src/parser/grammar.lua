@@ -79,7 +79,6 @@ gramaticaSncl = {
    end,
    Switch = (V"SwitchId"* (V"Comentario"+V"SwitchPort"+V"Media"+V"Context"+V"Switch"+V"Property")^0 *V"End"^-1),
 
-
    ------ CONTEXT ------
    ContextId = (P"context"*P" "^1*V"Id"^1*SPC^0)
    /function(str)

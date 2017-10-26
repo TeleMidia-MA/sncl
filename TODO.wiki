@@ -22,4 +22,5 @@
    5. [X] Regions don't have property
    6. [X] Connect Descriptor and Region
    7. [ ] Error messages in english
+   8. [ ] Condition "and" and "do"
 
