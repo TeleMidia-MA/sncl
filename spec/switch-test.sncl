@@ -12,7 +12,6 @@ switch form
       map rPt audioPt.trechoPt
    end
    ------------
-
    ------------
    -- Perde reuso da rule
    -- Fica confuso: 
@@ -22,7 +21,6 @@ switch form
    case system.language == "en" and count < 0: audioEn
    case system.language == "pt" and count > 0: audioPt
    -------------
-
 
    default: audioPt
 
