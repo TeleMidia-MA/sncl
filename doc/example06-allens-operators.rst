@@ -1,5 +1,5 @@
-Exemplo 6: Operadores de Allen (macros)
-=======================================
+Exemplo 6: Allen's operators (macros)
+=====================================
 
 .. todo:: Seria interessante colocar uma introdução sobre o que são os
           operadores de Allen.

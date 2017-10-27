@@ -1,5 +1,5 @@
-Exemplo 5: Slideshow com botões (macro)
-=======================================
+Example 5: Slideshow with buttons (macros)
+==========================================
 
 TODO
 
