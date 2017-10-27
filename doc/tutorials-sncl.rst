@@ -1,7 +1,8 @@
-sNCL Tutorials
-==============
+sNCL by Example
+===============
 
-The applications used in the tutorial and the medias can be found in `sNCL Tutorials <https://github.com/TeleMidia-MA/sncl/tree/master/spec>`_
+The applications used in the tutorial and the media content can be found in
+`sNCL Tutorials <https://github.com/TeleMidia-MA/sncl/tree/master/spec>`_
 
 .. toctree::
    :maxdepth: 2
@@ -12,3 +13,4 @@ The applications used in the tutorial and the medias can be found in `sNCL Tutor
    example04-slideshow
    example05-slideshow-buttons
    example06-allens-operators
+

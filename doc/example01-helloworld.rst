@@ -1,7 +1,8 @@
-Exemplo 1: Olá Mundo
-=====================
+Example 1: Hello world
+======================
 
-This first example shows a simple multimedia application, that only shows one image. It consists of a *port* element and a *media* element.
+This first example shows a simple multimedia application, that only shows one
+image. It consists of a *port* element and a *media* element.
 
 These elements are declared as follows:
 

@@ -1,5 +1,5 @@
-Exemplo 3: Apresentando um vídeo em loop
-========================================
+Example 3: Playing a video in loop
+==================================
 
 In this example, 
 

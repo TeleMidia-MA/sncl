@@ -18,5 +18,5 @@ After LuaRocks and Lua are installed, sNCL can be installed using LuaRocks. This
     sudo luarocks install sncl
 
 .. todo:: Instruções de como instalar clonando o repo do github
-
+.. todo:: How to install on Windows and MacOS?
 

@@ -1,5 +1,5 @@
-Exemplo 2: Sincronizando um vídeo e uma imagem
-===============================================
+Example 2: Playing a video and an image
+=======================================
 
 TODO.
 

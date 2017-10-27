@@ -1,11 +1,15 @@
-Especificação completa da Gramática da sNCL
-===========================================
+sNCL full grammar specification
+===============================
 
-This page presents the grammar of the language. It follows the specification used in LPeg, the tool used in the compiler for grammar especification. 
+This page presents the grammar of the language. It follows the specification
+used in LPeg, the tool used in the compiler for grammar especification. 
 
 An **"+"** between elements means an *or*, an **"\*"** means an *and*.
 
-**"("** and **")"** group elements together, and the repetition of the group, or of a single element, is represented using the **"^"** operator, **"^1"** means *one or more*, **"^0"** means *0 or more*, and **"^-1"** means *one or none*.
+**"("** and **")"** group elements together, and the repetition of the group,
+or of a single element, is represented using the **"^"** operator, **"^1"**
+means *one or more*, **"^0"** means *0 or more*, and **"^-1"** means *one or
+none*.
 
 Elements between "" are literals, the others are non-terminal.
 

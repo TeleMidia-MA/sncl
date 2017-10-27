@@ -1,5 +1,5 @@
-Exemplo 4: Slideshow (macro)
-============================
+Exemplo 4: Slideshow (macros)
+=============================
 
 .. literalinclude:: ../spec/slideshow-macro.sncl
 
