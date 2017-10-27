@@ -1,7 +1,0 @@
-TODO
-====
-
-TODO (Documentação)
-
-.. todolist::
-

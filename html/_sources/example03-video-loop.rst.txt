@@ -1,7 +1,0 @@
-Exemplo 3: Apresentando um vídeo em loop
-========================================
-
-In this example, 
-
-.. literalinclude:: ../spec/loop-video.sncl
-
