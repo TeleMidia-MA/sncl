@@ -21,6 +21,6 @@
    4. [ ] Properties with value "default" in sNCL should have no value in NCL
    5. [X] Regions don't have property
    6. [X] Connect Descriptor and Region
-   7. [ ] Error messages in english
-   8. [ ] Condition "and" and "do"
+   7. [X] Error messages in english
+   8. [X] Condition "and" and "do"
 

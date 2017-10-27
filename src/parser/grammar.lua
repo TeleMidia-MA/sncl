@@ -26,7 +26,7 @@ gramaticaSncl = {
    End = (P"end" * SPC^0)
    /function()
       if currentElement == nil then
-         utils.printErro("End sem elemento.", linhaParser)
+         utils.printErro("No element to end", linhaParser)
          return
       end
       if currentElement.tipo == "macro" then
@@ -66,7 +66,7 @@ gramaticaSncl = {
          var = var:gsub("%s+", "")
          newSwitch.var = var
       else
-         utils.printErro("Declaracao de switch invalida.", linhaParser)
+         utils.printErro("Invalid Switch declaration", linhaParser)
       end
    end,
    SwitchPort = (P"port" *P" "^1* V"AlphaNumericSymbols"^1 *SPC^0)
@@ -92,7 +92,7 @@ gramaticaSncl = {
          local nome, valor = parseProperty(str)
          currentElement:addPropriedade(nome, valor)
       else
-         utils.printErro("Propriedade sem elemento pai.", linhaParser)
+         utils.printErro("Property has no element", linhaParser)
       end
    end,
    Context = (V"ContextId"
@@ -126,7 +126,7 @@ gramaticaSncl = {
    /function(str)
       local id, params, quant = parseIdMacro(str)
       if id == nil then
-         utils.printErro("Id Invalido.", linhaParser)
+         utils.printErro("Invalid Id", linhaParser)
          return
       end
       if tabelaSimbolos[id] == nil then
@@ -136,24 +136,29 @@ gramaticaSncl = {
          tabelaSimbolos[id] = newMacro
          tabelaSimbolos.macros[id] = tabelaSimbolos[id]
          if currentElement ~= nil then
-            utils.printErro("Macro não pode ser declarada dentro de outro elemento", linhaParser)
+            utils.printErro("Macro can not be declared inside of another element", linhaParser)
             return
          else
             currentElement = newMacro
          end
       else
-         utils.printErro("Id "..id.." já declarado.", linhaParser)
+         utils.printErro("Id "..id.." already declared", linhaParser)
          return
       end
       insideMacro = true
    end,
    Macro = (V"MacroId" *(V"Comentario"+V"MacroRefer"+V"Property"+V"Media"+V"Area"+V"Context"+V"Link"+V"Port"+V"Region")^0* V"End"^-1),
+
    ------ LINK ------
-   Condition = (V"AlphaNumericSymbols"^1 *P" "^1* V"AlphaNumericSymbols"^1* P" "^0 *(P"and"+P"do")*P" "^0)
+   Link = (V"Condition" *SPC^0* (V"Comentario"+V"Property"+V"Action")^0 *V"End"^-1),
+
+   ------ CONDITION ------
+   Condition = (V"ConditionParse")
    /function(str)
       parseLinkCondition(str)
    end,
-   Link = (V"Condition"^1 *SPC^0* (V"Comentario"+V"Property"+V"Action")^0 *V"End"^-1),
+   ConditionParse = (V"AlphaNumericSymbols"^1 *P" "^1* V"AlphaNumericSymbols"^1* P" "^0 *V"CondTerm"*P" "^0),
+   CondTerm = ((P"and" *P" "^1* V"ConditionParse") + (P"do")),
 
    ------ ACTION ------
    ActionMedia = (t.alnum^1 *P" "^1* V"AlphaNumericSymbols"^1 *SPC^1)
@@ -170,10 +175,10 @@ gramaticaSncl = {
    /function(str)
       str = str:gsub("%s+", "")
       if currentElement ~= nil then
-         print(currentElement.tipo)
+         --print(currentElement.tipo)
          currentElement:parseProperty(str)
       else
-         utils.printErro("Propriedade "..str.." declarada em contexto invalido.", linhaParser)
+         utils.printErro("Property"..str.." declared in invalid context", linhaParser)
       end
    end,
    Refer = (P"refer" *P" "^0* P":" *P" "^0* t.alnum^1 *SPC^0)

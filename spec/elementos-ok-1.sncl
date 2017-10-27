@@ -75,22 +75,25 @@ context context1
    *macroLink2()
 end
 
--- Test Switch
-media noSettings
-   type: "application/x-ncl-settings"
-   display-image: "second"
-end
 
-switch form > "display-image"
-   port firstImage
-   port secondImage
-   default: firstImage
-   media firstImage
-      map: "first"
-      src: "medias/image1.jpg"
-   end
-   media secondImage
-      map: "second"
-      src: "medias/image2.jpg"
-   end
-end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

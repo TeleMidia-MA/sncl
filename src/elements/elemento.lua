@@ -116,7 +116,7 @@ function Elemento:toNCL(indent)
 
    if self.tipo == "media" then
       if self.src==nil and self._type==nil and self.refer==nil then
-         utils.printErro("Media must have a type, source or refer", self.linha)
+         utils.printErro("Media "..self.id.." must have a type, source or refer", self.linha)
          return ""
       end
       self:criarDescritor()
@@ -184,6 +184,7 @@ end
 
 function Elemento:parseProperty(str)
    local name, value = utils.separateSymbol(str)
+
    if name and value then
       if utils.isMacroSon(self) then
          local macro = utils.isMacroSon(self)
@@ -200,8 +201,8 @@ function Elemento:parseProperty(str)
                return
             end
          end
-         self:addPropriedade(name, value)
       end
+      self:addPropriedade(name, value)
    else
    end
 end

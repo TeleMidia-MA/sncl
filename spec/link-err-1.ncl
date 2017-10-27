@@ -2,30 +2,20 @@
    <ncl id="main" xmlns="http://www.ncl.org.br/NCL3.0/EDTVProfile">
    <head>
       <connectorBase>
-         <causalConnector id="OnBeginOnEndStart">
+         <causalConnector id="OnEndOnBeginStart">
             <compoundCondition operator="and">
                <simpleCondition role="onEnd" />
                <simpleCondition role="onBegin" />
             </compoundCondition>
             <simpleAction role="start" />
          </causalConnector>
-         <causalConnector id="OnBeginStart">
-            <simpleCondition role="onBegin" />
-            <simpleAction role="start" />
-         </causalConnector>
       </connectorBase>
    </head>
    <body>
-      <link xconnector="OnBeginStart">
-         <bind role="onBegin" component="media1" >
-         </bind>
-         <bind role="start" component="media1">
-         </bind>
-      </link>
-      <link xconnector="OnBeginOnEndStart">
-         <bind role="onBegin" component="media1" >
-         </bind>
+      <link xconnector="OnEndOnBeginStart">
          <bind role="onEnd" component="media1" >
+         </bind>
+         <bind role="onBegin" component="media1" >
          </bind>
          <bind role="start" component="media1">
          </bind>

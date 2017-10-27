@@ -1,30 +1,49 @@
--- Não da pra fazer compositeRule
--- So da pra fazer comparação igual
--- Port?
-switch "system.language":
-   case "eng":
-      media firstImage
-         src: "medias/image1.jpg"
-      end
-   case "pt":
-      media secondImage
-         src: "medias/image2.jpg"
-      end
-   default:
-      --blah blah blah
+port form.selecFirstImage
+
+rule rEn system.language == "en" and count < 0
+rule rPt system.language == "pt" and count > 0
+
+switch form
+
+   -----------
+   -- Separa rule em uma parte diferente do documento
+   switchPort spAudio
+      map rEn audioEn.trechoEn
+      map rPt audioPt.trechoPt
    end
+   ------------
+
+   ------------
+   -- Perde reuso da rule
+   -- Fica confuso: 
+   --  - qual é a rule de audioEn? Tem que procurar o case que referencia
+   switchPort spAudio audioEn.trechoEn audioPt.trechoPt
+
+   case system.language == "en" and count < 0: audioEn
+   case system.language == "pt" and count > 0: audioPt
+   -------------
+
+
+   default: audioPt
+
+   media audioEn
+      src: "media/audioEn.mp3"
+      area trechoEn
+         begin: "20s"
+         end: "50s"
+      end
+   end
+
+   media audioPt
+      src:"media/audioPt.mp3"
+      area trechoPt 
+         begin: "20s"
+         end: "50s"
+      end
+   end
+
 end
 
--- Port?
--- Quando o switch é em um port de um contexto?
-if "system.language" == "en" then
-   media firstImage
-      src: "medias/image1.jpg"
-   end
-else if "system.language" == "pt" then
-   media secondImage
-      src: "medias/image2.jpg"
-   end
-else
-   -- blah blah blah
+onBegin media1 do
+   start form.___ end
 end

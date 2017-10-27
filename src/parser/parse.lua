@@ -47,11 +47,15 @@ function parseLinkCondition(str)
       table.insert(words, word)
    end
 
-   if #words == 3 then
-      local condition = words[1]
-      local media= words[2]
+   if #words < 3 then
+      utils.printErro("Error in link declaration", linhaParser)
+      return
+   end
+   local condCount, mediaCount = 1, 2
+   local condition = words[condCount]
+   local media = words[mediaCount]
+   while condition and media do
       local conditionParam
-
       condition, conditionParam = utils.separarPonto(condition)
 
       local interface
@@ -94,7 +98,12 @@ function parseLinkCondition(str)
          local newCondition = Condition.new(condition, conditionParam, media, interface, linhaParser)
          newCondition.pai = currentElement
          currentElement:addCondition(newCondition)
+
       end
+      condCount = condCount+3
+      mediaCount = mediaCount+3
+      condition = words[condCount]
+      media = words[mediaCount]
    end
 end
 
@@ -296,7 +305,6 @@ function parseMacroSon(macro, son, paramsTable)
             newElement:addPropriedade(name, val)
          end
       end
-
       if paramsTable[macro.params[son._type]] then
          newElement._type = paramsTable[macro.params[son._type]]
       else
