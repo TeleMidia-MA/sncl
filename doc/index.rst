@@ -16,7 +16,7 @@ sNCL can be installed following the instructions below:
 .. toctree::
    :maxdepth: 2
 
-   install-sncl
+   getting-started
 
 And can be used according to the examples and tutorials:
 
