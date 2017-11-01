@@ -1,5 +1,5 @@
 * Bugs:
-   1. [ ] When the macro son do not have end, ex:
+   1. [ ] When the macro child do not have end, ex:
       macro m1()
          media media1
             type: "text/html"
@@ -7,14 +7,20 @@
    2. [ ]
    3. 
    
-* Features:
+* New language features:
    1. [ ] Element reuse
    2. [ ] Switch
-   3. [ ] Multiples parameters in Macro
-   4. [ ] Web Editor with Web NCL
-   5. [ ] 
+   3. [ ] Multiples parameters in macro
+   4. [ ] Named parameters in macros (a macro could be used in the same way of a native tag)
+   5. [ ] Import
+   6. [ ] Context?
+   7. [ ] Do we need port? Couldn't we use an extern annotation to say that the media is acessible outside it context?
 
-* Fix:
+* Others
+   1. [ ] Add a command-line option to run the resulted document (e.g. calling `ginga doc.ncl`)
+   2. [ ] Web Editor / Player (using Web NCL?)
+   
+* Fixes:
    1. [ ] linkParam should be bindParam of Condition
    2. [ ] Check value of properties of Area element
    3. [X] Macro params should only accept strings
