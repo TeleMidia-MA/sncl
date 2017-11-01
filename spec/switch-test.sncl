@@ -5,23 +5,23 @@ rule rPt system.language == "pt" and count > 0
 
 switch form
 
-   -----------
+   -----------------
    -- Separa rule em uma parte diferente do documento
    switchPort spAudio
       map rEn audioEn.trechoEn
       map rPt audioPt.trechoPt
    end
-   ------------
-   ------------
+   -----------------
    -- Perde reuso da rule
-   -- Fica confuso: 
-   --  - qual é a rule de audioEn? Tem que procurar o case que referencia
+   -- Qual é a rule de audioEn? Tem que procurar o case que referencia
    switchPort spAudio audioEn.trechoEn audioPt.trechoPt
 
+   -- Junta o bindRule e o rule em um so elemento
    case system.language == "en" and count < 0: audioEn
    case system.language == "pt" and count > 0: audioPt
-   -------------
+   -----------------
 
+   -----------------
    default: audioPt
 
    media audioEn
