@@ -128,7 +128,7 @@ function Elemento:toNCL(indent)
       NCL = NCL.." descriptor=\""..self.descritor.."\""
    end
    if self.refer then
-      NCL = NCL.." refer="..self.refer.component.." instance=instSame"
+      NCL = NCL.." refer=\""..self.refer.component.."\" instance=\"instSame\""
       if self.refer.interface then
          NCL = NCL.." interface="..self.refer.interface
       end

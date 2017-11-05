@@ -22,9 +22,8 @@ This command will install sncl and all the Lua plugins it requires.
 
     sudo luarocks install sncl
 
-.. todo:: Instruções de como instalar clonando o repo do github
+.. todo:: How to install cloning the github repo
 .. todo:: How to install on Windows and MacOS?
-
 
 Running an sNCL program
 -----------------------

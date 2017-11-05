@@ -1,0 +1,9 @@
+media media1
+   src: "medias/image1.jpg"
+end
+
+media media2
+   refer: media1
+end
+
+port pBody media2

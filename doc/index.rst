@@ -25,6 +25,8 @@ And can be used according to the examples and tutorials:
    :caption: Contents:
 
    basic-concepts
+   default-properties
+   sncl-elements
    tutorials-sncl
    sncl_full_grammar
    sncl_vs_ncl
