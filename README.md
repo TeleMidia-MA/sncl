@@ -25,4 +25,4 @@ $ bin/sncl <arquivo.sncl>
 ## Mais informações:
 * [wiki](https://github.com/TeleMidia-MA/sncl/wiki)
 * [To-Do](https://github.com/TeleMidia-MA/sncl/wiki/To-Do) - Algumas coisas que ainda faltam serem feitas, ou idéias.
-* [Language Documentation](https::sncl.readthedocs.io/en/latest/index.html)
+* [Language Documentation](https://sncl.readthedocs.io/en/latest/index.html)
