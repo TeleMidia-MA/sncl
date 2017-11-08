@@ -148,24 +148,6 @@ function parseLinkActionParam(str)
    currentElement:addParam(paramName, paramValue)
 end
 
-function parsePort(str)
-   local words = {}
-
-   for word in str:gmatch("%S+") do
-      table.insert(words, word)
-   end
-
-   local id = words[2]
-   local media, interface = utils.separarPonto(words[3])
-
-   local newPort = Port.novo(media, interface, currentElement, linhaParser-1)
-   newPort:setId(id)
-
-   if currentElement then
-      currentElement:addFilho(newPort)
-   end
-end
-
 function parseIdMacro(str)
    local paramString = string.match(str,"%(.*%)")
    local id = parseId(str:gsub("%(.*%)", ""))
@@ -267,17 +249,6 @@ function parseMacroSon(macro, son, paramsTable)
 
       newElement.temEnd = true
       table.insert(tabelaSimbolos.body, newElement)
-
-   elseif son.tipo == 'port' then
-      newElement = Port.new()
-      if macro.params[son.id] == nil then
-         newElement:setId(son.id)
-      else
-         newElement:setId(paramsTable[macro.params[son.id]]:gsub("\"", ""))
-      end
-
-      newElement:setComponent(paramsTable[macro.params[son.media]]:gsub("\"", ""))
-
    else
       if son.tipo == 'media' then
          newElement = Elemento.novo("media", linhaParser)

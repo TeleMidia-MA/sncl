@@ -40,12 +40,6 @@ gramaticaSncl = {
       end
    end,
 
-   ------ PORT ------
-   Port = (P"port" *P" "^1* V"Id"^1 *P" "^1* V"AlphaNumericSymbols"^1 *SPC^0)
-   /function(str)
-      parsePort(str)
-   end,
-
    ------ REGION ------
    RegionId = (P"region" *P" "^1 *V"Id"^1 *SPC^0)
    /function(str)
@@ -69,7 +63,7 @@ gramaticaSncl = {
          utils.printErro("Invalid Switch declaration", linhaParser)
       end
    end,
-   SwitchPort = (P"port" *P" "^1* V"AlphaNumericSymbols"^1 *SPC^0)
+   SwitchPort = (P"switchPort" *P" "^1* V"AlphaNumericSymbols"^1 *SPC^0)
    /function(str)
       if currentElement.tipo == "switch" then
          -- Eh preciso separar "port" do nome do elemento
@@ -96,11 +90,11 @@ gramaticaSncl = {
       end
    end,
    Context = (V"ContextId"
-   *(V"Comentario"+V"Port"+V"MacroRefer"+V"ContextProperty"+ V"Media"+V"Context"+V"Link"+V"Refer")^0*
+   *(V"Comentario"+V"MacroRefer"+V"ContextProperty"+ V"Media"+V"Context"+V"Link"+V"Refer")^0*
    V"End"^-1),
 
    ------ MEDIA ------
-   MediaId = (P"media" *P" "^1* V"Id"^1 *SPC^0)
+   MediaId = (P"port"^-1 *P" "^1* P"media" *P" "^1* V"Id"^1 *SPC^0)
    /function(str)
       local newMedia = Elemento.novo("media", linhaParser)
       utils.newElement(str, newMedia)
@@ -147,7 +141,7 @@ gramaticaSncl = {
       end
       insideMacro = true
    end,
-   Macro = (V"MacroId" *(V"Comentario"+V"MacroRefer"+V"Property"+V"Media"+V"Area"+V"Context"+V"Link"+V"Port"+V"Region")^0* V"End"^-1),
+   Macro = (V"MacroId" *(V"Comentario"+V"MacroRefer"+V"Property"+V"Media"+V"Area"+V"Context"+V"Link"+V"Region")^0* V"End"^-1),
 
    ------ LINK ------
    Link = (V"Condition" *SPC^0* (V"Comentario"+V"Property"+V"Action")^0 *V"End"^-1),
@@ -189,5 +183,5 @@ gramaticaSncl = {
    Comentario = (P"--"*P" "^0* (t.alnum+t.punct+t.xdigit+P"¨"+P"´"+P" ")^0 *SPC^0),
 
    -- START --
-   INICIAL = SPC^0 * (V"Comentario"+V"Switch"+V"Macro"+V"MacroRefer"+V"Port"+V"Region"+V"Media"+V"Context"+V"Link")^0,
+   INICIAL = SPC^0 * (V"Comentario"+V"Switch"+V"Macro"+V"MacroRefer"+V"Region"+V"Media"+V"Context"+V"Link")^0,
 }
