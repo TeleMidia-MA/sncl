@@ -2,7 +2,7 @@
    <ncl id="main" xmlns="http://www.ncl.org.br/NCL3.0/EDTVProfile">
    <head>
       <regionBase>
-         <region id="region1" left="10%" top="10%" bottom="10%" right="10%">
+         <region id="region1" bottom="10%" right="10%" top="10%" left="10%">
          </region>
       </regionBase>
       <descriptorBase>
@@ -38,6 +38,13 @@
             <bindParam name="delay" value="20s"/>
          </bind>
       </link>
+      <port id="pBody" component="media1"/>
+      <media id="media3" src="medias/image1.jpg" type="text/html">
+      </media>
+      <media id="media1" descriptor="region1Desc" src="medias/image1.jpg">
+         <area id="area1" begin="20s" end="30s">
+         </area>
+      </media>
       <media id="media2" src="medias/image1.jpg" type="text/html">
       </media>
       <context id="context1">
@@ -63,12 +70,5 @@
             </bind>
          </link>
       </context>
-      <port id="pBody" component="media1"/>
-      <media id="media1" descriptor="region1Desc" src="medias/image1.jpg">
-         <area id="area1" begin="20s" end="30s">
-         </area>
-      </media>
-      <media id="media3" src="medias/image1.jpg" type="text/html">
-      </media>
    </body>
 </ncl>

@@ -1,0 +1,6 @@
+
+context c1
+   port media media1
+      type: "text/html"
+   end
+end

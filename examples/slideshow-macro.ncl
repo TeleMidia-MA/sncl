@@ -9,6 +9,7 @@
       </connectorBase>
    </head>
    <body>
+      <port id="pBody" component="context1"/>
       <context id="context1">
          <port id="pContext" component="media1"/>
          <media id="media1" src="medias/image1.jpg">
@@ -42,6 +43,5 @@
             </bind>
          </link>
       </context>
-      <port id="pBody" component="context1"/>
    </body>
 </ncl>
