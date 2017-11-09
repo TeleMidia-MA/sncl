@@ -24,43 +24,56 @@ function Action:addPropriedade (name, value)
    self.propriedades[name] = value
 end
 
-function Action:toNCL(indent)
+function Action:check()
+   self.component = tabelaSimbolos[self.component]
+
    if self.temEnd == false then
       utils.printErro("Element Action does not have end", self.linha)
       return ""
    end
-
-   if tabelaSimbolos[self.component] == nil then
-      utils.printErro("Element "..self.component.." not declared", self.linha)
+   if not self.component then
+      utils.printErro("Element invalid in this context", self.linha)
       return ""
    end
-   if tabelaSimbolos[self.component].tipo == "region" then
-      utils.printErro("Element in invalid context", self.linha)
+   if self.component.tipo == "region" then
+      utils.printErro("Element invalid in this context", self.linha)
       return ""
    end
 
-   if self.interface then --Se a action tem interface
-      if tabelaSimbolos[self.component].refer ~= nil then --Se o component tem refer
-         local refer = tabelaSimbolos[self.component].refer
+   --Se a action tem interface
+   if self.interface then
+      -- Se o component não tem interface, erro
+      if not self.component:getFilho(self.interface) then
+         utils.printErro("Invalid interface "..self.interface.." of element "..self.component, self.linha)
+         return ""
+      else
+         self.interface = self.component:getFilho(self.interface)
+         if self.interface.port then
+            self.interface = self.interface.port.id
+         end
+      end
+
+      -- Se o component tem refer, chechar se o refer pode ser uma interface
+      --[[
+      if self.component.refer then
+         local refer = self.component.refer
          local referredMedia = tabelaSimbolos[refer.media]
-         if referredMedia ~= nil then --Se o refer do component tem a interface
+         if referredMedia then
             if not (referredMedia:getFilho(self.interface) and 
-               tabelaSimbolos[self.component]:getFilho(self.interface)) then
+               self.component:getFilho(self.interface)) then
                utils.printErro("Invalid interface "..self.interface.." of element "..self.component, self.linha)
                return ""
             end
          else
-            utils.printErro("Element "..self.component.." not declared.", self.linha)
+            utils.printErro("Element "..self.interface.." not declared.", self.linha)
             return ""
          end
-      elseif not tabelaSimbolos[self.component]:getFilho(self.interface) then --Se o component tem interface
-         utils.printErro("Invalid interface "..self.interface.." of element "..self.component, self.linha)
-         return ""
       end
+      ]]
    end
 
-   if tabelaSimbolos.body[self.component].pai then --Se component tem pai
-      if self.pai.pai ~= tabelaSimbolos.body[self.component].pai then --Se pai do Link e do Component são diferentes
+   if self.component.pai then --Se component tem pai
+      if self.pai.pai ~= self.component.pai then --Se pai do Link e do Component são diferentes
          utils.printErro("Invalid element "..self.component.." in the context", self.linha)
          return ""
       end
@@ -70,8 +83,10 @@ function Action:toNCL(indent)
          return ""
       end
    end
+end
 
-   local NCL = indent.."<bind role=\""..self.action.."\" component=\""..self.component.."\""
+function Action:toNCL(indent)
+   local NCL = indent.."<bind role=\""..self.action.."\" component=\""..self.component.id.."\""
    if self.interface then
       NCL = NCL.." interface=\""..self.interface.."\""
    end

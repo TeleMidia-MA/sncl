@@ -3,11 +3,11 @@ local utils = require("utils")
 local port = {}
 local Port = {}
 
-function port.novo(media, interface, pai, linha)
+function port.novo(component, interface, pai, linha)
    local self = {
       id = nil,
       pai = pai,
-      media = media,
+      component = component,
       interface = interface,
       linha = linha,
       tipo = "port",
@@ -25,38 +25,32 @@ function Port:setId(id)
 
    if not insideMacro then
       tabelaSimbolos[id] = self
-      tabelaSimbolos.body[id] = tabelaSimbolos[id]
+      table.insert(tabelaSimbolos.body, tabelaSimbolos[id])
    end
 end
 
-function Port:setComponent(component)
-   self.media = component
-end
-
-function Port:setInterface(interface)
-   self.interface = interface
-end
+function Port:check() end
 
 function Port:toNCL(indent)
 
-   if tabelaSimbolos[self.media] == nil then
-      utils.printErro("No element "..self.media, self.linha)
+   if tabelaSimbolos[self.component] == nil then
+      utils.printErro("No element "..self.component, self.linha)
       return ""
    end
 
-   if tabelaSimbolos[self.media].pai ~= self.pai then
-      utils.printErro("Element "..self.media.." is invalid in this context", self.linha)
+   if tabelaSimbolos[self.component].pai ~= self.pai then
+      utils.printErro("Element "..self.component.." is invalid in this context", self.linha)
       return ""
    end
 
    if self.interface then
-      if tabelaSimbolos[self.media]:getFilho(self.interface) == nil then
+      if tabelaSimbolos[self.component]:getFilho(self.interface) == nil then
          utils.printErro("Element "..self.interface.." is invalid", self.linha)
          return ""
       end
    end
 
-   local NCL = indent.."<port id=\""..self.id.."\" component=\""..self.media.."\"/>"
+   local NCL = indent.."<port id=\""..self.id.."\" component=\""..self.component.."\"/>"
 
    return NCL
 end

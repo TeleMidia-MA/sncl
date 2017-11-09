@@ -4,9 +4,11 @@ function parseId(str)
    local words = utils.separarEspaco(str)
 
    if #words == 1 then
-      return words[1]
+      return nil, words[1]
    elseif #words == 2 then
-      return words[2]
+      return nil, words[2]
+   elseif #words == 3 then
+      return words[1], words[3]
    else
       utils.printErro("Declaração \'"..str.."\' de elemento invalida.", linhaParser)
       return nil
@@ -86,7 +88,7 @@ function parseLinkCondition(str)
             currentElement = newLink
 
          else
-            utils.printErro("Condition somente pode ser declarada dentro de Link.", linhaParser)
+            utils.printErro("Condition can be declared only inside a link", linhaParser)
             return
          end
       else
@@ -146,24 +148,6 @@ function parseLinkActionParam(str)
    end
 
    currentElement:addParam(paramName, paramValue)
-end
-
-function parsePort(str)
-   local words = {}
-
-   for word in str:gmatch("%S+") do
-      table.insert(words, word)
-   end
-
-   local id = words[2]
-   local media, interface = utils.separarPonto(words[3])
-
-   local newPort = Port.novo(media, interface, currentElement, linhaParser-1)
-   newPort:setId(id)
-
-   if currentElement then
-      currentElement:addFilho(newPort)
-   end
 end
 
 function parseIdMacro(str)
@@ -227,9 +211,9 @@ end
 
 function parseMacroSon(macro, son, paramsTable)
    local newElement
-   local father = currentElement
-   if son.tipo == 'link' then
-      newElement = Link.new()
+      local father = currentElement
+      if son.tipo == 'link' then
+         newElement = Link.new()
 
       for _, condition in pairs(son.conditions) do --Copiar condicoes
          -- Check if condition and component are parameters
@@ -267,16 +251,6 @@ function parseMacroSon(macro, son, paramsTable)
 
       newElement.temEnd = true
       table.insert(tabelaSimbolos.body, newElement)
-
-   elseif son.tipo == 'port' then
-      newElement = Port.new()
-      if macro.params[son.id] == nil then
-         newElement:setId(son.id)
-      else
-         newElement:setId(paramsTable[macro.params[son.id]]:gsub("\"", ""))
-      end
-
-      newElement:setComponent(paramsTable[macro.params[son.media]]:gsub("\"", ""))
 
    else
       if son.tipo == 'media' then
@@ -336,7 +310,7 @@ function parseMacroSon(macro, son, paramsTable)
          if newElement.id then
             if tabelaSimbolos[newElement.id] == nil then
                tabelaSimbolos[newElement.id] = newElement
-               tabelaSimbolos.body[newElement.id] = tabelaSimbolos[newElement.id]
+               table.insert(tabelaSimbolos.body, tabelaSimbolos[newElement.id])
             end
          end
       end
