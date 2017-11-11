@@ -24,7 +24,7 @@ end
 * [LuaRocks](https://luarocks.org/)
  
 ## More information:
-* [Language Documentation](https://sncl.readthedocs.io)
+* [sNCL documentation](https://sncl.readthedocs.io)
 * [wiki](https://github.com/TeleMidia-MA/sncl/wiki)
 * [To-Do List](https://github.com/TeleMidia-MA/sncl/wiki/To-Do)
 
