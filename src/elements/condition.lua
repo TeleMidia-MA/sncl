@@ -21,15 +21,22 @@ function Condition:getMedia() return self.component end
 function Condition:getParam() return self.conditionParam end
 
 function Condition:check()
-   self.component = tabelaSimbolos[self.component]
+   local componentElement = tabelaSimbolos[self.component]
 
-   if not self.component then
-      utils.printErro("Component element invalid", self.linha)
-      return
+   if not componentElement then
+      utils.printErro("Element "..self.component.." not declared", self.linha)
+      return ""
    end
+   self.component = componentElement
+
+   if self.temEnd == false then
+      utils.printErro("Element Action does not have end", self.linha)
+      return ""
+   end
+
    if self.component.tipo == "region" then
-      utils.printErro("Invalid element in condition", self.linha)
-      return
+      utils.printErro("Element "..self.component.id.." invalid in this context", self.linha)
+      return ""
    end
 
    -- Se condition tem interface
@@ -37,11 +44,15 @@ function Condition:check()
       -- Se o component não tem interface, erro
       -- TODO: Checar propriedades
       if not self.component:getFilho(self.interface) then
-         utils.printErro("Invalid interface "..self.interface, self.linha)
-         return
+         utils.printErro("Invalid interface "..self.interface.." of element "..self.component.id, self.linha)
+         return ""
       else
-         self.interface = self.component:getFilho(self.interface).id
+         self.interface = self.component:getFilho(self.interface)
+         if self.interface.port then
+            self.interface = self.interface.port.id
+         end
       end
+
 
       -- Se o component tem refer
       --[[

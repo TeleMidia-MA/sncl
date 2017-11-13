@@ -18,10 +18,6 @@ function macro.new(id, linha)
    return self
 end
 
-function Macro:getId() return self.id end
-function Macro:getFather() return self.father end
-function Macro:getEnd() return self.hasEnd end
-
 function Macro:setEnd(bool) self.hasEnd = bool end
 function Macro:setParams(params) self.params = params end
 
@@ -30,6 +26,8 @@ function Macro:addPropriedade(name, value)
 end
 
 function Macro:addFilho(son) table.insert(self.filhos, son) end
+
+function Macro:check() end
 
 function Macro:parseProperty(str)
    local name, value = utils.separateSymbol(str)

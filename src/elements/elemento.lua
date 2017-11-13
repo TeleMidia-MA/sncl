@@ -10,6 +10,7 @@ function elemento.novo(tipo, linha)
       id = "",
       tipo = tipo,
       temEnd = false,
+      temPort = false,
       pai, linha, refer,
       propriedades = {},
       filhos = {},
@@ -176,10 +177,19 @@ end
 
 function Elemento:criarPort()
    if self.temPort then
-      local newPort = Port.novo(self.id, nil, self.pai)
-      newPort:setId("_p"..self.id)
-      if self.pai then -- Se ta dentro de um contexto
-         self.pai:addFilho(newPort)
+      local newPort
+      if self.tipo == "area" then
+         newPort = Port.novo(self.pai.id, self.id, self.pai.pai) 
+         newPort:setId("_p"..self.id.."_")
+         if self.pai.pai then
+            self.pai.pai:addFilho(newPort)
+         end
+      else
+         newPort = Port.novo(self.id, nil, self.pai)
+         newPort:setId("_p"..self.id.."_")
+         if self.pai then
+            self.pai:addFilho(newPort)
+         end
       end
       self.port = newPort
    end

@@ -25,18 +25,21 @@ function Action:addPropriedade (name, value)
 end
 
 function Action:check()
-   self.component = tabelaSimbolos[self.component]
+   local componentElement = tabelaSimbolos[self.component]
+
+   if not componentElement then
+      utils.printErro("Element "..self.component.." not declared", self.linha)
+      return ""
+   end
+   self.component = componentElement
 
    if self.temEnd == false then
       utils.printErro("Element Action does not have end", self.linha)
       return ""
    end
-   if not self.component then
-      utils.printErro("Element invalid in this context", self.linha)
-      return ""
-   end
+
    if self.component.tipo == "region" then
-      utils.printErro("Element invalid in this context", self.linha)
+      utils.printErro("Element "..self.component.id.." invalid in this context", self.linha)
       return ""
    end
 
@@ -44,7 +47,7 @@ function Action:check()
    if self.interface then
       -- Se o component não tem interface, erro
       if not self.component:getFilho(self.interface) then
-         utils.printErro("Invalid interface "..self.interface.." of element "..self.component, self.linha)
+         utils.printErro("Invalid interface "..self.interface.." of element "..self.component.id, self.linha)
          return ""
       else
          self.interface = self.component:getFilho(self.interface)
@@ -74,12 +77,12 @@ function Action:check()
 
    if self.component.pai then --Se component tem pai
       if self.pai.pai ~= self.component.pai then --Se pai do Link e do Component são diferentes
-         utils.printErro("Invalid element "..self.component.." in the context", self.linha)
+         utils.printErro("Invalid element "..self.component.id.." in the context", self.linha)
          return ""
       end
    else --Se component não tem pai
       if self.pai.pai then --Se Link tem pai
-         utils.printErro("Invalid element "..self.component.." in the context", self.linha)
+         utils.printErro("Invalid element "..self.component.id.." in the context", self.linha)
          return ""
       end
    end
