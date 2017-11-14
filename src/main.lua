@@ -48,7 +48,13 @@ function beginParse(entrada, saida, play)
       return
    end
 
-   local output = utils.printNCL()
+   utils.checkDependenciesElements()
+   if hasError then
+      utils.printErro("Error creating output file")
+      return
+   end
+   local output = utils.genNCL()
+
    if hasError then
       utils.printErro("Error creating output file")
       return

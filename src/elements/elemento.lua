@@ -34,7 +34,7 @@ function Elemento:setId(id)
       elseif self.tipo == "descriptor" then
          tabelaSimbolos.descriptors[id] = tabelaSimbolos[id]
       else
-         tabelaSimbolos.body[id] = tabelaSimbolos[id]
+         table.insert(tabelaSimbolos.body, tabelaSimbolos[id])
       end
    end
 end
@@ -108,20 +108,26 @@ function Elemento:filhoTemPropriedade(prop)
 end
 
 --Misc
-function Elemento:toNCL(indent)
-   if not self.temEnd then
-      utils.printErro("Elemento "..self.id.." sem end.", self.linha)
-      return ""
+
+function Elemento:check()
+   if not self.temEnd then --Check se elemento tem end
+      utils.printErro("Elemento "..self.id.." has no end.", self.linha)
    end
 
+   -- Se for media, tem que ter source, type ou refer
    if self.tipo == "media" then
       if self.src==nil and self._type==nil and self.refer==nil then
          utils.printErro("Media "..self.id.." must have a type, source or refer", self.linha)
-         return ""
       end
-      self:criarDescritor()
    end
+   self:criarDescritor()
+   self:criarPort()
+   for _, val in pairs(self.filhos) do
+      val:check()
+   end
+end
 
+function Elemento:toNCL(indent)
    local NCL = indent.."<"..self.tipo.." id=\""..self.id.."\""
 
    if self.descritor then
@@ -166,6 +172,17 @@ function Elemento:toNCL(indent)
 
    NCL = NCL..indent.."</"..self.tipo..">"
    return NCL
+end
+
+function Elemento:criarPort()
+   if self.temPort then
+      local newPort = Port.novo(self.id, nil, self.pai)
+      newPort:setId("_p"..self.id)
+      if self.pai then -- Se ta dentro de um contexto
+         self.pai:addFilho(newPort)
+      end
+      self.port = newPort
+   end
 end
 
 function Elemento:criarDescritor()

@@ -104,12 +104,21 @@ function Link:createConnector()
    self.xconnector = id
 end
 
-function Link:toNCL(indent)
+-- Code Generation
+function Link:check()
    if self.hasEnd == false then
       utils.printErro("Element Link does not have end", self.linha)
-      return ""
+      return
    end
+   for _, val in pairs(self.conditions) do
+      val:check()
+   end
+   for _, val in pairs(self.actions) do
+      val:check()
+   end
+end
 
+function Link:toNCL(indent)
    self:createConnector()
    local NCL = indent.."<link xconnector=\""..self.xconnector.."\">"
 
@@ -145,7 +154,6 @@ function Link:parseProperty(str)
    local name, value = utils.separateSymbol(str)
    if name and value then
       self.propriedades[name] = value
-   else
    end
 end
 

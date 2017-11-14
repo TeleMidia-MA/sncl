@@ -49,29 +49,21 @@ gramaticaSncl = {
    Region = (V"RegionId" *(V"Comentario"+V"Region"+V"Property"+V"MacroRefer")^0* V"End"^-1),
 
    ------ SWITCH ------
-   SwitchId = (P"switch" *P" "^1* V"Id"^1 *P" "^1* P">" *P" "^1* V"String"*SPC^0)
+   --[[
+   SwitchPort = ("switchPort" * SwitchPortId)
    /function(str)
-      local arrow = str:find(">")
-      if arrow then
-         local var = str:sub(arrow+1)
-         str = str:sub(1, arrow-1)
-         local newSwitch = Switch.novo(linhaParser)
-         utils.newElement(str, newSwitch)
-         var = var:gsub("%s+", "")
-         newSwitch.var = var
-      else
-         utils.printErro("Invalid Switch declaration", linhaParser)
-      end
    end,
+<<<<<<< HEAD
    SwitchPort = (P"switchPort" *P" "^1* V"AlphaNumericSymbols"^1 *SPC^0)
+=======
+
+   SwitchId = ()
+>>>>>>> 665a9606dc115cae245ea5ffab7fba3fedefba37
    /function(str)
-      if currentElement.tipo == "switch" then
-         -- Eh preciso separar "port" do nome do elemento
-         str = str:sub(str:find(" "), #str)
-         currentElement:addPort(str)
-      end
    end,
-   Switch = (V"SwitchId"* (V"Comentario"+V"SwitchPort"+V"Media"+V"Context"+V"Switch"+V"Property")^0 *V"End"^-1),
+
+   Switch = (),
+   ]]
 
    ------ CONTEXT ------
    ContextId = (P"context"*P" "^1*V"Id"^1*SPC^0)
@@ -94,7 +86,9 @@ gramaticaSncl = {
    V"End"^-1),
 
    ------ MEDIA ------
-   MediaId = (P"port"^-1 *P" "^1* P"media" *P" "^1* V"Id"^1 *SPC^0)
+
+   Port = (P"port" *P" "^1),
+   MediaId = (V"Port"^-1* P"media" *P" "^1* V"Id"^1 *SPC^0)
    /function(str)
       local newMedia = Elemento.novo("media", linhaParser)
       utils.newElement(str, newMedia)
@@ -183,5 +177,5 @@ gramaticaSncl = {
    Comentario = (P"--"*P" "^0* (t.alnum+t.punct+t.xdigit+P"¨"+P"´"+P" ")^0 *SPC^0),
 
    -- START --
-   INICIAL = SPC^0 * (V"Comentario"+V"Switch"+V"Macro"+V"MacroRefer"+V"Region"+V"Media"+V"Context"+V"Link")^0,
+   INICIAL = SPC^0 * (V"Comentario"+V"Macro"+V"MacroRefer"+V"Region"+V"Media"+V"Context"+V"Link")^0,
 }

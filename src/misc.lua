@@ -74,8 +74,11 @@ function utilsTable.isMacroSon(element)
 end
 
 function utilsTable.newElement (str, element)
-   local id = parseId(str)
+   local port, id = parseId(str)
    element:setId(id)
+   if element.tipo == "media" then
+      element.temPort = true
+   end
 
    if currentElement then
       if element.tipo == "context" then
@@ -94,21 +97,29 @@ function utilsTable.newElement (str, element)
    end
 end
 
-function utilsTable.printNCL()
-   local indent = "\n   "
-   local NCL = [[<?xml version="1.0" encoding="ISO-8859-1"?>
-   <ncl id="main" xmlns="http://www.ncl.org.br/NCL3.0/EDTVProfile">]]
-
+function utilsTable.checkDependenciesElements()
    for _, val in pairs(tabelaSimbolos.macros) do
-      if val:getEnd() == false then
+      if not val:getEnd() then
          utils.printErro("Macro "..val:getId().." sem end.")
          return
       end
    end
 
+   for pos, val in pairs(tabelaSimbolos.body) do
+      if not val.pai then
+         val:check()
+      end
+   end
+end
+
+function utilsTable.genNCL()
+   local indent = "\n   "
+   local NCL = [[<?xml version="1.0" encoding="ISO-8859-1"?>
+   <ncl id="main" xmlns="http://www.ncl.org.br/NCL3.0/EDTVProfile">]]
+
    local body = indent.."<body>"
    for _, val in pairs(tabelaSimbolos.body) do
-      if val.pai == nil then
+      if not val.pai then
          body = body..val:toNCL(indent.."   ")
       end
    end

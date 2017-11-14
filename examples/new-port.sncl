@@ -1,5 +1,26 @@
 context c1
    port media media1
-      type: "text/html"
+      src: "medias/image1.jpg"
+      right: "10px"
    end
+   context c2
+      port media media3
+         type: "text/html"
+      end
+      onBegin c2 do
+         start media3 end
+      end
+   end
+   onBegin media1 do
+      start c2.media3 end
+   end
+end
+
+port media media2
+   src: "medias/image2.jpg"
+   left: "10px"
+end
+
+onBegin media2 do
+   start c1.media1 end
 end
