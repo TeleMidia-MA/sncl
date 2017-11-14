@@ -24,3 +24,7 @@ end
 onBegin media2 do
    start c1.media1 end
 end
+
+onBegin c1.media1 do
+   start media2 end
+end

@@ -1,10 +1,12 @@
 context ctxName
    port media mediaName
       type: "text/html"
+      port area area1
+         begin: "20s"
+      end
    end
 end
 
 onBegin ctxName.mediaName do
-   start ctxName.mediaName end 
+   start ctxName.mediaName end
 end
-
