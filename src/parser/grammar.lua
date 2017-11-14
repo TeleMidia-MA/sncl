@@ -66,7 +66,7 @@ gramaticaSncl = {
    ]]
 
    ------ CONTEXT ------
-   ContextId = (P"context"*P" "^1*V"Id"^1*SPC^0)
+   ContextId = (V"Port"^-1 * P"context"*P" "^1*V"Id"^1*SPC^0)
    /function(str)
       local newContext = Elemento.novo("context", linhaParser)
       utils.newElement(str, newContext)
@@ -86,8 +86,6 @@ gramaticaSncl = {
    V"End"^-1),
 
    ------ MEDIA ------
-
-   Port = (P"port" *P" "^1),
    MediaId = (V"Port"^-1* P"media" *P" "^1* V"Id"^1 *SPC^0)
    /function(str)
       local newMedia = Elemento.novo("media", linhaParser)
@@ -96,7 +94,7 @@ gramaticaSncl = {
    Media = (V"MediaId" *(V"Comentario"+V"MacroRefer"+V"Area"+V"Refer"+V"Property")^0* V"End"^-1),
 
    ------ AREA ------
-   AreaId = (P"area" *P" "^1* V"Id"^1 *SPC^0)
+   AreaId = (V"Port"^-1*P"area" *P" "^1* V"Id"^1 *SPC^0)
    /function(str)
       local newArea = Elemento.novo("area", linhaParser)
       utils.newElement(str, newArea)
@@ -159,6 +157,7 @@ gramaticaSncl = {
    end,
    Action = ( V"ActionMedia"*(V"Comentario"+V"Property")^0 *V"End"^-1),
    ------ MISC ------
+   Port = (P"port" *P" "^1),
    Property= (V"AlphaNumericSymbols"^1 *P" "^0* P":" *P" "^0* (V"String"+t.alnum^1) *SPC^0)
    /function(str)
       str = str:gsub("%s+", "")

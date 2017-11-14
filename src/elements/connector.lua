@@ -22,8 +22,6 @@ function Connector:setNumCondsAndActions (numConds, numActions)
    self.numActions = numActions
 end
 
-function Connector:getId() return self.id end
-
 function Connector:addConditions(conditions)
    self.conditions = conditions
 end

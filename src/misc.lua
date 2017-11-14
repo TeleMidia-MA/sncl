@@ -9,7 +9,7 @@ function utilsTable.lerArquivo(fileLocation)
          return fileContent
       end
    end
-   utils.printErro("Arquivo não pode ser aberto.")
+   utilsTable.printErro("Arquivo não pode ser aberto.")
    return nil
 end
 
@@ -20,7 +20,7 @@ function utilsTable.escreverArquivo(arquivo, conteudo)
       io.write(conteudo)
       io.close(arquivo)
    else
-      utils.printErro("Erro ao criar arquivo de saída.")
+      utilsTable.printErro("Erro ao criar arquivo de saída.")
       return nil
    end
 end
@@ -75,12 +75,12 @@ end
 
 function utilsTable.newElement (str, element)
    local port, id = parseId(str)
+
    element:setId(id)
-   if element.tipo == "media" then
-      element.temPort = true
-   end
+   element.temPort = port
 
    if currentElement then
+      --[[
       if element.tipo == "context" then
          if currentElement.tipo ~= "context" and
             currentElement.tipo ~= "macro" and
@@ -89,6 +89,7 @@ function utilsTable.newElement (str, element)
             return
          end
       end
+      ]]
       element.pai = currentElement
       currentElement:addFilho(element)
       currentElement = element
@@ -99,8 +100,8 @@ end
 
 function utilsTable.checkDependenciesElements()
    for _, val in pairs(tabelaSimbolos.macros) do
-      if not val:getEnd() then
-         utils.printErro("Macro "..val:getId().." sem end.")
+      if not val.temEnd then
+         utilsTable.printErro("Macro "..val.id.." sem end.")
          return
       end
    end

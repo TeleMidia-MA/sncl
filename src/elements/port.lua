@@ -32,7 +32,6 @@ end
 function Port:check() end
 
 function Port:toNCL(indent)
-
    if tabelaSimbolos[self.component] == nil then
       utils.printErro("No element "..self.component, self.linha)
       return ""
@@ -43,14 +42,16 @@ function Port:toNCL(indent)
       return ""
    end
 
+   local NCL = indent.."<port id=\""..self.id.."\" component=\""..self.component.."\""
    if self.interface then
       if tabelaSimbolos[self.component]:getFilho(self.interface) == nil then
          utils.printErro("Element "..self.interface.." is invalid", self.linha)
          return ""
       end
+      NCL = NCL.." interface=\""..self.interface.."\""
    end
 
-   local NCL = indent.."<port id=\""..self.id.."\" component=\""..self.component.."\"/>"
+   NCL = NCL.."/>"
 
    return NCL
 end

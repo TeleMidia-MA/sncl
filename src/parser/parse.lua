@@ -10,20 +10,20 @@ function parseId(str)
    elseif #words == 3 then
       return words[1], words[3]
    else
-      utils.printErro("Declaração \'"..str.."\' de elemento invalida.", linhaParser)
+      utils.printErro("Invalid id "..str, linhaParser)
       return nil
    end
 end
 
 function parseRefer(str)
    if currentElement == nil then
-      utils.printErro("Refer declarado em context inválido.", linhaParser)
+      utils.printErro("Invalid declaration of refer", linhaParser)
       return
    end
 
    local eleType = currentElement.tipo
    if eleType ~= "context" and eleType ~= "media" and eleType ~= "switch" then
-      utils.printErro("Refer declarado em contexto inválido.", linhaParser)
+      utils.printErro("Invalid declaration of refer", linhaParser)
       return
    end
 
@@ -125,11 +125,6 @@ function parseLinkAction(str)
       media = media:sub(1, barra-1)
    end
 
-   if currentElement == nil or currentElement.tipo ~= "link" then
-      utils.printErro("Action somente pode ser declarada dentro de um Link.", linhaParser)
-      return
-   end
-
    local newAction = Action.new(action, media, interface, linhaParser)
    newAction.pai = currentElement
    currentElement:addAction(newAction)
@@ -142,17 +137,12 @@ function parseLinkActionParam(str)
    local paramName = str:sub(1, sign-1)
    local paramValue = str:sub(sign+1)
 
-   if currentElement == nil or currentElement.tipo ~= "action" then
-      utils.printErro("Parametro declarado em context inválido.", linhaParser)
-      return
-   end
-
    currentElement:addParam(paramName, paramValue)
 end
 
 function parseIdMacro(str)
    local paramString = string.match(str,"%(.*%)")
-   local id = parseId(str:gsub("%(.*%)", ""))
+   local port, id = parseId(str:gsub("%(.*%)", ""))
    --paramString = paramString:gsub("%s+", "")
 
    local paramsTable = {}
@@ -163,6 +153,7 @@ function parseIdMacro(str)
    end
    return id, paramsTable, count-1
 end
+
 function parseMacroChamada (str)
    str = str:gsub("*", "", 1)
    str = str:gsub("%s+", "")
@@ -172,13 +163,13 @@ function parseMacroChamada (str)
 
    if utils.isMacroSon(currentElement) then
       if idMacro == utils.isMacroSon(currentElement) then
-         utils.printErro("Macro "..idMacro.." não declarada neste contexto.", linhaParser-1)
+         utils.printErro("Macro "..idMacro.." not declared", linhaParser-1)
          return
       end
    end
 
    if tabelaSimbolos.macros[idMacro] == nil then --Se a macro não foi declarada
-      utils.printErro("Macro "..idMacro.." não declarada.", linhaParser-1)
+      utils.printErro("Macro "..idMacro.." not declared", linhaParser-1)
       return
    end
 
@@ -189,7 +180,7 @@ function parseMacroChamada (str)
    local macro = tabelaSimbolos.macros[idMacro]
 
    if (#paramsTable ~= macro.quantParams) then
-      utils.printErro("Macro "..idMacro.." recebe "..macro.quantParams.." parametros, "..#paramsTable.." estão sendo passados.", linhaParser)
+      utils.printErro("Macro "..idMacro.." receives "..macro.quantParams.." parameters, "..#paramsTable.." are being passed", linhaParser)
       return
    end
 
@@ -201,7 +192,7 @@ function parseMacroChamada (str)
       if macro.params[val] then
          if paramsTable[macro.params[val]] then
             currentElement:addPropriedade(pos, paramsTable[macro.params[val]])
-            -- TODO: Se o valor for "default"
+            -- TODO: Se o valor for "nil"
          end
       else
          currentElement:addPropriedade(pos, val)
@@ -294,7 +285,11 @@ function parseMacroSon(macro, son, paramsTable)
       else
          newElement.region = son.region
       end
-
+      if paramsTable[macro.params[son.temPort]] then
+         newElement.temPort = paramsTable[macro.params[son.temPort]]
+      else
+         newElement.temPort = son.temPort
+      end
       for _, aux in pairs(son.filhos) do --Copiar Filhos
          parseMacroSon(macro, aux, paramsTable)
       end

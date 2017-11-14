@@ -1,10 +1,10 @@
--- Port deve apontar pra elemento valido em contexto
-port pBody context1.pContext2
-
-context context1
-   port pContext1 media1
-   media media1
-      src: "medias/image1.jpg"
+context ctxName
+   port media mediaName
+      type: "text/html"
    end
+end
+
+onBegin ctxName.mediaName do
+   start ctxName.mediaName end 
 end
 
