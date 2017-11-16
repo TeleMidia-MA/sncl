@@ -4,8 +4,7 @@ sNCL (simple NCL) is a DSL (Domain Specific Language) to ease the creation of in
 Please, go to the [language documentation](https://sncl.readthedocs.io/) page to find out details about the language, and the [installation](https://sncl.readthedocs.io/en/latest/getting-started.html#installing-sncl) and [program execution](https://sncl.readthedocs.io/en/latest/getting-started.html#running-an-sncl-program) procedures.  Here, just to give you a taste of the language, the following source code shows a simple example that plays two videos in sequence:
 
 ```
-port pBody video1
-media video1
+port media video1
   src: "video2.mp4"
   bounds: "0,0,100%,100%"
 end
