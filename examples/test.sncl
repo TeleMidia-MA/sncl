@@ -1,0 +1,5 @@
+context c1
+   media m1
+      src: "medias/image1.jpg"
+   end
+end

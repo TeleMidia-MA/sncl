@@ -20,47 +20,75 @@ end
 function Condition:getMedia() return self.component end
 function Condition:getParam() return self.conditionParam end
 
-function Condition:toNCL (indent)
-   if tabelaSimbolos[self.component] == nil then --Checar se mídia existe
-      utils.printErro("Invalid element "..self.component, self.linha)
+function Condition:check()
+   local componentElement = tabelaSimbolos[self.component]
+
+   if not componentElement then
+      utils.printErro("Element "..self.component.." not declared", self.linha)
       return ""
-   else --Se tiver component
-      if tabelaSimbolos[self.component].tipo == "region" then
-         utils.printErro("Invalid element in condition", self.linha)
-         return ""
-      end
-      if self.interface then -- Se tiver interface
-         if tabelaSimbolos[self.component].refer then
-            local refer = tabelaSimbolos[self.component].refer
-            local referredMedia = tabelaSimbolos[refer.media]
-            if referredMedia ~= nil then
-               if referredMedia:getFilho(self.interface) == false and referredMedia:getPropriedade(self.interface) == false and tabelaSimbolos[self.component]:getFilho(self.interface) == false then
-                  utils.printErro("Invalid interface "..self.interface, self.linha)
-                  return ""
-               end
-            else
-               utils.printErro("Element "..self.component.." not declared.", self.linha)
-               return ""
-            end
-         elseif not tabelaSimbolos[self.component]:getFilho(self.interface) then --Se interface não
-            utils.printErro("Invalid interface "..self.interface, self.linha)
-            return ""
-         end
-      end
    end
-   if tabelaSimbolos.body[self.component].pai then --Se component tem pai
-      if self.pai.pai ~= tabelaSimbolos.body[self.component].pai then --Se pai do Link e do Component são diferentes
-         utils.printErro("Invalid element "..self.component, self.linha)
-         return ""
-      end
-   else --Se component não tem pai
-      if self.pai.pai then --Se Link tem pai
-         utils.printErro("Invalid element "..self.component, self.linha)
-         return ""
-      end
+   self.component = componentElement
+
+   if self.temEnd == false then
+      utils.printErro("Element Action does not have end", self.linha)
+      return ""
    end
 
-   local NCL = indent.."<bind role=\""..self.condition.."\" component=\""..self.component.."\" "
+   if self.component.tipo == "region" then
+      utils.printErro("Element "..self.component.id.." invalid in this context", self.linha)
+      return ""
+   end
+
+   -- Se condition tem interface
+   if self.interface then
+      -- Se o component não tem interface, erro
+      -- TODO: Checar propriedades
+      if not self.component:getFilho(self.interface) then
+         utils.printErro("Invalid interface "..self.interface.." of element "..self.component.id, self.linha)
+         return ""
+      else
+         self.interface = self.component:getFilho(self.interface)
+         if self.interface.port then
+            self.interface = self.interface.port.id
+         end
+      end
+
+
+      -- Se o component tem refer
+      --[[
+      if tabelaSimbolos[self.component].refer then
+         local refer = tabelaSimbolos[self.component].refer
+         local referredMedia = tabelaSimbolos[refer.media]
+         if referredMedia then
+            if referredMedia:getFilho(self.interface) == false and referredMedia:getPropriedade(self.interface) == false and tabelaSimbolos[self.component]:getFilho(self.interface) == false then
+               utils.printErro("Invalid interface "..self.interface, self.linha)
+               return
+            end
+         else
+            utils.printErro("Element "..self.component.." not declared.", self.linha)
+            return
+         end
+      end
+      ]]
+   end
+
+   -- Component tem pai
+   if self.component.pai then
+      if self.pai.pai ~= self.component and self.component.pai ~= self.pai.pai then
+         utils.printErro("Invalid element", self.linha)
+         return
+      end
+   -- Component não tem pai
+   else
+      if self.pai.pai then
+         utils.printErro("Invalid element", self.linha)
+         return
+      end
+   end
+end
+
+function Condition:toNCL (indent)
+   local NCL = indent.."<bind role=\""..self.condition.."\" component=\""..self.component.id.."\" "
    if self.interface then
       NCL = NCL.." interface=\""..self.interface.."\""
    end

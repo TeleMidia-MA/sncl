@@ -1,0 +1,9 @@
+port context c1
+   port media media1
+      src: "medias/image1.jpg"
+      port area area1
+         begin: "20s"
+      end
+   end
+end
+

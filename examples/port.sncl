@@ -1,0 +1,24 @@
+region rgTop
+   height: "50%"
+end
+
+region rgBottom
+   height: "50%"
+   top: "50%"
+end
+
+context c1
+   port media media1
+      src: "medias/image1.jpg"
+      rg: rgTop
+   end
+end
+
+port media media2
+   src: "medias/image2.jpg"
+   rg: rgBottom
+end
+
+onBegin media2 do
+   start c1.media1 end
+end

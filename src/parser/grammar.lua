@@ -40,12 +40,6 @@ gramaticaSncl = {
       end
    end,
 
-   ------ PORT ------
-   Port = (P"port" *P" "^1* V"Id"^1 *P" "^1* V"AlphaNumericSymbols"^1 *SPC^0)
-   /function(str)
-      parsePort(str)
-   end,
-
    ------ REGION ------
    RegionId = (P"region" *P" "^1 *V"Id"^1 *SPC^0)
    /function(str)
@@ -55,32 +49,24 @@ gramaticaSncl = {
    Region = (V"RegionId" *(V"Comentario"+V"Region"+V"Property"+V"MacroRefer")^0* V"End"^-1),
 
    ------ SWITCH ------
-   SwitchId = (P"switch" *P" "^1* V"Id"^1 *P" "^1* P">" *P" "^1* V"String"*SPC^0)
+   --[[
+   SwitchPort = ("switchPort" * SwitchPortId)
    /function(str)
-      local arrow = str:find(">")
-      if arrow then
-         local var = str:sub(arrow+1)
-         str = str:sub(1, arrow-1)
-         local newSwitch = Switch.novo(linhaParser)
-         utils.newElement(str, newSwitch)
-         var = var:gsub("%s+", "")
-         newSwitch.var = var
-      else
-         utils.printErro("Invalid Switch declaration", linhaParser)
-      end
    end,
-   SwitchPort = (P"port" *P" "^1* V"AlphaNumericSymbols"^1 *SPC^0)
+<<<<<<< HEAD
+   SwitchPort = (P"switchPort" *P" "^1* V"AlphaNumericSymbols"^1 *SPC^0)
+=======
+
+   SwitchId = ()
+>>>>>>> 665a9606dc115cae245ea5ffab7fba3fedefba37
    /function(str)
-      if currentElement.tipo == "switch" then
-         -- Eh preciso separar "port" do nome do elemento
-         str = str:sub(str:find(" "), #str)
-         currentElement:addPort(str)
-      end
    end,
-   Switch = (V"SwitchId"* (V"Comentario"+V"SwitchPort"+V"Media"+V"Context"+V"Switch"+V"Property")^0 *V"End"^-1),
+
+   Switch = (),
+   ]]
 
    ------ CONTEXT ------
-   ContextId = (P"context"*P" "^1*V"Id"^1*SPC^0)
+   ContextId = (V"Port"^-1 * P"context"*P" "^1*V"Id"^1*SPC^0)
    /function(str)
       local newContext = Elemento.novo("context", linhaParser)
       utils.newElement(str, newContext)
@@ -96,11 +82,11 @@ gramaticaSncl = {
       end
    end,
    Context = (V"ContextId"
-   *(V"Comentario"+V"Port"+V"MacroRefer"+V"ContextProperty"+ V"Media"+V"Context"+V"Link"+V"Refer")^0*
+   *(V"Comentario"+V"MacroRefer"+V"ContextProperty"+ V"Media"+V"Context"+V"Link"+V"Refer")^0*
    V"End"^-1),
 
    ------ MEDIA ------
-   MediaId = (P"media" *P" "^1* V"Id"^1 *SPC^0)
+   MediaId = (V"Port"^-1* P"media" *P" "^1* V"Id"^1 *SPC^0)
    /function(str)
       local newMedia = Elemento.novo("media", linhaParser)
       utils.newElement(str, newMedia)
@@ -108,7 +94,7 @@ gramaticaSncl = {
    Media = (V"MediaId" *(V"Comentario"+V"MacroRefer"+V"Area"+V"Refer"+V"Property")^0* V"End"^-1),
 
    ------ AREA ------
-   AreaId = (P"area" *P" "^1* V"Id"^1 *SPC^0)
+   AreaId = (V"Port"^-1*P"area" *P" "^1* V"Id"^1 *SPC^0)
    /function(str)
       local newArea = Elemento.novo("area", linhaParser)
       utils.newElement(str, newArea)
@@ -147,7 +133,7 @@ gramaticaSncl = {
       end
       insideMacro = true
    end,
-   Macro = (V"MacroId" *(V"Comentario"+V"MacroRefer"+V"Property"+V"Media"+V"Area"+V"Context"+V"Link"+V"Port"+V"Region")^0* V"End"^-1),
+   Macro = (V"MacroId" *(V"Comentario"+V"MacroRefer"+V"Property"+V"Media"+V"Area"+V"Context"+V"Link"+V"Region")^0* V"End"^-1),
 
    ------ LINK ------
    Link = (V"Condition" *SPC^0* (V"Comentario"+V"Property"+V"Action")^0 *V"End"^-1),
@@ -171,6 +157,7 @@ gramaticaSncl = {
    end,
    Action = ( V"ActionMedia"*(V"Comentario"+V"Property")^0 *V"End"^-1),
    ------ MISC ------
+   Port = (P"port" *P" "^1),
    Property= (V"AlphaNumericSymbols"^1 *P" "^0* P":" *P" "^0* (V"String"+t.alnum^1) *SPC^0)
    /function(str)
       str = str:gsub("%s+", "")
@@ -189,5 +176,5 @@ gramaticaSncl = {
    Comentario = (P"--"*P" "^0* (t.alnum+t.punct+t.xdigit+P"¨"+P"´"+P" ")^0 *SPC^0),
 
    -- START --
-   INICIAL = SPC^0 * (V"Comentario"+V"Switch"+V"Macro"+V"MacroRefer"+V"Port"+V"Region"+V"Media"+V"Context"+V"Link")^0,
+   INICIAL = SPC^0 * (V"Comentario"+V"Macro"+V"MacroRefer"+V"Region"+V"Media"+V"Context"+V"Link")^0,
 }
