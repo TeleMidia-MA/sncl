@@ -1,7 +1,7 @@
 local lpeg = require("lpeg")
 local utils = require("utils")
 local t = lpeg.locale()
-local V, P = lpeg.V, lpeg.P
+local V, P, R = lpeg.V, lpeg.P, lpeg.R
 
 local SPC = V"Espacos"
 
@@ -177,4 +177,15 @@ gramaticaSncl = {
 
    -- START --
    INICIAL = SPC^0 * (V"Comentario"+V"Macro"+V"MacroRefer"+V"Region"+V"Media"+V"Context"+V"Link")^0,
+}
+
+dataTypeGrammar = {
+   property = (P"background"+P"balanceLevel"+P"bassLevel"+P"bottom"+P"bounds"+P"explicitDur"+P"fit"+P"focusIndex"+P"fontColor"+P"fontFamily"+P"fontSize"+P"fontStyle"+P"fontVariant"+P"fontWeight"+P"height"+P"left"+P"location"+P"plan"+P"playerLife"+P"reusePlayer"+P"rgbChromakey"+P"right"+P"scroll"+P"size"+P"soundLevel"+P"style"+P"top"+P"transparency"+P"trebleLevel"+P"visible"+P"width"+P"zIndex"),
+
+   action = (P"start"+P"stop"+P"abort"+P"pause"+P"resume"+P"set"),
+
+   condition = (P"onBegin"+P"onEnd"+P"onAbort"+P"onPause"+P"onResume"+P"onSelection"+P"onBeginSelection"+P"onEndSelection"+P"onAbortSelection"+P"onPauseSelection"+P"onResumeSelection"+P"onBeginAttribution"+P"onEndAttribution"+P"onPauseAttribution"+P"onResumeAttribution"+P"onAbortAttribution"),
+
+   time = ( ((R"01"*R"09")+(P"2"*R"03"))*P":"*(R"05"*R"09")*P":"*(R"05"*R"09")*(P"."*R"09"^1)^-1*(P"."*R"09"^1)^-1 ),
+   size= C( (P"100"*(P"."*P"0"^1)^-1*P"%") + (R"09"*R"09"^-1*(P"."*R"09"^1)^-1*P"%")+(R"09"^1*P"px") )
 }
