@@ -1,6 +1,5 @@
-port pBody video
 
-media video
+port media video
    src: "medias/small.mp4"
 end
 

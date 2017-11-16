@@ -1,22 +1,13 @@
 port form.selecFirstImage
 
-rule rEn system.language == "en" and count < 0
-rule rPt system.language == "pt" and count > 0
+onBegin media1 do
+   start audioEn.trechoEn end
+   start audioPt.trechoPt end
+end
 
 switch form
 
-   -----------
-   -- Separa rule em uma parte diferente do documento
-   switchPort spAudio
-      map rEn audioEn.trechoEn
-      map rPt audioPt.trechoPt
-   end
-   ------------
-   ------------
-   -- Perde reuso da rule
-   -- Fica confuso: 
-   --  - qual é a rule de audioEn? Tem que procurar o case que referencia
-   switchPort spAudio audioEn.trechoEn audioPt.trechoPt
+   -- switchPort spAudio audioEn.trechoEn audioPt.trechoPt
 
    case system.language == "en" and count < 0: audioEn
    case system.language == "pt" and count > 0: audioPt
@@ -24,7 +15,7 @@ switch form
 
    default: audioPt
 
-   media audioEn
+   extern media audioEn
       src: "media/audioEn.mp3"
       area trechoEn
          begin: "20s"
@@ -32,7 +23,7 @@ switch form
       end
    end
 
-   media audioPt
+   extern media audioPt
       src:"media/audioPt.mp3"
       area trechoPt 
          begin: "20s"
@@ -40,8 +31,4 @@ switch form
       end
    end
 
-end
-
-onBegin media1 do
-   start form.___ end
 end

@@ -9,7 +9,7 @@ function utilsTable.lerArquivo(fileLocation)
          return fileContent
       end
    end
-   utils.printErro("Arquivo não pode ser aberto.")
+   utilsTable.printErro("Arquivo não pode ser aberto.")
    return nil
 end
 
@@ -20,7 +20,7 @@ function utilsTable.escreverArquivo(arquivo, conteudo)
       io.write(conteudo)
       io.close(arquivo)
    else
-      utils.printErro("Erro ao criar arquivo de saída.")
+      utilsTable.printErro("Erro ao criar arquivo de saída.")
       return nil
    end
 end
@@ -74,10 +74,13 @@ function utilsTable.isMacroSon(element)
 end
 
 function utilsTable.newElement (str, element)
-   local id = parseId(str)
+   local port, id = parseId(str)
+
    element:setId(id)
+   element.temPort = port
 
    if currentElement then
+      --[[
       if element.tipo == "context" then
          if currentElement.tipo ~= "context" and
             currentElement.tipo ~= "macro" and
@@ -86,6 +89,7 @@ function utilsTable.newElement (str, element)
             return
          end
       end
+      ]]
       element.pai = currentElement
       currentElement:addFilho(element)
       currentElement = element
@@ -94,21 +98,29 @@ function utilsTable.newElement (str, element)
    end
 end
 
-function utilsTable.printNCL()
-   local indent = "\n   "
-   local NCL = [[<?xml version="1.0" encoding="ISO-8859-1"?>
-   <ncl id="main" xmlns="http://www.ncl.org.br/NCL3.0/EDTVProfile">]]
-
+function utilsTable.checkDependenciesElements()
    for _, val in pairs(tabelaSimbolos.macros) do
-      if val:getEnd() == false then
-         utils.printErro("Macro "..val:getId().." sem end.")
+      if not val.temEnd then
+         utilsTable.printErro("Macro "..val.id.." sem end.")
          return
       end
    end
 
+   for pos, val in pairs(tabelaSimbolos.body) do
+      if not val.pai then
+         val:check()
+      end
+   end
+end
+
+function utilsTable.genNCL()
+   local indent = "\n   "
+   local NCL = [[<?xml version="1.0" encoding="ISO-8859-1"?>
+   <ncl id="main" xmlns="http://www.ncl.org.br/NCL3.0/EDTVProfile">]]
+
    local body = indent.."<body>"
    for _, val in pairs(tabelaSimbolos.body) do
-      if val.pai == nil then
+      if not val.pai then
          body = body..val:toNCL(indent.."   ")
       end
    end
