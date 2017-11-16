@@ -187,5 +187,5 @@ dataTypeGrammar = {
    condition = (P"onBegin"+P"onEnd"+P"onAbort"+P"onPause"+P"onResume"+P"onSelection"+P"onBeginSelection"+P"onEndSelection"+P"onAbortSelection"+P"onPauseSelection"+P"onResumeSelection"+P"onBeginAttribution"+P"onEndAttribution"+P"onPauseAttribution"+P"onResumeAttribution"+P"onAbortAttribution"),
 
    time = ( ((R"01"*R"09")+(P"2"*R"03"))*P":"*(R"05"*R"09")*P":"*(R"05"*R"09")*(P"."*R"09"^1)^-1*(P"."*R"09"^1)^-1 ),
-   size= C( (P"100"*(P"."*P"0"^1)^-1*P"%") + (R"09"*R"09"^-1*(P"."*R"09"^1)^-1*P"%")+(R"09"^1*P"px") )
+   size= ( (P"100"*(P"."*P"0"^1)^-1*P"%") + (R"09"*R"09"^-1*(P"."*R"09"^1)^-1*P"%")+(R"09"^1*P"px") )
 }
