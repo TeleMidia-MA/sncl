@@ -4,7 +4,7 @@ The Media Element
 The media element defines an media object, that can be an image, video, text and even HTML 
 documents or Lua scripts.
 
-It's syntax is defined as
+Its syntax is defined as:
 
 ::
 
@@ -45,6 +45,6 @@ other possible properties is in :doc:`default-properties`
    media media4
       -- a media with margin of 15 pixels on both sides
       src: "medias/image.jpg"
-      left: "15px"
-      right: "15px"
+      left: 15px
+      right: 15px
    end

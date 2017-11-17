@@ -7,3 +7,7 @@ port context c1
    end
 end
 
+onBegin c1.media1 do
+   start c1.media1 end
+end
+

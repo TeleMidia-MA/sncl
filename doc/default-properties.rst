@@ -3,9 +3,9 @@ Default Properties
 
 These are the properties of the Ginga-NCL Player:
 
-========================================  ========
-  Properties                               Values
-========================================  ========
+========================================  ================
+  Properties                               Default Values
+========================================  ================
 top, left, bottom, right, width, height   0
 location                                  0
 size                                      0
@@ -43,5 +43,5 @@ focusBorderTransparency
 focusSrc, focusSelSrc                      nil
 freeze                                     false
 transIn, transOut                          empty string
-========================================  ========
+========================================  ================
 
