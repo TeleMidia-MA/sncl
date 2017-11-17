@@ -45,10 +45,35 @@ function Elemento:setRefer(component, interface)
       interface = interface
    }
 end
---Add
+
 function Elemento:addFilho(filho)
    if self.tipo ~= "descriptor" then
       table.insert(self.filhos, filho)
+   end
+end
+
+function Elemento:parseProperty(str)
+   local name, value = utils.separateSymbol(str)
+
+   if name and value then
+      if propertiesValues[name] then
+         if lpegMatch(propertiesValues[name], value) then
+            if value:match('".-"') then -- Se o valor tem aspas
+               self:addPropriedade(name, value)
+            else
+               self:addPropriedade(name, "\""..value.."\"")
+            end
+         else
+            utils.printErro("Invalid value in property "..name, linhaParser)
+            return
+         end
+      else
+         utils.printErro("Invalid property "..name, linhaParser)
+         return
+      end
+   else
+      utils.printErro("", self.linha)
+      return
    end
 end
 function Elemento:addPropriedade(nome, valor)
@@ -197,46 +222,18 @@ end
 
 function Elemento:criarDescritor()
    if self.region then
-      if tabelaSimbolos.regions[self.region] == nil then
-         utils.printErro("Region "..self.region.." não declarada.", self.linha)
+      if tabelaSimbolos.regions[self.region:gsub("\"", "")] == nil then
+         utils.printErro("Region "..self.region.." not declared", self.linha)
       end
-      local id = self.region.."Desc"
+      local id = self.region:gsub("\"", "").."Desc"
       self.descritor = id
       local newDesc = elemento.novo("descriptor", 0)
       utils.newElement(id, newDesc)
-      newDesc:addPropriedade("region", "\""..self.region.."\"")
+      newDesc:addPropriedade("region", self.region)
       newDesc.temEnd = true
    end
 end
 
-function Elemento:parseProperty(str)
-   local name, value = utils.separateSymbol(str)
 
-   if name and value then
-      if utils.isMacroSon(self) then
-         local macro = utils.isMacroSon(self)
-         if not value:match('".-"') then
-            if not macro.params[value] and name~="rg" then
-               utils.printErro("Value of property "..name.." in "..self.tipo.." invalid.")
-               return
-            end
-         end
-      else
-         if not value:match('".-"') then
-            if name ~= "rg" and name ~= "default" then
-               utils.printErro("Value of property "..name.." in "..self.tipo.." invalid.")
-               return
-            end
-         end
-      end
-      self:addPropriedade(name, value)
-   else
-   end
-end
-
-Elemento.areaAttributes = { --TODO: Tirar isso daqui, fazer global?
-   "coords", "begin", "end", "text", "position", "first",
-   "last", "label"
-}
 
 return elemento

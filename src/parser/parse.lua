@@ -1,4 +1,5 @@
 local utils = require("utils")
+local lpeg = require("lpeg")
 
 function parseId(str)
    local words = utils.separarEspaco(str)
@@ -314,3 +315,12 @@ function parseMacroSon(macro, son, paramsTable)
    currentElement = father
 end
 
+function lpegMatch(regex, string)
+   if lpeg.match(regex, string) then
+      if lpeg.match(regex, string) == #string+1 then
+         return true
+      end
+   else
+      return false
+   end
+end

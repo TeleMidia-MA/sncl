@@ -1,0 +1,27 @@
+context c1
+
+   port p1:c2.p2 c3 end
+   context c2
+      port p2:m1.a1 end
+      media m1
+         area a1
+         end
+      end
+   end
+
+   context c3
+      port m3.a3
+      media m3
+         area a3
+         end
+      end
+   end
+end
+
+onBegin c1.p1 do
+   start foo end
+end
+
+onBegin c1.c3.m3.a3 do
+   start foo end
+end

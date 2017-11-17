@@ -1,7 +1,7 @@
 local lpeg = require("lpeg")
 local utils = require("utils")
 local t = lpeg.locale()
-local V, P, R = lpeg.V, lpeg.P, lpeg.R
+local V, P, R, C = lpeg.V, lpeg.P, lpeg.R, lpeg.C
 
 local SPC = V"Espacos"
 
@@ -49,21 +49,6 @@ gramaticaSncl = {
    Region = (V"RegionId" *(V"Comentario"+V"Region"+V"Property"+V"MacroRefer")^0* V"End"^-1),
 
    ------ SWITCH ------
-   --[[
-   SwitchPort = ("switchPort" * SwitchPortId)
-   /function(str)
-   end,
-<<<<<<< HEAD
-   SwitchPort = (P"switchPort" *P" "^1* V"AlphaNumericSymbols"^1 *SPC^0)
-=======
-
-   SwitchId = ()
->>>>>>> 665a9606dc115cae245ea5ffab7fba3fedefba37
-   /function(str)
-   end,
-
-   Switch = (),
-   ]]
 
    ------ CONTEXT ------
    ContextId = (V"Port"^-1 * P"context"*P" "^1*V"Id"^1*SPC^0)
@@ -158,7 +143,7 @@ gramaticaSncl = {
    Action = ( V"ActionMedia"*(V"Comentario"+V"Property")^0 *V"End"^-1),
    ------ MISC ------
    Port = (P"port" *P" "^1),
-   Property= (V"AlphaNumericSymbols"^1 *P" "^0* P":" *P" "^0* (V"String"+t.alnum^1) *SPC^0)
+   Property= (V"AlphaNumericSymbols"^1 *P" "^0* P":" *P" "^0* (V"String"+(t.alnum+V"Symbols")^1) *SPC^0)
    /function(str)
       str = str:gsub("%s+", "")
       if currentElement ~= nil then
@@ -179,13 +164,75 @@ gramaticaSncl = {
    INICIAL = SPC^0 * (V"Comentario"+V"Macro"+V"MacroRefer"+V"Region"+V"Media"+V"Context"+V"Link")^0,
 }
 
-dataTypeGrammar = {
-   property = (P"background"+P"balanceLevel"+P"bassLevel"+P"bottom"+P"bounds"+P"explicitDur"+P"fit"+P"focusIndex"+P"fontColor"+P"fontFamily"+P"fontSize"+P"fontStyle"+P"fontVariant"+P"fontWeight"+P"height"+P"left"+P"location"+P"plan"+P"playerLife"+P"reusePlayer"+P"rgbChromakey"+P"right"+P"scroll"+P"size"+P"soundLevel"+P"style"+P"top"+P"transparency"+P"trebleLevel"+P"visible"+P"width"+P"zIndex"),
-
+keywordTable = {
    action = (P"start"+P"stop"+P"abort"+P"pause"+P"resume"+P"set"),
 
-   condition = (P"onBegin"+P"onEnd"+P"onAbort"+P"onPause"+P"onResume"+P"onSelection"+P"onBeginSelection"+P"onEndSelection"+P"onAbortSelection"+P"onPauseSelection"+P"onResumeSelection"+P"onBeginAttribution"+P"onEndAttribution"+P"onPauseAttribution"+P"onResumeAttribution"+P"onAbortAttribution"),
+   condition = (P"onBegin"+P"onEnd"+P"onAbort"+P"onPause"+P"onResume"+P"onSelection"+
+   P"onBeginSelection"+P"onEndSelection"+P"onAbortSelection"+P"onPauseSelection"+
+   P"onResumeSelection"+P"onBeginAttribution"+P"onEndAttribution"+P"onPauseAttribution"+
+   P"onResumeAttribution"+P"onAbortAttribution"),
 
+   property = (P"background"+P"balanceLevel"+P"bassLevel"+P"bottom"+P"bounds"+
+   P"explicitDur"+P"fit"+P"focusIndex"+P"fontColor"+P"fontFamily"+P"fontSize"+
+   P"fontStyle"+P"fontVariant"+P"fontWeight"+P"height"+P"left"+P"location"+
+   P"plan"+P"playerLife"+P"reusePlayer"+P"rgbChromakey"+P"right"+P"scroll"+
+   P"size"+P"soundLevel"+P"style"+P"top"+P"transparency"+P"trebleLevel"+
+   P"visible"+P"width"+P"zIndex"),
+}
+
+dataType = {
+   -- Add Second's
    time = ( ((R"01"*R"09")+(P"2"*R"03"))*P":"*(R"05"*R"09")*P":"*(R"05"*R"09")*(P"."*R"09"^1)^-1*(P"."*R"09"^1)^-1 ),
-   size= C( (P"100"*(P"."*P"0"^1)^-1*P"%") + (R"09"*R"09"^-1*(P"."*R"09"^1)^-1*P"%")+(R"09"^1*P"px") )
+   percent = ((P"100"*(P"."*P"0"^1)^-1*P"%") + (R"09"*R"09"^-1*(P"."*R"09"^1)^-1*P"%")),
+   pixel = ((R"09"^1*P"px"^-1) ),
+   integer = (t.digit^1),
+   color = (P"white"+P"black"+P"silver"+P"gray"+P"red"+P"maroon"+P"fuchsia"+
+      P"purple"+P"lime"+P"green"+P"yellow"+P"olive"+P"blue"+P"navy"+P"aqua"+
+      P"transparent"),
+   id = (t.alnum+P"_"+P"-")^1,
+   string = (P"\"" *(t.alnum+P"@"+P"_"+P"/"+P"."+P"%"+P","+P"-"+P" ")^1* P"\""),
+   mime = (P"\""*t.alpha^1*P"/"*t.alpha^1*P"\""),
+   rgb = (""),
+}
+
+propertiesValues = {
+   --[[ ["style"]       = nil,
+   ["playerLife"]  = nil,
+   ["deviceClass"] = nil,
+   ["fit"] = nil,
+   ["scroll"] = nil,
+   ["focusSrc"] = nil,
+   ["focusSelSrc"] = nil,
+   ["plan"] = nil,
+   ]]
+   ["src"] = dataType.string,
+   ["type"] = dataType.mime,
+   ["rg"] = dataType.id,
+   ["player"]                  = dataType.string,
+   ["reusePlayer"]             = dataType.boolean,
+   ["explicitDur"]             = dataType.time,
+   ["focusIndex"]              = dataType.integer,
+   ["moveLeft"]                = dataType.integer,
+   ["moveRight"]               = dataType.integer,
+   ["moveUp"]                  = dataType.integer,
+   ["moveDown"]                = dataType.integer,
+   ["top"]                     = dataType.percent + dataType.pixel,
+   ["bottom"]                  = dataType.percent + dataType.pixel,
+   ["left"]                    = dataType.percent + dataType.pixel,
+   ["right"]                   = dataType.percent + dataType.pixel,
+   ["width"]                   = dataType.percent + dataType.pixel,
+   ["height"]                  = dataType.percent + dataType.pixel,
+   ["location"]                = dataType.percent + dataType.pixel, --2 values
+   ["size"]                    = dataType.percent + dataType.pixel, -- 2 values
+   ["bounds"]                  = dataType.percent + dataType.pixel, -- 4 values
+   ["background"]              = dataType.color,
+   ["rgbChromaKey"]            = dataType.color + dataType.rgb,
+   ["visible"]                 = dataType.boolean,
+   ["transparency"]            = dataType.percent,
+   ["zIndex"]                  = dataType.integer,
+   ["focusBorderColor"]        = dataType.color,
+   ["selBorderColor"]          = dataType.color,
+   ["focusBorderWidth"]        = dataType.integer,
+   ["focusBorderTransparency"] = dataType.percent,
+   ["freeze"]                  = dataType.boolean,
 }
