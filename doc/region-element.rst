@@ -1,4 +1,4 @@
-The Region Element
+Region Element
 ===================
 
 The region element

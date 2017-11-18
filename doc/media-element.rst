@@ -1,4 +1,4 @@
-The Media Element
+Media Element
 =================
 
 The media element defines an media object, that can be an image, video, text and even HTML 

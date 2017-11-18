@@ -26,16 +26,16 @@ Elements between "" are literals, the others are non-terminal.
 
    Area = "area" * Id * (Comentario + Propriedade)^0 * "end"
 
-   Port = "port" * Id AlphaNumeric
+   Port = "port" * Id * AlphaNumeric
 
    Region = "region" * Id * (Comentario + Region + Propriedade + MacroCall)^0 * "end"
 
    Link = Condition^1 * (Comentario + Propriedade + Action)^0 * end
 
-   Condition = AlphaNumeric * AlphaNumeric * TermCond
+   Condition = AlphaNumeric * Id * TermCond
    TermCond = ("and" * Condition) + ("do")
 
-   Action = AlphaNumeric * AlphaNumeric * (Comentario + Propriedade) * "end"
+   Action = AlphaNumeric * Id * (Comentario + Propriedade) * "end"
 
    Macro = "macro" Id * (Comentario * MacroCall * Propriedade + Media + Area + Context + Link + Port + Region)^0 * "end"
 
