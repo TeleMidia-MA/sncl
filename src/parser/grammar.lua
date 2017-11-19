@@ -136,7 +136,7 @@ gramaticaSncl = {
    Action = ( V"ActionMedia"*(V"Comentario"+V"Property")^0 *V"End"^-1),
    ------ MISC ------
    Port = (P"port" *P" "^1),
-   Property= (V"AlphaNumericSymbols"^1 *P" "^0* P":" *P" "^0* (V"String"+(t.alnum+V"Symbols"+P" ")^1) *SPC^0)
+   Property= (V"AlphaNumericSymbols"^1 *P" "^0* P":" *P" "^0* (V"String"+(t.alnum+V"Symbols"+P" "+P":")^1) *SPC^0)
    /function(str)
       str = str:gsub("%s+", "")
       if currentElement ~= nil then
@@ -165,25 +165,29 @@ keywordTable = {
    P"onResumeSelection"+P"onBeginAttribution"+P"onEndAttribution"+P"onPauseAttribution"+
    P"onResumeAttribution"+P"onAbortAttribution"),
 
-   property = (P"background"+P"balanceLevel"+P"bassLevel"+P"bottom"+P"bounds"+
+   properties = (P"background"+P"balanceLevel"+P"bassLevel"+P"bottom"+P"bounds"+
    P"explicitDur"+P"fit"+P"focusIndex"+P"fontColor"+P"fontFamily"+P"fontSize"+
    P"fontStyle"+P"fontVariant"+P"fontWeight"+P"height"+P"left"+P"location"+
    P"plan"+P"playerLife"+P"reusePlayer"+P"rgbChromakey"+P"right"+P"scroll"+
    P"size"+P"soundLevel"+P"style"+P"top"+P"transparency"+P"trebleLevel"+
    P"visible"+P"width"+P"zIndex"),
+
+   areaProperties = (P"coords"+P"begin"+P"end"+P"beginText"+P"endText"+P"beginPosition"+P"endPosition"+P"first"+P"last"+P"label"+P"clip"),
 }
 
 -- TODO: Add check for Id
 
 dataType = {
-   -- Add Second's
+   -- TODO:Add Second's
    time = ( ((R"01"*R"09")+(P"2"*R"03"))*P":"*(R"05"*R"09")*P":"*(R"05"*R"09")*(P"."*R"09"^1)^-1*(P"."*R"09"^1)^-1 ),
    percent = ((P"100"*(P"."*P"0"^1)^-1*P"%") + (R"09"*R"09"^-1*(P"."*R"09"^1)^-1*P"%")),
+   seconds = (R"09"*R"09"*P"s"),
    pixel = ((R"09"^1*P"px"^-1) ),
    integer = (t.digit^1),
    color = (P"\""*(P"white"+P"black"+P"silver"+P"gray"+P"red"+P"maroon"+P"fuchsia"+
       P"purple"+P"lime"+P"green"+P"yellow"+P"olive"+P"blue"+P"navy"+P"aqua"+
       P"transparent")*P"\""),
+   -- TODO: Fix Id
    id = (t.alnum+P"_"+P"-")^1,
    string = (P"\"" *(t.alnum+P"@"+P"_"+P"/"+P"."+P"%"+P","+P"-"+P" ")^1* P"\""),
    mime = (P"\""*t.alpha^1*P"/"*t.alpha^1*P"\""),
@@ -206,7 +210,7 @@ propertiesValues = {
    ["rg"]                      = {1, dataType.id},
    ["player"]                  = {1, dataType.string},
    ["reusePlayer"]             = {1, dataType.boolean},
-   ["explicitDur"]             = {1, dataType.time},
+   ["explicitDur"]             = {1, dataType.time+dataType.seconds},
    ["focusIndex"]              = {1, dataType.integer},
    ["moveLeft"]                = {1, dataType.integer},
    ["moveRight"]               = {1, dataType.integer},
@@ -231,4 +235,15 @@ propertiesValues = {
    ["focusBorderWidth"]        = {1, dataType.integer},
    ["focusBorderTransparency"] = {1, dataType.percent},
    ["freeze"]                  = {1, dataType.boolean1},
+   ["coords"]                  = {4, dataType.percent+dataType.pixel},
+   ["begin"]                   = {1, dataType.time+dataType.seconds},
+   ["end"]                     = {1, dataType.time+dataType.seconds},
+   ["beginText"]               = {1, dataType.string},
+   ["endText"]                 = {1, dataType.string},
+   ["beginPosition"]           = {1, dataType.integer},
+   ["endPosition"]             = {1, dataType.integer},
+   --["first"] = 
+   --["last"] = 
+   ["label"]                   = {1, dataType.string},
+   ["clip"]                    = {1, dataType.string},
 }

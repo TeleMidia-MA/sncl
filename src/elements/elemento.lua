@@ -110,16 +110,6 @@ function Elemento:addPropriedade(nome, valor)
          self.region = valor
          return
       end
-      -- Checar se o atributo de area é valido
-   elseif self.tipo == "area" then
-      for _, val in pairs(self.areaAttributes) do
-         if val == nome then
-            self.propriedades[nome] = valor
-            return
-         end
-      end
-      utils.printErro("Invalid property "..nome, self.linha)
-      return
    end
    self.propriedades[nome] = valor
 end

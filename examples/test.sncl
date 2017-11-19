@@ -8,4 +8,10 @@ media media1
    src: "medias/image1.jpg"
    size: 20%, 20%
    bounds: 20%, 20% ,40%, 50px
+   explicitDur: 10:20:30
+   area area1
+      begin: 20s
+      end: 10:20:30
+      beginText: "aasd"
+   end
 end
