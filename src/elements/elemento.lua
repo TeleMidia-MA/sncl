@@ -52,30 +52,52 @@ function Elemento:addFilho(filho)
    end
 end
 
-function Elemento:parseProperty(str)
+function Elemento:parsePropriedade(str)
    local name, value = utils.separateSymbol(str)
 
-   if name and value then
-      if propertiesValues[name] then
-         if lpegMatch(propertiesValues[name], value) then
-            if value:match('".-"') then -- Se o valor tem aspas
-               self:addPropriedade(name, value)
-            else
-               self:addPropriedade(name, "\""..value.."\"")
-            end
-         else
+   if not (name and value) then
+      utils.printErro("Error parsing", self.linha)
+      return
+   end
+   if not propertiesValues[name] then
+      utils.printErro("Invalid property "..name, linhaParser)
+      return
+   end
+
+   -- Tem propriedade que pode ter mais de 1 valor
+   local values = {}
+   for w in value:gmatch("([^,]*)") do
+      w:gsub("%s+", "")
+      table.insert(values, w)
+   end
+
+   if #values ~= propertiesValues[name][1] then
+      utils.printErro("Wrong quantity of arguments", linhaParser)
+      return
+   end
+
+   if #values > 1 then
+      for i=1, #values do
+         if not lpegMatch(propertiesValues[name][2], values[i]) then
             utils.printErro("Invalid value in property "..name, linhaParser)
             return
          end
-      else
-         utils.printErro("Invalid property "..name, linhaParser)
+      end
+      self:addPropriedade(name, "\""..value.."\"")
+   else
+      -- Checar se o valor ta certo sintaticamente
+      if not lpegMatch(propertiesValues[name][2], values[1]) then
+         utils.printErro("Invalid value in property "..name, linhaParser)
          return
       end
-   else
-      utils.printErro("", self.linha)
-      return
+      if values[1]:match('".-"') then -- Se o valor tem aspas
+         self:addPropriedade(name, values[1])
+      else
+         self:addPropriedade(name, "\""..values[1].."\"")
+      end
    end
 end
+
 function Elemento:addPropriedade(nome, valor)
    if self.tipo == "media" then
       if nome == "src" then
@@ -88,7 +110,7 @@ function Elemento:addPropriedade(nome, valor)
          self.region = valor
          return
       end
-   -- Checar se o atributo de area é valido
+      -- Checar se o atributo de area é valido
    elseif self.tipo == "area" then
       for _, val in pairs(self.areaAttributes) do
          if val == nome then
@@ -102,7 +124,6 @@ function Elemento:addPropriedade(nome, valor)
    self.propriedades[nome] = valor
 end
 
---Get
 function Elemento:getFilho(filho)
    for _, val in pairs(self.filhos) do
       if val.tipo ~= "link" then
@@ -137,20 +158,20 @@ end
 
 function Elemento:check()
    if not self.temEnd then --Check se elemento tem end
-      utils.printErro("Elemento "..self.id.." has no end.", self.linha)
-   end
+   utils.printErro("Elemento "..self.id.." has no end.", self.linha)
+end
 
-   -- Se for media, tem que ter source, type ou refer
-   if self.tipo == "media" then
-      if self.src==nil and self._type==nil and self.refer==nil then
-         utils.printErro("Media "..self.id.." must have a type, source or refer", self.linha)
-      end
+-- Se for media, tem que ter source, type ou refer
+if self.tipo == "media" then
+   if self.src==nil and self._type==nil and self.refer==nil then
+      utils.printErro("Media "..self.id.." must have a type, source or refer", self.linha)
    end
-   self:criarDescritor()
-   self:criarPort()
-   for _, val in pairs(self.filhos) do
-      val:check()
-   end
+end
+self:criarDescritor()
+self:criarPort()
+for _, val in pairs(self.filhos) do
+   val:check()
+end
 end
 
 function Elemento:toNCL(indent)

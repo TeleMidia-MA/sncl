@@ -1,5 +1,11 @@
 context c1
-   media m1
-      src: "medias/image1.jpg"
-   end
+   left: 50%
+   zIndex: 2
+   focusBorderColor: "white"
+end
+
+media media1
+   src: "medias/image1.jpg"
+   size: 20%, 20%
+   bounds: 20%, 20% ,40%, 50px
 end

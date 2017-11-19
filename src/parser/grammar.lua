@@ -46,7 +46,8 @@ gramaticaSncl = {
       local newRegion = Elemento.novo("region", linhaParser)
       utils.newElement(str, newRegion)
    end,
-   Region = (V"RegionId" *(V"Comentario"+V"Region"+V"Property"+V"MacroRefer")^0* V"End"^-1),
+   Region = (V"RegionId" *(V"Comentario"+V"Region"+V"Property"+V"MacroRefer")^0
+   * V"End"^-1),
 
    ------ SWITCH ------
 
@@ -56,19 +57,10 @@ gramaticaSncl = {
       local newContext = Elemento.novo("context", linhaParser)
       utils.newElement(str, newContext)
    end,
-   ContextProperty = (t.alnum^1*P" "^0*P":"*P" "^0*V"String"*SPC^0)
-   /function(str)
-      str = str:gsub("%s+", "")
-      if currentElement then
-         local nome, valor = parseProperty(str)
-         currentElement:addPropriedade(nome, valor)
-      else
-         utils.printErro("Property has no element", linhaParser)
-      end
-   end,
+
    Context = (V"ContextId"
-   *(V"Comentario"+V"MacroRefer"+V"ContextProperty"+ V"Media"+V"Context"+V"Link"+V"Refer")^0*
-   V"End"^-1),
+   *(V"Comentario"+V"MacroRefer"+V"Property"+ V"Media"+V"Context"+V"Link"+V"Refer")^0
+   * V"End"^-1),
 
    ------ MEDIA ------
    MediaId = (V"Port"^-1* P"media" *P" "^1* V"Id"^1 *SPC^0)
@@ -76,7 +68,8 @@ gramaticaSncl = {
       local newMedia = Elemento.novo("media", linhaParser)
       utils.newElement(str, newMedia)
    end,
-   Media = (V"MediaId" *(V"Comentario"+V"MacroRefer"+V"Area"+V"Refer"+V"Property")^0* V"End"^-1),
+   Media = (V"MediaId" *(V"Comentario"+V"MacroRefer"+V"Area"+V"Refer"+V"Property")^0
+   * V"End"^-1),
 
    ------ AREA ------
    AreaId = (V"Port"^-1*P"area" *P" "^1* V"Id"^1 *SPC^0)
@@ -143,12 +136,12 @@ gramaticaSncl = {
    Action = ( V"ActionMedia"*(V"Comentario"+V"Property")^0 *V"End"^-1),
    ------ MISC ------
    Port = (P"port" *P" "^1),
-   Property= (V"AlphaNumericSymbols"^1 *P" "^0* P":" *P" "^0* (V"String"+(t.alnum+V"Symbols")^1) *SPC^0)
+   Property= (V"AlphaNumericSymbols"^1 *P" "^0* P":" *P" "^0* (V"String"+(t.alnum+V"Symbols"+P" ")^1) *SPC^0)
    /function(str)
       str = str:gsub("%s+", "")
       if currentElement ~= nil then
          --print(currentElement.tipo)
-         currentElement:parseProperty(str)
+         currentElement:parsePropriedade(str)
       else
          utils.printErro("Property"..str.." declared in invalid context", linhaParser)
       end
@@ -188,17 +181,18 @@ dataType = {
    percent = ((P"100"*(P"."*P"0"^1)^-1*P"%") + (R"09"*R"09"^-1*(P"."*R"09"^1)^-1*P"%")),
    pixel = ((R"09"^1*P"px"^-1) ),
    integer = (t.digit^1),
-   color = (P"white"+P"black"+P"silver"+P"gray"+P"red"+P"maroon"+P"fuchsia"+
+   color = (P"\""*(P"white"+P"black"+P"silver"+P"gray"+P"red"+P"maroon"+P"fuchsia"+
       P"purple"+P"lime"+P"green"+P"yellow"+P"olive"+P"blue"+P"navy"+P"aqua"+
-      P"transparent"),
+      P"transparent")*P"\""),
    id = (t.alnum+P"_"+P"-")^1,
    string = (P"\"" *(t.alnum+P"@"+P"_"+P"/"+P"."+P"%"+P","+P"-"+P" ")^1* P"\""),
    mime = (P"\""*t.alpha^1*P"/"*t.alpha^1*P"\""),
-   rgb = (""),
+   rgb = (""),-- #XXXXXX
 }
 
 propertiesValues = {
-   --[[ ["style"]       = nil,
+   --[[ 
+   ["style"]       = nil,
    ["playerLife"]  = nil,
    ["deviceClass"] = nil,
    ["fit"] = nil,
@@ -207,34 +201,34 @@ propertiesValues = {
    ["focusSelSrc"] = nil,
    ["plan"] = nil,
    ]]
-   ["src"] = dataType.string,
-   ["type"] = dataType.mime,
-   ["rg"] = dataType.id,
-   ["player"]                  = dataType.string,
-   ["reusePlayer"]             = dataType.boolean,
-   ["explicitDur"]             = dataType.time,
-   ["focusIndex"]              = dataType.integer,
-   ["moveLeft"]                = dataType.integer,
-   ["moveRight"]               = dataType.integer,
-   ["moveUp"]                  = dataType.integer,
-   ["moveDown"]                = dataType.integer,
-   ["top"]                     = dataType.percent + dataType.pixel,
-   ["bottom"]                  = dataType.percent + dataType.pixel,
-   ["left"]                    = dataType.percent + dataType.pixel,
-   ["right"]                   = dataType.percent + dataType.pixel,
-   ["width"]                   = dataType.percent + dataType.pixel,
-   ["height"]                  = dataType.percent + dataType.pixel,
-   ["location"]                = dataType.percent + dataType.pixel, --2 values
-   ["size"]                    = dataType.percent + dataType.pixel, -- 2 values
-   ["bounds"]                  = dataType.percent + dataType.pixel, -- 4 values
-   ["background"]              = dataType.color,
-   ["rgbChromaKey"]            = dataType.color + dataType.rgb,
-   ["visible"]                 = dataType.boolean,
-   ["transparency"]            = dataType.percent,
-   ["zIndex"]                  = dataType.integer,
-   ["focusBorderColor"]        = dataType.color,
-   ["selBorderColor"]          = dataType.color,
-   ["focusBorderWidth"]        = dataType.integer,
-   ["focusBorderTransparency"] = dataType.percent,
-   ["freeze"]                  = dataType.boolean,
+   ["src"]                     = {1, dataType.string},
+   ["type"]                    = {1, dataType.mime},
+   ["rg"]                      = {1, dataType.id},
+   ["player"]                  = {1, dataType.string},
+   ["reusePlayer"]             = {1, dataType.boolean},
+   ["explicitDur"]             = {1, dataType.time},
+   ["focusIndex"]              = {1, dataType.integer},
+   ["moveLeft"]                = {1, dataType.integer},
+   ["moveRight"]               = {1, dataType.integer},
+   ["moveUp"]                  = {1, dataType.integer},
+   ["moveDown"]                = {1, dataType.integer},
+   ["top"]                     = {1, dataType.percent + dataType.pixel},
+   ["bottom"]                  = {1, dataType.percent + dataType.pixel},
+   ["left"]                    = {1, dataType.percent + dataType.pixel},
+   ["right"]                   = {1, dataType.percent + dataType.pixel},
+   ["width"]                   = {1, dataType.percent + dataType.pixel},
+   ["height"]                  = {1, dataType.percent + dataType.pixel},
+   ["location"]                = {2, dataType.percent + dataType.pixel},
+   ["size"]                    = {2, dataType.percent + dataType.pixel},
+   ["bounds"]                  = {4, dataType.percent + dataType.pixel},
+   ["background"]              = {1, dataType.color},
+   ["rgbChromaKey"]            = {1, dataType.color + dataType.rgb},
+   ["visible"]                 = {1, dataType.boolean},
+   ["transparency"]            = {1, dataType.percent},
+   ["zIndex"]                  = {1, dataType.integer},
+   ["focusBorderColor"]        = {1, dataType.color},
+   ["selBorderColor"]          = {1, dataType.color},
+   ["focusBorderWidth"]        = {1, dataType.integer},
+   ["focusBorderTransparency"] = {1, dataType.percent},
+   ["freeze"]                  = {1, dataType.boolean1},
 }
