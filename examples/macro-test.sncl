@@ -22,6 +22,8 @@ makeMedia("media1")
 makeMedia2("media2", "text/html")
 
 macro propriedades()
+   macro propriedade()
+   end
 end
 
 context c2
