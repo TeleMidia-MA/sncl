@@ -1,7 +1,7 @@
 local lpeg = require("lpeg")
 local utils = require("utils")
 local t = lpeg.locale()
-local V, P, R = lpeg.V, lpeg.P, lpeg.R
+local V, P, R, C = lpeg.V, lpeg.P, lpeg.R, lpeg.C
 
 local SPC = V"Espacos"
 
@@ -46,24 +46,10 @@ gramaticaSncl = {
       local newRegion = Elemento.novo("region", linhaParser)
       utils.newElement(str, newRegion)
    end,
-   Region = (V"RegionId" *(V"Comentario"+V"Region"+V"Property"+V"MacroRefer")^0* V"End"^-1),
+   Region = (V"RegionId" *(V"Comentario"+V"Region"+V"Property"+V"MacroRefer")^0
+   * V"End"^-1),
 
    ------ SWITCH ------
-   --[[
-   SwitchPort = ("switchPort" * SwitchPortId)
-   /function(str)
-   end,
-<<<<<<< HEAD
-   SwitchPort = (P"switchPort" *P" "^1* V"AlphaNumericSymbols"^1 *SPC^0)
-=======
-
-   SwitchId = ()
->>>>>>> 665a9606dc115cae245ea5ffab7fba3fedefba37
-   /function(str)
-   end,
-
-   Switch = (),
-   ]]
 
    ------ CONTEXT ------
    ContextId = (V"Port"^-1 * P"context"*P" "^1*V"Id"^1*SPC^0)
@@ -71,19 +57,10 @@ gramaticaSncl = {
       local newContext = Elemento.novo("context", linhaParser)
       utils.newElement(str, newContext)
    end,
-   ContextProperty = (t.alnum^1*P" "^0*P":"*P" "^0*V"String"*SPC^0)
-   /function(str)
-      str = str:gsub("%s+", "")
-      if currentElement then
-         local nome, valor = parseProperty(str)
-         currentElement:addPropriedade(nome, valor)
-      else
-         utils.printErro("Property has no element", linhaParser)
-      end
-   end,
+
    Context = (V"ContextId"
-   *(V"Comentario"+V"MacroRefer"+V"ContextProperty"+ V"Media"+V"Context"+V"Link"+V"Refer")^0*
-   V"End"^-1),
+   *(V"Comentario"+V"MacroRefer"+V"Property"+ V"Media"+V"Context"+V"Link"+V"Refer")^0
+   * V"End"^-1),
 
    ------ MEDIA ------
    MediaId = (V"Port"^-1* P"media" *P" "^1* V"Id"^1 *SPC^0)
@@ -91,7 +68,8 @@ gramaticaSncl = {
       local newMedia = Elemento.novo("media", linhaParser)
       utils.newElement(str, newMedia)
    end,
-   Media = (V"MediaId" *(V"Comentario"+V"MacroRefer"+V"Area"+V"Refer"+V"Property")^0* V"End"^-1),
+   Media = (V"MediaId" *(V"Comentario"+V"MacroRefer"+V"Area"+V"Refer"+V"Property")^0
+   * V"End"^-1),
 
    ------ AREA ------
    AreaId = (V"Port"^-1*P"area" *P" "^1* V"Id"^1 *SPC^0)
@@ -158,12 +136,12 @@ gramaticaSncl = {
    Action = ( V"ActionMedia"*(V"Comentario"+V"Property")^0 *V"End"^-1),
    ------ MISC ------
    Port = (P"port" *P" "^1),
-   Property= (V"AlphaNumericSymbols"^1 *P" "^0* P":" *P" "^0* (V"String"+t.alnum^1) *SPC^0)
+   Property= (V"AlphaNumericSymbols"^1 *P" "^0* P":" *P" "^0* (V"String"+(t.alnum+V"Symbols"+P" "+P":")^1) *SPC^0)
    /function(str)
       str = str:gsub("%s+", "")
       if currentElement ~= nil then
          --print(currentElement.tipo)
-         currentElement:parseProperty(str)
+         currentElement:parsePropriedade(str)
       else
          utils.printErro("Property"..str.." declared in invalid context", linhaParser)
       end
@@ -179,13 +157,93 @@ gramaticaSncl = {
    INICIAL = SPC^0 * (V"Comentario"+V"Macro"+V"MacroRefer"+V"Region"+V"Media"+V"Context"+V"Link")^0,
 }
 
-dataTypeGrammar = {
-   property = (P"background"+P"balanceLevel"+P"bassLevel"+P"bottom"+P"bounds"+P"explicitDur"+P"fit"+P"focusIndex"+P"fontColor"+P"fontFamily"+P"fontSize"+P"fontStyle"+P"fontVariant"+P"fontWeight"+P"height"+P"left"+P"location"+P"plan"+P"playerLife"+P"reusePlayer"+P"rgbChromakey"+P"right"+P"scroll"+P"size"+P"soundLevel"+P"style"+P"top"+P"transparency"+P"trebleLevel"+P"visible"+P"width"+P"zIndex"),
-
+keywordTable = {
    action = (P"start"+P"stop"+P"abort"+P"pause"+P"resume"+P"set"),
 
-   condition = (P"onBegin"+P"onEnd"+P"onAbort"+P"onPause"+P"onResume"+P"onSelection"+P"onBeginSelection"+P"onEndSelection"+P"onAbortSelection"+P"onPauseSelection"+P"onResumeSelection"+P"onBeginAttribution"+P"onEndAttribution"+P"onPauseAttribution"+P"onResumeAttribution"+P"onAbortAttribution"),
+   condition = (P"onBegin"+P"onEnd"+P"onAbort"+P"onPause"+P"onResume"+P"onSelection"+
+   P"onBeginSelection"+P"onEndSelection"+P"onAbortSelection"+P"onPauseSelection"+
+   P"onResumeSelection"+P"onBeginAttribution"+P"onEndAttribution"+P"onPauseAttribution"+
+   P"onResumeAttribution"+P"onAbortAttribution"),
 
+   properties = (P"background"+P"balanceLevel"+P"bassLevel"+P"bottom"+P"bounds"+
+   P"explicitDur"+P"fit"+P"focusIndex"+P"fontColor"+P"fontFamily"+P"fontSize"+
+   P"fontStyle"+P"fontVariant"+P"fontWeight"+P"height"+P"left"+P"location"+
+   P"plan"+P"playerLife"+P"reusePlayer"+P"rgbChromakey"+P"right"+P"scroll"+
+   P"size"+P"soundLevel"+P"style"+P"top"+P"transparency"+P"trebleLevel"+
+   P"visible"+P"width"+P"zIndex"),
+
+   areaProperties = (P"coords"+P"begin"+P"end"+P"beginText"+P"endText"+P"beginPosition"+P"endPosition"+P"first"+P"last"+P"label"+P"clip"),
+}
+
+-- TODO: Add check for Id
+
+dataType = {
+   -- TODO:Add Second's
    time = ( ((R"01"*R"09")+(P"2"*R"03"))*P":"*(R"05"*R"09")*P":"*(R"05"*R"09")*(P"."*R"09"^1)^-1*(P"."*R"09"^1)^-1 ),
-   size= ( (P"100"*(P"."*P"0"^1)^-1*P"%") + (R"09"*R"09"^-1*(P"."*R"09"^1)^-1*P"%")+(R"09"^1*P"px") )
+   percent = ((P"100"*(P"."*P"0"^1)^-1*P"%") + (R"09"*R"09"^-1*(P"."*R"09"^1)^-1*P"%")),
+   seconds = (R"09"*R"09"*P"s"),
+   pixel = ((R"09"^1*P"px"^-1) ),
+   integer = (t.digit^1),
+   color = (P"\""*(P"white"+P"black"+P"silver"+P"gray"+P"red"+P"maroon"+P"fuchsia"+
+      P"purple"+P"lime"+P"green"+P"yellow"+P"olive"+P"blue"+P"navy"+P"aqua"+
+      P"transparent")*P"\""),
+   -- TODO: Fix Id
+   id = (t.alnum+P"_"+P"-")^1,
+   string = (P"\"" *(t.alnum+P"@"+P"_"+P"/"+P"."+P"%"+P","+P"-"+P" ")^1* P"\""),
+   mime = (P"\""*t.alpha^1*P"/"*t.alpha^1*P"\""),
+   rgb = (""),-- #XXXXXX
+}
+
+propertiesValues = {
+   --[[ 
+   ["style"]       = nil,
+   ["playerLife"]  = nil,
+   ["deviceClass"] = nil,
+   ["fit"] = nil,
+   ["scroll"] = nil,
+   ["focusSrc"] = nil,
+   ["focusSelSrc"] = nil,
+   ["plan"] = nil,
+   ]]
+   ["src"]                     = {1, dataType.string},
+   ["type"]                    = {1, dataType.mime},
+   ["rg"]                      = {1, dataType.id},
+   ["player"]                  = {1, dataType.string},
+   ["reusePlayer"]             = {1, dataType.boolean},
+   ["explicitDur"]             = {1, dataType.time+dataType.seconds},
+   ["focusIndex"]              = {1, dataType.integer},
+   ["moveLeft"]                = {1, dataType.integer},
+   ["moveRight"]               = {1, dataType.integer},
+   ["moveUp"]                  = {1, dataType.integer},
+   ["moveDown"]                = {1, dataType.integer},
+   ["top"]                     = {1, dataType.percent + dataType.pixel},
+   ["bottom"]                  = {1, dataType.percent + dataType.pixel},
+   ["left"]                    = {1, dataType.percent + dataType.pixel},
+   ["right"]                   = {1, dataType.percent + dataType.pixel},
+   ["width"]                   = {1, dataType.percent + dataType.pixel},
+   ["height"]                  = {1, dataType.percent + dataType.pixel},
+   ["location"]                = {2, dataType.percent + dataType.pixel},
+   ["size"]                    = {2, dataType.percent + dataType.pixel},
+   ["bounds"]                  = {4, dataType.percent + dataType.pixel},
+   ["background"]              = {1, dataType.color},
+   ["rgbChromaKey"]            = {1, dataType.color + dataType.rgb},
+   ["visible"]                 = {1, dataType.boolean},
+   ["transparency"]            = {1, dataType.percent},
+   ["zIndex"]                  = {1, dataType.integer},
+   ["focusBorderColor"]        = {1, dataType.color},
+   ["selBorderColor"]          = {1, dataType.color},
+   ["focusBorderWidth"]        = {1, dataType.integer},
+   ["focusBorderTransparency"] = {1, dataType.percent},
+   ["freeze"]                  = {1, dataType.boolean1},
+   ["coords"]                  = {4, dataType.percent+dataType.pixel},
+   ["begin"]                   = {1, dataType.time+dataType.seconds},
+   ["end"]                     = {1, dataType.time+dataType.seconds},
+   ["beginText"]               = {1, dataType.string},
+   ["endText"]                 = {1, dataType.string},
+   ["beginPosition"]           = {1, dataType.integer},
+   ["endPosition"]             = {1, dataType.integer},
+   --["first"] = 
+   --["last"] = 
+   ["label"]                   = {1, dataType.string},
+   ["clip"]                    = {1, dataType.string},
 }

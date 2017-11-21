@@ -5,9 +5,8 @@ sNCL Elements
    :numbered:
 
    media-element
+   link-element
    context-element
-   area-element
    region-element
    switch-element
-   link-element
    macro-element

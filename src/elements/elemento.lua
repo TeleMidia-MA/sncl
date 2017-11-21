@@ -45,12 +45,59 @@ function Elemento:setRefer(component, interface)
       interface = interface
    }
 end
---Add
+
 function Elemento:addFilho(filho)
    if self.tipo ~= "descriptor" then
       table.insert(self.filhos, filho)
    end
 end
+
+function Elemento:parsePropriedade(str)
+   local name, value = utils.separateSymbol(str)
+
+   if not (name and value) then
+      utils.printErro("Error parsing", self.linha)
+      return
+   end
+   if not propertiesValues[name] then
+      utils.printErro("Invalid property "..name, linhaParser)
+      return
+   end
+
+   -- Tem propriedade que pode ter mais de 1 valor
+   local values = {}
+   for w in value:gmatch("([^,]*)") do
+      w:gsub("%s+", "")
+      table.insert(values, w)
+   end
+
+   if #values ~= propertiesValues[name][1] then
+      utils.printErro("Wrong quantity of arguments", linhaParser)
+      return
+   end
+
+   if #values > 1 then
+      for i=1, #values do
+         if not lpegMatch(propertiesValues[name][2], values[i]) then
+            utils.printErro("Invalid value in property "..name, linhaParser)
+            return
+         end
+      end
+      self:addPropriedade(name, "\""..value.."\"")
+   else
+      -- Checar se o valor ta certo sintaticamente
+      if not lpegMatch(propertiesValues[name][2], values[1]) then
+         utils.printErro("Invalid value in property "..name, linhaParser)
+         return
+      end
+      if values[1]:match('".-"') then -- Se o valor tem aspas
+         self:addPropriedade(name, values[1])
+      else
+         self:addPropriedade(name, "\""..values[1].."\"")
+      end
+   end
+end
+
 function Elemento:addPropriedade(nome, valor)
    if self.tipo == "media" then
       if nome == "src" then
@@ -63,21 +110,10 @@ function Elemento:addPropriedade(nome, valor)
          self.region = valor
          return
       end
-   -- Checar se o atributo de area é valido
-   elseif self.tipo == "area" then
-      for _, val in pairs(self.areaAttributes) do
-         if val == nome then
-            self.propriedades[nome] = valor
-            return
-         end
-      end
-      utils.printErro("Invalid property "..nome, self.linha)
-      return
    end
    self.propriedades[nome] = valor
 end
 
---Get
 function Elemento:getFilho(filho)
    for _, val in pairs(self.filhos) do
       if val.tipo ~= "link" then
@@ -112,20 +148,20 @@ end
 
 function Elemento:check()
    if not self.temEnd then --Check se elemento tem end
-      utils.printErro("Elemento "..self.id.." has no end.", self.linha)
-   end
+   utils.printErro("Elemento "..self.id.." has no end.", self.linha)
+end
 
-   -- Se for media, tem que ter source, type ou refer
-   if self.tipo == "media" then
-      if self.src==nil and self._type==nil and self.refer==nil then
-         utils.printErro("Media "..self.id.." must have a type, source or refer", self.linha)
-      end
+-- Se for media, tem que ter source, type ou refer
+if self.tipo == "media" then
+   if self.src==nil and self._type==nil and self.refer==nil then
+      utils.printErro("Media "..self.id.." must have a type, source or refer", self.linha)
    end
-   self:criarDescritor()
-   self:criarPort()
-   for _, val in pairs(self.filhos) do
-      val:check()
-   end
+end
+self:criarDescritor()
+self:criarPort()
+for _, val in pairs(self.filhos) do
+   val:check()
+end
 end
 
 function Elemento:toNCL(indent)
@@ -197,46 +233,18 @@ end
 
 function Elemento:criarDescritor()
    if self.region then
-      if tabelaSimbolos.regions[self.region] == nil then
-         utils.printErro("Region "..self.region.." não declarada.", self.linha)
+      if tabelaSimbolos.regions[self.region:gsub("\"", "")] == nil then
+         utils.printErro("Region "..self.region.." not declared", self.linha)
       end
-      local id = self.region.."Desc"
+      local id = self.region:gsub("\"", "").."Desc"
       self.descritor = id
       local newDesc = elemento.novo("descriptor", 0)
       utils.newElement(id, newDesc)
-      newDesc:addPropriedade("region", "\""..self.region.."\"")
+      newDesc:addPropriedade("region", self.region)
       newDesc.temEnd = true
    end
 end
 
-function Elemento:parseProperty(str)
-   local name, value = utils.separateSymbol(str)
 
-   if name and value then
-      if utils.isMacroSon(self) then
-         local macro = utils.isMacroSon(self)
-         if not value:match('".-"') then
-            if not macro.params[value] and name~="rg" then
-               utils.printErro("Value of property "..name.." in "..self.tipo.." invalid.")
-               return
-            end
-         end
-      else
-         if not value:match('".-"') then
-            if name ~= "rg" and name ~= "default" then
-               utils.printErro("Value of property "..name.." in "..self.tipo.." invalid.")
-               return
-            end
-         end
-      end
-      self:addPropriedade(name, value)
-   else
-   end
-end
-
-Elemento.areaAttributes = { --TODO: Tirar isso daqui, fazer global?
-   "coords", "begin", "end", "text", "position", "first",
-   "last", "label"
-}
 
 return elemento
