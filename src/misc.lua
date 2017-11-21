@@ -70,7 +70,7 @@ function utilsTable.isMacroSon(element)
          element = element.pai
       end
    end
-   return false
+   return nil
 end
 
 function utilsTable.newElement (str, element)
