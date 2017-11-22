@@ -235,6 +235,7 @@ propertiesValues = {
    ["focusBorderWidth"]        = {1, dataType.integer},
    ["focusBorderTransparency"] = {1, dataType.percent},
    ["freeze"]                  = {1, dataType.boolean1},
+   -- TODO: Separate area properties
    ["coords"]                  = {4, dataType.percent+dataType.pixel},
    ["begin"]                   = {1, dataType.time+dataType.seconds},
    ["end"]                     = {1, dataType.time+dataType.seconds},
