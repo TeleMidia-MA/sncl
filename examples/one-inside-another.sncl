@@ -1,0 +1,23 @@
+
+region rgFullScreen
+   width: 100%
+   height: 100%
+   region rgMidScreen
+      width: 50%
+      height: 50%
+      bottom: 25%
+      right: 25%
+   end
+end
+
+port media media1
+   rg: rgFullScreen
+   src: "medias/image1.jpg"
+   zIndex: 1
+end
+
+port media media2
+   rg: rgMidScreen
+   src: "medias/image2.jpg"
+   zIndex: 2
+end
