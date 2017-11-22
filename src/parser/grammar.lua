@@ -46,7 +46,8 @@ gramaticaSncl = {
       local newRegion = Elemento.novo("region", linhaParser)
       utils.newElement(str, newRegion)
    end,
-   Region = (V"RegionId" *(V"Comentario"+V"Region"+V"Property"+V"MacroRefer")^0
+   Region = (V"RegionId"
+   * (V"Comentario"+V"MacroCall"+V"Region"+V"Property")^0
    * V"End"^-1),
 
    ------ SWITCH ------
@@ -57,9 +58,8 @@ gramaticaSncl = {
       local newContext = Elemento.novo("context", linhaParser)
       utils.newElement(str, newContext)
    end,
-
    Context = (V"ContextId"
-   *(V"Comentario"+V"MacroRefer"+V"Property"+ V"Media"+V"Context"+V"Link"+V"Refer")^0
+   *(V"Comentario"+V"MacroCall"+V"Property"+ V"Media"+V"Context"+V"Link"+V"Refer")^0
    * V"End"^-1),
 
    ------ MEDIA ------
@@ -68,7 +68,8 @@ gramaticaSncl = {
       local newMedia = Elemento.novo("media", linhaParser)
       utils.newElement(str, newMedia)
    end,
-   Media = (V"MediaId" *(V"Comentario"+V"MacroRefer"+V"Area"+V"Refer"+V"Property")^0
+   Media = (V"MediaId"
+   * (V"Comentario"+V"MacroCall"+V"Area"+V"Refer"+V"Property")^0
    * V"End"^-1),
 
    ------ AREA ------
@@ -77,11 +78,13 @@ gramaticaSncl = {
       local newArea = Elemento.novo("area", linhaParser)
       utils.newElement(str, newArea)
    end,
-   Area = (V"AreaId" *(V"Comentario"+V"Property")^0* V"End"^-1),
+   Area = (V"AreaId"
+   * (V"Comentario"+V"Property")^0
+   * V"End"^-1),
 
    ------ MACRO ------
-   MacroParams2 = (V"ParamCharacters"^1*P" "^0* (P","*P" "^0*V"ParamCharacters"^1*P" "^0)^0), --Parametros recebidos
-   MacroRefer = (P"*" * V"AlphaNumericSymbols"^1 *P" "^0*P"("*P" "^0*V"MacroParams2"^-1*P" "^0*P")" *SPC^0)
+   MacroCallParams = (V"ParamCharacters"^1*P" "^0* (P","*P" "^0*V"ParamCharacters"^1*P" "^0)^0), --Parametros recebidos
+   MacroCall = (V"AlphaNumericSymbols"^1 *P" "^0*P"("*P" "^0*V"MacroCallParams"^-1*P" "^0*P")" *SPC^0)
    /function(str)
       parseMacroChamada(str)
    end,
@@ -100,7 +103,7 @@ gramaticaSncl = {
          tabelaSimbolos[id] = newMacro
          tabelaSimbolos.macros[id] = tabelaSimbolos[id]
          if currentElement ~= nil then
-            utils.printErro("Macro can not be declared inside of another element", linhaParser)
+            utils.printErro("Macro can not be declared inside of "..currentElement.tipo, linhaParser)
             return
          else
             currentElement = newMacro
@@ -111,10 +114,14 @@ gramaticaSncl = {
       end
       insideMacro = true
    end,
-   Macro = (V"MacroId" *(V"Comentario"+V"MacroRefer"+V"Property"+V"Media"+V"Area"+V"Context"+V"Link"+V"Region")^0* V"End"^-1),
+   Macro = (V"MacroId" 
+   * (V"Comentario"+V"MacroCall"+V"Property"+V"Media"+V"Area"+V"Context"+V"Link"+V"Region")^0
+   * V"End"^-1),
 
    ------ LINK ------
-   Link = (V"Condition" *SPC^0* (V"Comentario"+V"Property"+V"Action")^0 *V"End"^-1),
+   Link = (V"Condition" 
+   * SPC^0* (V"Comentario"+V"Property"+V"Action")^0 
+   * V"End"^0),
 
    ------ CONDITION ------
    Condition = (V"ConditionParse")
@@ -133,14 +140,15 @@ gramaticaSncl = {
    /function(str)
       parseLinkActionParam(str)
    end,
-   Action = ( V"ActionMedia"*(V"Comentario"+V"Property")^0 *V"End"^-1),
+   Action = ( V"ActionMedia"
+   * (V"Comentario"+V"Property")^0
+   * V"End"^-1),
    ------ MISC ------
    Port = (P"port" *P" "^1),
    Property= (V"AlphaNumericSymbols"^1 *P" "^0* P":" *P" "^0* (V"String"+(t.alnum+V"Symbols"+P" "+P":")^1) *SPC^0)
    /function(str)
       str = str:gsub("%s+", "")
       if currentElement ~= nil then
-         --print(currentElement.tipo)
          currentElement:parsePropriedade(str)
       else
          utils.printErro("Property"..str.." declared in invalid context", linhaParser)
@@ -154,7 +162,7 @@ gramaticaSncl = {
    Comentario = (P"--"*P" "^0* (t.alnum+t.punct+t.xdigit+P"¨"+P"´"+P" ")^0 *SPC^0),
 
    -- START --
-   INICIAL = SPC^0 * (V"Comentario"+V"Macro"+V"MacroRefer"+V"Region"+V"Media"+V"Context"+V"Link")^0,
+   INICIAL = SPC^0 * (V"Comentario"+V"Macro"+V"MacroCall"+V"Region"+V"Media"+V"Context"+V"Link")^0,
 }
 
 keywordTable = {

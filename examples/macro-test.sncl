@@ -1,4 +1,3 @@
-port pBody media2
 
 macro makeMedia(name)
    media name
@@ -7,10 +6,26 @@ macro makeMedia(name)
 end
 
 macro makeMedia2(mName, mType)
-   media mName
-      type: mType
+   context c1
+      right: 12px
+      media mName
+         type: mType
+         left: 50%
+         src: "meidas/imaherpjg"
+      end
+      left: 50%
    end
 end
 
-*makeMedia("media1")
-*makeMedia2("media2", "text/html")
+-- asdasdsd
+makeMedia("media1")
+makeMedia2("media2", "text/html")
+
+macro propriedades()
+   macro propriedade()
+   end
+end
+
+context c2
+   propriedades()
+end

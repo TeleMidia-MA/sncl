@@ -1,4 +1,4 @@
-port context c1
+context c1
    port media media1
       src: "medias/image1.jpg"
    end

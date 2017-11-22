@@ -54,6 +54,7 @@ end
 
 function Elemento:parsePropriedade(str)
    local name, value = utils.separateSymbol(str)
+   local macroFather = utils.isMacroSon(self)
 
    if not (name and value) then
       utils.printErro("Error parsing", self.linha)
@@ -65,11 +66,23 @@ function Elemento:parsePropriedade(str)
    end
 
    -- Tem propriedade que pode ter mais de 1 valor
+   -- Se tiver mais de 1 valor, não pode ser argumento de macro
    local values = {}
    for w in value:gmatch("([^,]*)") do
       w:gsub("%s+", "")
       table.insert(values, w)
    end
+
+   if macroFather then
+      if macroFather.params[value] then -- Se o valor eh um param
+         self:addPropriedade(name, value)
+         return
+      end
+   end
+
+   -- Se for filho de macro, mas o valor não eh um param
+   -- Se não for filho de macro
+   -- continuar
 
    if #values ~= propertiesValues[name][1] then
       utils.printErro("Wrong quantity of arguments", linhaParser)
