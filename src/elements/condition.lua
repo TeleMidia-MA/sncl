@@ -90,7 +90,7 @@ end
 function Condition:toNCL (indent)
    local NCL = indent.."<bind role=\""..self.condition.."\" component=\""..self.component.id.."\" "
    if self.interface then
-      NCL = NCL.." interface=\""..self.interface.."\""
+      NCL = NCL.." interface=\""..self.interface.id.."\""
    end
    NCL = NCL..">"
 

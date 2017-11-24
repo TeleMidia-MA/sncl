@@ -1,23 +1,15 @@
 
-region rgFullScreen
-   width: 100%
-   height: 100%
-   region rgMidScreen
-      width: 50%
-      height: 50%
-      bottom: 25%
-      right: 25%
+port media media1
+   src: "medias/small.mp4"
+   area area1
+      begin: 02s
    end
 end
 
-port media media1
-   rg: rgFullScreen
-   src: "medias/image1.jpg"
-   zIndex: 1
+media media2
+   src: "medias/image2.jpg"
 end
 
-port media media2
-   rg: rgMidScreen
-   src: "medias/image2.jpg"
-   zIndex: 2
+onBegin media1.area1 do
+   start media2 end
 end
