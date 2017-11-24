@@ -1,8 +1,7 @@
-
-local utilsTable = {}
+local utils= {}
 local colors = require("ansicolors")
 
-function utilsTable.lerArquivo(fileLocation)
+function utils.lerArquivo(fileLocation)
    local file = io.open(fileLocation, 'r')
    if file then
       local fileContent = file:read('*a')
@@ -10,30 +9,30 @@ function utilsTable.lerArquivo(fileLocation)
          return fileContent
       end
    end
-   utilsTable.printErro("Arquivo não pode ser aberto.")
+   utils.printErro("Arquivo não pode ser aberto.")
    return nil
 end
 
-function utilsTable.escreverArquivo(arquivo, conteudo)
+function utils.escreverArquivo(arquivo, conteudo)
    arquivo = io.open(arquivo, "w")
    if arquivo then
       io.output(arquivo)
       io.write(conteudo)
       io.close(arquivo)
    else
-      utilsTable.printErro("Erro ao criar arquivo de saída.")
+      utils.printErro("Erro ao criar arquivo de saída.")
       return nil
    end
 end
 
-function utilsTable.printErro(string, linha)
+function utils.printErro(string, linha)
    linha = linha or ""
    local arquivo = arquivoEntrada or ""
    io.write(colors("%{bright}"..arquivo..":"..linha..": %{red}erro:%{reset} "..string.."\n"))
    hasError = true
 end
 
-function utilsTable.separarEspaco(string)
+function utils.separarEspaco(string)
    if string then
       local words = {}
       for w in string:gmatch("%S+") do
@@ -44,7 +43,7 @@ function utilsTable.separarEspaco(string)
    return nil
 end
 
-function utilsTable.separateSymbol(str)
+function utils.separateSymbol(str)
    local sign = str:find(":")
    if sign then
       return str:sub(1, sign-1), str:sub(sign+1)
@@ -53,7 +52,7 @@ function utilsTable.separateSymbol(str)
    end
 end
 
-function utilsTable.separarPonto(str)
+function utils.separarPonto(str)
    local dot = str:find("%.")
    if dot then
       return str:sub(1,dot-1), str:sub(dot+1)
@@ -62,7 +61,7 @@ function utilsTable.separarPonto(str)
    end
 end
 
-function utilsTable.isMacroSon(element) 
+function utils.isMacroSon(element) 
    if element then
       while element  do
          if element.tipo == "macro" then
@@ -74,7 +73,7 @@ function utilsTable.isMacroSon(element)
    return nil
 end
 
-function utilsTable.newElement (str, element)
+function utils.newElement (str, element)
    local port, id = parseId(str)
 
    element:setId(id)
@@ -99,10 +98,10 @@ function utilsTable.newElement (str, element)
    end
 end
 
-function utilsTable.checkDependenciesElements()
+function utils.checkDependenciesElements()
    for _, val in pairs(tabelaSimbolos.macros) do
       if not val.temEnd then
-         utilsTable.printErro("Macro "..val.id.." sem end.")
+         utils.printErro("Macro "..val.id.." sem end.")
          return
       end
    end
@@ -114,7 +113,7 @@ function utilsTable.checkDependenciesElements()
    end
 end
 
-function utilsTable.genNCL()
+function utils.genNCL()
    local indent = "\n   "
    local NCL = [[<?xml version="1.0" encoding="ISO-8859-1"?>
    <ncl id="main" xmlns="http://www.ncl.org.br/NCL3.0/EDTVProfile">]]
@@ -185,6 +184,6 @@ function utilsTable.genNCL()
    return NCL
 end
 
-return utilsTable
+return utils
 
 
