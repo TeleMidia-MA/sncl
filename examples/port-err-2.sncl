@@ -1,6 +1,0 @@
--- Port deve apontar pra elemento valido
-port pBody media2
-
-media media1
-   src: "medias/image1.jpg"
-end

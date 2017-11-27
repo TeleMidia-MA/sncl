@@ -1,9 +1,7 @@
 region region1
    -- Comentario dentro de region
-   top: "10%"
-   bottom: "10%"
-   left: "10%"
-   right: "10%"
+   top: 10% bottom: 10%
+   left: 10% right: 10%
 end
 
 macro macroMedia(mName, mType)
@@ -53,10 +51,10 @@ end
 
 onEnd media1 do
    -- Comentario dentro de link
-   delay: "10s"
+   delay: 10s
    start context1.pContext1
       --Comentario dentor de action
-      delay: "20s"
+      delay: 20s
    end
 end
 context context1
@@ -70,9 +68,9 @@ context context1
       type: "image/jpeg"
       src: "medias/image1.jpg"
    end
-   *macroMedia("context1media3", "text/html")
-   *macroLink("onEnd", "context1media1", "start", "context1media2")
-   *macroLink2()
+   macroMedia("context1media3", "text/html")
+   macroLink("onEnd", "context1media1", "start", "context1media2")
+   macroLink2()
 end
 
 

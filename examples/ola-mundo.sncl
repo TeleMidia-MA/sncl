@@ -1,5 +1,0 @@
-port pBody imagem-ola-mundo
-
-media imagem-ola-mundo
-   src: "medias/ola-mundo.jpg"
-end

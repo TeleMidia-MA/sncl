@@ -1,9 +1,0 @@
-
-port media video
-   src: "medias/small.mp4"
-end
-
-
-onEnd video do
-   start video end
-end
