@@ -11,14 +11,10 @@ function condition.new(condition, conditionParam, component, interface, linha)
       linha = linha,
       pai = nil,
       tipo = "condition",
-      propriedades = {},
    }
    setmetatable(self, {__index = Condition})
    return self
 end
-
-function Condition:getMedia() return self.component end
-function Condition:getParam() return self.conditionParam end
 
 function Condition:check()
    local componentElement = tabelaSimbolos[self.component]
@@ -42,17 +38,20 @@ function Condition:check()
    -- Se condition tem interface
    if self.interface then
       -- Se o component não tem interface, erro
-      -- TODO: Checar propriedades
-      if not self.component:getFilho(self.interface) then
+      if lpegMatch(dataType.button, self.interface) then -- Se a interface for um botão
+         self.key = self.interface
+         self.interface = nil
+      elseif not self.component:getFilho(self.interface) then -- Se a interface não existir
          utils.printErro("Invalid interface "..self.interface.." of element "..self.component.id, self.linha)
          return ""
-      else
-         self.interface = self.component:getFilho(self.interface)
-         if self.interface.port then
-            self.interface = self.interface.port.id
-         end
       end
 
+      -- So pode ter key quando for onSelection
+      if self.key then
+         if self.condition ~= "onSelection" then
+            utils.printErro("Invalid interface "..self.key..", buttons can not be an interface", self.linha)
+         end
+      end
 
       -- Se o component tem refer
       --[[
@@ -90,13 +89,13 @@ end
 function Condition:toNCL (indent)
    local NCL = indent.."<bind role=\""..self.condition.."\" component=\""..self.component.id.."\" "
    if self.interface then
-      NCL = NCL.." interface=\""..self.interface.id.."\""
+      NCL = NCL.." interface=\""..self.interface.."\""
    end
    NCL = NCL..">"
 
    if self.conditionParam then
       if self.condition == "onSelection" then
-         NCL = NCL..indent.."   <bindParam name=\"keyCode\" value=\""..self.conditionParam.."\"/>"
+         NCL = NCL..indent.."   <bindParam name=\"vKey\" value=\""..self.key.."\"/>"
       else
          NCL = NCL..indent.."   <bindParam name=\"conditionVar\" value=\""..self.conditionParam.."\"/>"
       end

@@ -141,6 +141,24 @@ function parseLinkActionParam(str)
    currentElement:addParam(paramName, paramValue)
 end
 
+function parsePort(str)
+   local words = {}
+
+   for word in str:gmatch("%S+") do
+      table.insert(words, word)
+   end
+
+   local id = words[2]
+   local media, interface = utils.separarPonto(words[3])
+
+   local newPort = Port.novo(media, interface, currentElement, linhaParser-1)
+   newPort:setId(id)
+
+   if currentElement then
+      currentElement:addFilho(newPort)
+   end
+end
+
 function parseIdMacro(str)
    local paramString = string.match(str,"%(.*%)")
    local port, id = parseId(str:gsub("%(.*%)", ""))
@@ -175,9 +193,11 @@ function parseMacroChamada (str)
    end
 
    local paramsTable = {}
-   for w in string.gmatch(paramString, '".-"') do
+   for w in paramString:gmatch('".-"') do
+      w = w:gsub("\"", "")
       table.insert(paramsTable, w)
    end
+
    local macro = tabelaSimbolos.macros[idMacro]
 
    if (#paramsTable ~= macro.quantParams) then
@@ -203,9 +223,9 @@ end
 
 function parseMacroSon(macro, son, paramsTable)
    local newElement
-      local father = currentElement
-      if son.tipo == 'link' then
-         newElement = Link.new()
+   local father = currentElement
+   if son.tipo == 'link' then
+      newElement = Link.new()
 
       for _, condition in pairs(son.conditions) do --Copiar condicoes
          -- Check if condition and component are parameters
@@ -234,7 +254,7 @@ function parseMacroSon(macro, son, paramsTable)
          local newAction = Action.new(act, component)
          for pos, val in pairs(action.propriedades) do
             local value = paramsTable[macro.params[val]]
-            newAction:addProperty(pos, "\""..value.."\"")
+            newAction:addPropriedade(pos, "\""..value.."\"")
          end
          newAction.temEnd = true
          newElement:addAction(newAction)
@@ -317,10 +337,11 @@ end
 
 function lpegMatch(regex, string)
    if lpeg.match(regex, string) then
-      if lpeg.match(regex, string) == #string+1 then
+   --   if lpeg.match(regex, string) == #string+1 then
          return true
-      end
+   --   end
    else
       return false
    end
+   return false
 end

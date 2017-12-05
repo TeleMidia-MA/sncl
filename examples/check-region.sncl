@@ -1,0 +1,14 @@
+region r1
+   left: 20px
+end
+
+media m1
+   type: "text/html"
+   rg: r1
+end
+
+media m2
+   type: "text/html"
+   left: 50%
+   rg: r1
+end

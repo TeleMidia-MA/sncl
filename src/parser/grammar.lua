@@ -8,20 +8,36 @@ local SPC = V"Espacos"
 gramaticaSncl = {
    "INICIAL";
 
-   ------ Bases ------
+   ------ MISC ------
    Espacos = t.space
    /function(str)
       if str == "\n" then
          linhaParser = linhaParser+1
       end
    end,
-   Symbols = (P"@"+P"_"+P"/"+P"."+P"%"+P","+P"-"),
-   AlphaNumericSymbols = (t.alnum+V"Symbols"+P"."),
-   AlphaNumericSpace = (t.alnum+SPC)^1,
-   AlphaNumericSymbolsSpace = (t.alnum+V"Symbols"+P" ")^1,
-   ParamCharacters = (t.alnum+P"\""+P"%"+P"/"+P"."+P"-"),
-   Id = (t.alnum+P"_"+P"-"),
-   String = (P"\""*V"AlphaNumericSymbolsSpace"^-1*P"\""),
+   Symbols = (P"@"+P"_"+P"/"+P"."+P"%"+P"-"),
+   Id = (t.alnum+P"_"+P"-")^1,
+   String = (P"\""*(t.alnum+P" "+P"/"+P".")^0*P"\""),
+
+   PropertyName = (t.alnum+P"_"+P"-")^1,
+   PropertyValue = (V"String" + (t.alnum+P":"+P"_"+P"-"+P"."+P"/"+P"%")^1 ),
+
+   Property = (V"PropertyName" *P" "^0* P":" *P" "^0* V"PropertyValue" *SPC^0)
+   /function(str)
+      str = str:gsub("%s+", "")
+      if currentElement ~= nil then
+         currentElement:parsePropriedade(str)
+      else
+         utils.printErro("Property"..str.." declared in invalid context", linhaParser)
+      end
+   end,
+
+   Refer = (P"refer" *P" "^0* P":" *P" "^0* t.alnum^1 *SPC^0)
+   /function(str)
+      str = str:gsub("%s+", "")
+      parseRefer(str)
+   end,
+   Comentario = (P"--"*P" "^0* (t.alnum+t.punct+t.xdigit+P"¨"+P"´"+P" ")^0 *SPC^0),
 
    End = (P"end" * SPC^0)
    /function()
@@ -40,8 +56,14 @@ gramaticaSncl = {
       end
    end,
 
+   ------ PORT ------
+   Port = (P"port" *P" "^1* V"Id" *P" "^1* (V"Symbols"+t.alnum)^1 *SPC^0)
+   /function(str)
+      parsePort(str)
+   end,
+
    ------ REGION ------
-   RegionId = (P"region" *P" "^1 *V"Id"^1 *SPC^0)
+   RegionId = (P"region" *P" "^1 *V"Id" *SPC^0)
    /function(str)
       local newRegion = Elemento.novo("region", linhaParser)
       utils.newElement(str, newRegion)
@@ -53,27 +75,27 @@ gramaticaSncl = {
    ------ SWITCH ------
 
    ------ CONTEXT ------
-   ContextId = (V"Port"^-1 * P"context"*P" "^1*V"Id"^1*SPC^0)
+   ContextId = (P"context"*P" "^1*V"Id"*SPC^0)
    /function(str)
       local newContext = Elemento.novo("context", linhaParser)
       utils.newElement(str, newContext)
    end,
    Context = (V"ContextId"
-   *(V"Comentario"+V"MacroCall"+V"Property"+ V"Media"+V"Context"+V"Link"+V"Refer")^0
+   *(V"Comentario"+V"MacroCall"+V"Port"+V"Property"+ V"Media"+V"Context"+V"Link"+V"Refer")^0
    * V"End"^-1),
 
    ------ MEDIA ------
-   MediaId = (V"Port"^-1* P"media" *P" "^1* V"Id"^1 *SPC^0)
+   MediaId = (P"media" *P" "^1* V"Id" *SPC^0)
    /function(str)
       local newMedia = Elemento.novo("media", linhaParser)
       utils.newElement(str, newMedia)
    end,
-   Media = (V"MediaId"
+   Media = V"MediaId"
    * (V"Comentario"+V"MacroCall"+V"Area"+V"Refer"+V"Property")^0
-   * V"End"^-1),
+   * V"End"^-1,
 
    ------ AREA ------
-   AreaId = (V"Port"^-1*P"area" *P" "^1* V"Id"^1 *SPC^0)
+   AreaId = P"area" *P" "^1* V"Id" *SPC^0
    /function(str)
       local newArea = Elemento.novo("area", linhaParser)
       utils.newElement(str, newArea)
@@ -83,13 +105,15 @@ gramaticaSncl = {
    * V"End"^-1),
 
    ------ MACRO ------
-   MacroCallParams = (V"ParamCharacters"^1*P" "^0* (P","*P" "^0*V"ParamCharacters"^1*P" "^0)^0), --Parametros recebidos
-   MacroCall = (V"AlphaNumericSymbols"^1 *P" "^0*P"("*P" "^0*V"MacroCallParams"^-1*P" "^0*P")" *SPC^0)
+   MacroCallParams = V"PropertyValue" *P" "^0* (P","*P" "^0*V"PropertyValue"*P" "^0)^0,
+   MacroCall = V"Id" *P" "^0*P"("*P" "^0*V"MacroCallParams"^-1*P" "^0*P")" *SPC^0
    /function(str)
       parseMacroChamada(str)
    end,
-   MacroParams = (t.alnum^1*P" "^0* (P","*P" "^0*V"ParamCharacters"^1*P" "^0)^0), -- Parametros passados
-   MacroId = (P"macro" *P" "^1* V"Id"^1 *P" "^0*P"("*P" "^0*V"MacroParams"^-1*P" "^0*P")" *SPC^0)
+
+   MacroParams = V"PropertyName"*P" "^0* (P","*P" "^0*V"PropertyName"*P" "^0)^0,
+
+   MacroId = P"macro" *P" "^1* V"Id" *P" "^0*P"("*P" "^0*V"MacroParams"^-1*P" "^0*P")" *SPC^0
    /function(str)
       local id, params, quant = parseIdMacro(str)
       if id == nil then
@@ -114,13 +138,13 @@ gramaticaSncl = {
       end
       insideMacro = true
    end,
-   Macro = (V"MacroId" 
+   Macro = (V"MacroId"
    * (V"Comentario"+V"MacroCall"+V"Property"+V"Media"+V"Area"+V"Context"+V"Link"+V"Region")^0
    * V"End"^-1),
 
    ------ LINK ------
-   Link = (V"Condition" 
-   * SPC^0* (V"Comentario"+V"Property"+V"Action")^0 
+   Link = (V"Condition"
+   * SPC^0* (V"Comentario"+V"Property"+V"Action")^0
    * V"End"^0),
 
    ------ CONDITION ------
@@ -128,11 +152,11 @@ gramaticaSncl = {
    /function(str)
       parseLinkCondition(str)
    end,
-   ConditionParse = (V"AlphaNumericSymbols"^1 *P" "^1* V"AlphaNumericSymbols"^1* P" "^0 *V"CondTerm"*P" "^0),
+   ConditionParse = ((t.alnum+V"Symbols")^1 *P" "^1* (V"Id"*(P"."*V"Id")^-1) *P" "^0* V"CondTerm"*P" "^0),
    CondTerm = ((P"and" *P" "^1* V"ConditionParse") + (P"do")),
 
    ------ ACTION ------
-   ActionMedia = (t.alnum^1 *P" "^1* V"AlphaNumericSymbols"^1 *SPC^1)
+   ActionMedia = (t.alnum^1 *P" "^1* (t.alnum+V"Symbols")^1 *SPC^1)
    /function(str)
       parseLinkAction(str)
    end,
@@ -143,26 +167,9 @@ gramaticaSncl = {
    Action = ( V"ActionMedia"
    * (V"Comentario"+V"Property")^0
    * V"End"^-1),
-   ------ MISC ------
-   Port = (P"port" *P" "^1),
-   Property= (V"AlphaNumericSymbols"^1 *P" "^0* P":" *P" "^0* (V"String"+(t.alnum+V"Symbols"+P" "+P":")^1) *SPC^0)
-   /function(str)
-      str = str:gsub("%s+", "")
-      if currentElement ~= nil then
-         currentElement:parsePropriedade(str)
-      else
-         utils.printErro("Property"..str.." declared in invalid context", linhaParser)
-      end
-   end,
-   Refer = (P"refer" *P" "^0* P":" *P" "^0* t.alnum^1 *SPC^0)
-   /function(str)
-      str = str:gsub("%s+", "")
-      parseRefer(str)
-   end,
-   Comentario = (P"--"*P" "^0* (t.alnum+t.punct+t.xdigit+P"¨"+P"´"+P" ")^0 *SPC^0),
-
+   --
    -- START --
-   INICIAL = SPC^0 * (V"Comentario"+V"Macro"+V"MacroCall"+V"Region"+V"Media"+V"Context"+V"Link")^0,
+   INICIAL = SPC^0 * (V"Comentario"+V"Macro"+V"MacroCall"+V"Port"+V"Region"+V"Media"+V"Context"+V"Link")^0,
 }
 
 keywordTable = {
@@ -186,12 +193,20 @@ keywordTable = {
 -- TODO: Add check for Id
 
 dataType = {
-   -- TODO:Add Second's
    time = ( ((R"01"*R"09")+(P"2"*R"03"))*P":"*(R"05"*R"09")*P":"*(R"05"*R"09")*(P"."*R"09"^1)^-1*(P"."*R"09"^1)^-1 ),
-   percent = ((P"100"*(P"."*P"0"^1)^-1*P"%") + (R"09"*R"09"^-1*(P"."*R"09"^1)^-1*P"%")),
-   seconds = (R"09"*R"09"*P"s"),
+   percent = ((P"100"*(P"."*P"0"^1)^-1*P"%") + (R"09"*R"09"^-1*(P"."*R"09"^1)^-1*P"%")), seconds = (R"09"*R"09"*P"s"), 
    pixel = ((R"09"^1*P"px"^-1) ),
    integer = (t.digit^1),
+   button = (P"0"+P"1"+P"2"+P"3"+P"4"+P"5"+P"6"+P"7"+P"8"+P"9"+
+   P"A"+P"B"+P"C"+P"D"+P"E"+P"F"+P"G"+P"H"+P"I"+
+   P"J"+P"K"+P"L"+P"M"+P"N"+P"O"+P"P"+P"Q"+P"R"+
+   P"S"+P"T"+P"U"+P"V"+P"W"+P"X"+P"Y"+P"Z"+P"#"+
+   P"MENU"+P"INFO"+P"GUIDE"+
+   P"CURSOR_DOWN"+P"CURSOR_LEFT"+P"CURSOR_RIGHT"+P"CURSOR_UP"+
+   P"CHANNEL_DOWN"+P"CHANNEL_UP"+P"CHANNEL_LEFT"+P"CHANNEL_RIGHT"+
+   P"VOLUME_DOWN"+P"VOLUME_UP"+P"VOLUME_LEFT"+P"VOLUME_RIGHT"+
+   P"RED"+P"GREEN"+P"YELLOW"+P"BLUE"+
+   P"BACK"+P"EXIT"+P"POWER"+P"REWIND"+P"STOP"+P"EJECT"+P"PLAY"+P"RECORD"+P"PAUSE"+P"ENTER"),
    color = (P"\""*(P"white"+P"black"+P"silver"+P"gray"+P"red"+P"maroon"+P"fuchsia"+
       P"purple"+P"lime"+P"green"+P"yellow"+P"olive"+P"blue"+P"navy"+P"aqua"+
       P"transparent")*P"\""),
@@ -200,10 +215,14 @@ dataType = {
    string = (P"\"" *(t.alnum+P"@"+P"_"+P"/"+P"."+P"%"+P","+P"-"+P" ")^1* P"\""),
    mime = (P"\""*t.alpha^1*P"/"*t.alpha^1*P"\""),
    rgb = (""),-- #XXXXXX
+   actionProperties = (P"delay"+P"value"+P"repeat"+P"repeatDelay"+P"duration"+P"by"),
+   conditionProperties = (P"delay"+P"transition"+P"key"),
 }
 
+-- TODO: Add transition properties
+
 propertiesValues = {
-   --[[ 
+   --[[
    ["style"]       = nil,
    ["playerLife"]  = nil,
    ["deviceClass"] = nil,
@@ -251,8 +270,8 @@ propertiesValues = {
    ["endText"]                 = {1, dataType.string},
    ["beginPosition"]           = {1, dataType.integer},
    ["endPosition"]             = {1, dataType.integer},
-   --["first"] = 
-   --["last"] = 
+   --["first"] =
+   --["last"] =
    ["label"]                   = {1, dataType.string},
    ["clip"]                    = {1, dataType.string},
 }

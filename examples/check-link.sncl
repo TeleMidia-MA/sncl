@@ -1,0 +1,49 @@
+media media1
+   type: "text/html"
+end
+media media2
+   type: "text/html"
+end
+
+-- Simple Link
+onBegin media1 do
+   start media2 end
+end
+
+-- Multiple Conditions
+onBegin media1 and onBegin media2 and onEnd media1 do
+   start media2 end
+end
+
+-- Multiple Actions
+onBegin media1 do
+   start media2 end
+   start media2 end
+end
+
+-- Property in Condition
+onBegin media1 and onBegin media2 do
+   start media1 end
+   start media2 end
+end
+
+-- Property in Action
+onBegin media1 and onBegin media2 do
+   start media1
+      delay: 20s
+      repeat: 10
+   end
+   start media2
+      delay: 20s
+   end
+   set media2.left
+      value: 50%
+   end
+end
+
+-- Check Button
+onSelection media1 do
+   start media2 end
+end
+
+-- Check Variables (Get and Set)

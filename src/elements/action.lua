@@ -21,6 +21,7 @@ end
 function Action:getAction() return self.action end
 
 function Action:addPropriedade (name, value)
+   value = value:gsub("\"", "") -- Remover aspas
    self.propriedades[name] = value
 end
 
@@ -43,17 +44,19 @@ function Action:check()
       return ""
    end
 
+   for pos,_ in pairs(self.propriedades) do
+      if not lpegMatch(dataType.actionProperties, pos) then
+         utils.printErro("Invalid property "..pos.." in Action")
+         return ""
+      end
+   end
+
    --Se a action tem interface
    if self.interface then
       -- Se o component não tem interface, erro
-      if not self.component:getFilho(self.interface) then
+      if not (self.component:getFilho(self.interface) or propertiesValues[self.interface]) then
          utils.printErro("Invalid interface "..self.interface.." of element "..self.component.id, self.linha)
          return ""
-      else
-         self.interface = self.component:getFilho(self.interface)
-         if self.interface.port then
-            self.interface = self.interface.port.id
-         end
       end
 
       -- Se o component tem refer, chechar se o refer pode ser uma interface
@@ -96,19 +99,18 @@ function Action:toNCL(indent)
    NCL = NCL..">"
 
    for pos, val in pairs(self.propriedades) do
-      NCL = NCL..indent.."   <bindParam name=\""..pos.."\" value="..val.."/>"
+      NCL = NCL..indent.."   <bindParam name=\""..pos.."\" value=\""..val.."\"/>"
    end
 
    NCL = NCL..indent.."</bind>"
    return NCL
 end
 
-function Action:parseProperty(str)
+function Action:parsePropriedade(str)
    local name, value = utils.separateSymbol(str)
 
    if name and value then
       self.propriedades[name] = value
-   else
    end
 end
 
