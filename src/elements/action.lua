@@ -39,11 +39,13 @@ function Action:check()
       return ""
    end
 
+   -- Component can not be a region
    if self.component.tipo == "region" then
       utils.printErro("Element "..self.component.id.." invalid in this context", self.linha)
       return ""
    end
 
+   -- Check if is a valid action property
    for pos,_ in pairs(self.propriedades) do
       if not lpegMatch(dataType.actionProperties, pos) then
          utils.printErro("Invalid property "..pos.." in Action")
@@ -54,7 +56,7 @@ function Action:check()
    --Se a action tem interface
    if self.interface then
       -- Se o component não tem interface, erro
-      if not (self.component:getFilho(self.interface) or propertiesValues[self.interface]) then
+      if not (self.component:getFilho(self.interface) or self.component:getPropriedade(self.interface)) then
          utils.printErro("Invalid interface "..self.interface.." of element "..self.component.id, self.linha)
          return ""
       end

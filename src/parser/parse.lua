@@ -58,15 +58,14 @@ function parseLinkCondition(str)
    local condition = words[condCount]
    local media = words[mediaCount]
    while condition and media do
-      local conditionParam
-      condition, conditionParam = utils.separarPonto(condition)
+      condition = utils.separarPonto(condition)
 
       local interface
       media, interface = utils.separarPonto(media)
 
       if currentElement ~= nil then
          if currentElement.tipo == "link" then --Se for link, adicionar condicao
-            local newCondition = Condition.new(condition, conditionParam, media, interface, linhaParser)
+            local newCondition = Condition.new(condition, media, interface, linhaParser)
             newCondition.pai = currentElement
             currentElement:addCondition(newCondition)
 
@@ -75,7 +74,7 @@ function parseLinkCondition(str)
             newLink.pai = currentElement
             currentElement:addFilho(newLink)
             currentElement = newLink
-            local newCondition = Condition.new(condition, conditionParam, media, interface, linhaParser)
+            local newCondition = Condition.new(condition, media, interface, linhaParser)
             newCondition.pai = currentElement
             currentElement:addCondition(newCondition)
 
@@ -83,7 +82,7 @@ function parseLinkCondition(str)
             local newLink = Link.new()
             currentElement:addFilho(newLink)
             newLink.pai = currentElement
-            local newCondition = Condition.new(condition, conditionParam, media, interface)
+            local newCondition = Condition.new(condition, media, interface)
             newCondition.pai = newLink
             newLink:addCondition(newCondition)
             currentElement = newLink
@@ -98,7 +97,7 @@ function parseLinkCondition(str)
          currentElement = newLink
          table.insert(tabelaSimbolos.body, newLink)
 
-         local newCondition = Condition.new(condition, conditionParam, media, interface, linhaParser)
+         local newCondition = Condition.new(condition, media, interface, linhaParser)
          newCondition.pai = currentElement
          currentElement:addCondition(newCondition)
 

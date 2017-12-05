@@ -2,13 +2,13 @@ local utils = require("utils")
 local condition = {}
 local Condition = {}
 
-function condition.new(condition, conditionParam, component, interface, linha)
+function condition.new(condition, component, interface, linha)
    local self = {
       condition = condition,
-      conditionParam = conditionParam,
       component = component,
       interface = interface,
       linha = linha,
+      propriedades = {},
       pai = nil,
       tipo = "condition",
    }
@@ -39,7 +39,7 @@ function Condition:check()
    if self.interface then
       -- Se o component não tem interface, erro
       if lpegMatch(dataType.button, self.interface) then -- Se a interface for um botão
-         self.key = self.interface
+         self.propriedades["key"] = self.interface
          self.interface = nil
       elseif not self.component:getFilho(self.interface) then -- Se a interface não existir
          utils.printErro("Invalid interface "..self.interface.." of element "..self.component.id, self.linha)
@@ -47,7 +47,7 @@ function Condition:check()
       end
 
       -- So pode ter key quando for onSelection
-      if self.key then
+      if self.propriedades.key then
          if self.condition ~= "onSelection" then
             utils.printErro("Invalid interface "..self.key..", buttons can not be an interface", self.linha)
          end
@@ -93,12 +93,8 @@ function Condition:toNCL (indent)
    end
    NCL = NCL..">"
 
-   if self.conditionParam then
-      if self.condition == "onSelection" then
-         NCL = NCL..indent.."   <bindParam name=\"vKey\" value=\""..self.key.."\"/>"
-      else
-         NCL = NCL..indent.."   <bindParam name=\"conditionVar\" value=\""..self.conditionParam.."\"/>"
-      end
+   for pos, val in pairs(self.propriedades) do
+      NCL = NCL..indent.."   <bindParam name=\""..pos.."\" value=\""..val.."\"/>"
    end
 
    NCL = NCL..indent.."</bind>"

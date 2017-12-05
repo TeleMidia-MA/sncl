@@ -196,7 +196,7 @@ function Elemento:toNCL(indent)
 
    if self.tipo == "area" or self.tipo == "region" or self.tipo == "descriptor" then
       for pos, val in pairs(self.propriedades) do
-         NCL = NCL.." "..pos.."="..val
+         NCL = NCL.." "..pos.."=\""..val.."\""
       end
       NCL = NCL..">"
    else

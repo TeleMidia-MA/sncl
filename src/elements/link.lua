@@ -29,15 +29,32 @@ end
 
 function Link:createConnector()
    -- TODO: create connectorParam for bindParam of conditions
+
    local condId = ""
+   for _, condition in pairs(self.conditions) do
+      local cond = condition.condition
+      cond = cond:sub(1,1):upper()..cond:sub(2)
+      if not condId:find(cond) then
+         condId = condId..cond
+      else
+         condId = condId.."N"
+      end
+      for prop,_ in pairs(condition.propriedades) do
+         prop = prop:sub(1,1):upper()..prop:sub(2)
+         if not condId:find(prop) then
+            condId = condId..prop
+         end
+      end
+   end
 
    local actionId = ""
    for _, action in pairs(self.actions) do
       local act = action.action
-
-      act = act:upper()
+      act = act:sub(1,1):upper()..act:sub(2)
       if not actionId:find(act) then
          actionId = actionId..act
+      else
+         actionId = actionId.."N"
       end
       for prop, _ in pairs(action.propriedades) do
          prop = prop:sub(1,1):upper()..prop:sub(2)
@@ -45,7 +62,6 @@ function Link:createConnector()
             actionId = actionId..prop
          end
       end
-
    end
 
    connId = condId..actionId

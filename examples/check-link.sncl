@@ -1,12 +1,16 @@
 media media1
    type: "text/html"
+   area m1Area1
+      begin: 20s
+   end
 end
 media media2
    type: "text/html"
+   left: 50%
 end
 
 -- Simple Link
-onBegin media1 do
+onBegin media1.m1Area1 do
    start media2 end
 end
 
@@ -42,7 +46,8 @@ onBegin media1 and onBegin media2 do
 end
 
 -- Check Button
-onSelection media1 do
+onSelection media1.RED do
+   delay: 20s
    start media2 end
 end
 
