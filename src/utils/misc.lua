@@ -111,6 +111,10 @@ function utils.checkDependenciesElements()
          val:check()
       end
    end
+
+   for pos, val in pairs(tabelaSimbolos.connectors) do
+      val:check()
+   end
 end
 
 function utils.genNCL()

@@ -28,9 +28,6 @@ function Link:addPropriedade(nome, valor)
 end
 
 function Link:createConnector()
-   local connId = ""
-   local conditionsTable = {}
-   local actionsTable = {}
    -- TODO: create connectorParam for bindParam of conditions
    local condId = ""
 
@@ -41,28 +38,21 @@ function Link:createConnector()
       act = act:upper()
       if not actionId:find(act) then
          actionId = actionId..act
-         actionsTable[action.action] = {
-            times = 1
-         }
-      else
-         actionsTable[action.action].times = actionsTable[action.action].times+1
       end
       for prop, _ in pairs(action.propriedades) do
          prop = prop:sub(1,1):upper()..prop:sub(2)
          if not actionId:find(prop) then
-            actionsTable[action.action]
             actionId = actionId..prop
          end
       end
 
    end
-   print("ActionId:", actionId)
 
    connId = condId..actionId
    if not tabelaSimbolos.connectors[connId] then
       local newConnector = Connector.new(connId)
-      newConnector:addConditions(conditionsTable)
-      newConnector:addActions(actionsTable)
+      newConnector:addConditions(self.conditions)
+      newConnector:addActions(self.actions)
       tabelaSimbolos.connectors[connId] = newConnector
    end
    self.xconnector = connId
@@ -79,10 +69,10 @@ function Link:check()
    for _, val in pairs(self.actions) do
       val:check()
    end
+   self:createConnector()
 end
 
 function Link:toNCL(indent)
-   self:createConnector()
    local NCL = indent.."<link xconnector=\""..self.xconnector.."\">"
 
    -- Link Params
