@@ -1,0 +1,27 @@
+port pBody1 image
+port pBody2 button
+
+media image
+   src: "images/image1.jpg"
+end
+
+media button
+   src: "images/button.png"
+   width: 25%
+   height: 25%
+   focusIndex: 1
+   focusBorderWidth: 3
+end
+
+onSelection button.RED do
+   set image.visible
+      value: false
+   end
+end
+
+onSelection button.GREEN do
+   set image.visible
+      value: false
+   end
+end
+
