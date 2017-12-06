@@ -185,7 +185,7 @@ function Elemento:toNCL(indent)
       end
    end
    if self.src then
-      NCL = NCL.." src="..self.src
+      NCL = NCL.." src=\""..self.src.."\""
    end
    if self._type then
       NCL = NCL.." type=\""..self._type.."\""

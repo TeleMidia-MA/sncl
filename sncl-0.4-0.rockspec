@@ -37,8 +37,8 @@ build = {
       ["elements.link"]      = "src/elements/link.lua",
       ["elements.action"]    = "src/elements/action.lua",
       ["elements.condition"] = "src/elements/condition.lua",
-      ["elements.switch"] = "src/elements/switch.lua",
-      ["elements.rule"] = "src/elements/rule.lua",
+      ["elements.switch"]    = "src/elements/switch.lua",
+      ["elements.rule"]      = "src/elements/rule.lua",
       ["elements.elemento"]  = "src/elements/elemento.lua",
    },
    install = {

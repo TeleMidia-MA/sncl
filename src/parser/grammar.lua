@@ -17,7 +17,7 @@ gramaticaSncl = {
    end,
    Symbols = (P"@"+P"_"+P"/"+P"."+P"%"+P"-"),
    Id = (t.alnum+P"_"+P"-")^1,
-   String = (P"\""*(t.alnum+P" "+P"/"+P".")^0*P"\""),
+   String = (P"\""*(t.alnum+P" "+P"/"+P"."+P"-"+P"%")^0*P"\""),
 
    PropertyName = (t.alnum+P"_"+P"-")^1,
    PropertyValue = (V"String" + (t.alnum+P":"+P"_"+P"-"+P"."+P"/"+P"%")^1 ),
@@ -217,6 +217,7 @@ dataType = {
    rgb = (""),-- #XXXXXX
    actionProperties = (P"delay"+P"value"+P"repeat"+P"repeatDelay"+P"duration"+P"by"),
    conditionProperties = (P"delay"+P"transition"+P"key"),
+   boolean = (P"true"+P"false"),
 }
 
 -- TODO: Add transition properties
