@@ -1,0 +1,9 @@
+context c1
+   left: 50%
+   src: "texthtml"
+   context c2
+      media m1
+         type: "text/html"
+      end
+   end
+end

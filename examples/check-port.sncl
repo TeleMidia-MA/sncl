@@ -1,0 +1,37 @@
+-- Simple port
+port pBody m1
+media m1
+   src: "medias/image1.jpg"
+end
+
+
+-- Port inside of Context
+context c1
+   port pC1M1 c1m1
+   media c1m1
+      src: "medias/image1.jpg"
+   end
+end
+
+onBegin m1 do
+   start c1.pC1M1 end
+end
+
+context c2
+   port pC2M1 c2m1
+   media c2m1
+      src: "medias/image1.jpg" 
+   end
+   onBegin c2m1 do
+      start c2c1.pC2C1M1 end
+   end
+
+   context c2c1
+      port pC2C1M1 c2c1m1
+      media c2c1m1
+         src: "medias/image1.jpg"
+      end
+   end
+
+end
+

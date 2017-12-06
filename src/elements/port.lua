@@ -29,9 +29,7 @@ function Port:setId(id)
    end
 end
 
-function Port:check() end
-
-function Port:toNCL(indent)
+function Port:check() 
    if tabelaSimbolos[self.component] == nil then
       utils.printErro("No element "..self.component, self.linha)
       return ""
@@ -41,7 +39,9 @@ function Port:toNCL(indent)
       utils.printErro("Element "..self.component.." is invalid in this context", self.linha)
       return ""
    end
+end
 
+function Port:toNCL(indent)
    local NCL = indent.."<port id=\""..self.id.."\" component=\""..self.component.."\""
    if self.interface then
       if tabelaSimbolos[self.component]:getFilho(self.interface) == nil then

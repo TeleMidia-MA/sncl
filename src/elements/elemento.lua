@@ -54,7 +54,7 @@ end
 
 function Elemento:parsePropriedade(str)
    local name, value = utils.separateSymbol(str)
-   local macroFather = utils.isMacroSon(self)
+   local hasMacroFather = utils.isMacroSon(self)
 
    if not (name and value) then
       utils.printErro("Error parsing", self.linha)
@@ -73,8 +73,8 @@ function Elemento:parsePropriedade(str)
       table.insert(values, w)
    end
 
-   if macroFather then
-      if macroFather.params[value] then -- Se o valor eh um param
+   if hasMacroFather then
+      if hasMacroFather.params[value] then -- Se o valor eh um param
          self:addPropriedade(name, value)
          return
       end
@@ -96,22 +96,19 @@ function Elemento:parsePropriedade(str)
             return
          end
       end
-      self:addPropriedade(name, "\""..value.."\"")
+      self:addPropriedade(name, value)
    else
       -- Checar se o valor ta certo sintaticamente
       if not lpegMatch(propertiesValues[name][2], values[1]) then
          utils.printErro("Invalid value in property "..name, linhaParser)
          return
       end
-      if values[1]:match('".-"') then -- Se o valor tem aspas
-         self:addPropriedade(name, values[1])
-      else
-         self:addPropriedade(name, "\""..values[1].."\"")
-      end
+      self:addPropriedade(name, values[1])
    end
 end
 
 function Elemento:addPropriedade(nome, valor)
+   valor = valor:gsub("\"", "")
    if self.tipo == "media" then
       if nome == "src" then
          self.src = valor
@@ -158,23 +155,21 @@ function Elemento:filhoTemPropriedade(prop)
 end
 
 --Misc
-
 function Elemento:check()
-   if not self.temEnd then --Check se elemento tem end
-   utils.printErro("Elemento "..self.id.." has no end.", self.linha)
-end
-
--- Se for media, tem que ter source, type ou refer
-if self.tipo == "media" then
-   if self.src==nil and self._type==nil and self.refer==nil then
-      utils.printErro("Media "..self.id.." must have a type, source or refer", self.linha)
+   if not self.temEnd then
+      utils.printErro("Elemento "..self.id.." has no end.", self.linha)
    end
-end
-self:criarDescritor()
-self:criarPort()
-for _, val in pairs(self.filhos) do
-   val:check()
-end
+
+   if self.tipo == "media" then
+      if self.src==nil and self._type==nil and self.refer==nil then
+         utils.printErro("Media "..self.id.." must have a type, source or refer", self.linha)
+      end
+   end
+   self:criarDescritor()
+   self:criarPort()
+   for _, val in pairs(self.filhos) do
+      val:check()
+   end
 end
 
 function Elemento:toNCL(indent)
@@ -193,7 +188,7 @@ function Elemento:toNCL(indent)
       NCL = NCL.." src="..self.src
    end
    if self._type then
-      NCL = NCL.." type="..self._type
+      NCL = NCL.." type=\""..self._type.."\""
    end
    if self.tipo ~= "area" and self.tipo ~= "region" and self.tipo ~= "descriptor" then
       NCL = NCL..">"
@@ -201,7 +196,7 @@ function Elemento:toNCL(indent)
 
    if self.tipo == "area" or self.tipo == "region" or self.tipo == "descriptor" then
       for pos, val in pairs(self.propriedades) do
-         NCL = NCL.." "..pos.."="..val
+         NCL = NCL.." "..pos.."=\""..val.."\""
       end
       NCL = NCL..">"
    else
@@ -209,7 +204,7 @@ function Elemento:toNCL(indent)
          if pos ~= "map" then
             NCL = NCL..indent.."   <property name=\""..pos.."\""
             if val then
-               NCL = NCL.." value="..val
+               NCL = NCL.." value=\""..val.."\""
             end
             NCL = NCL.."/>"
          end
