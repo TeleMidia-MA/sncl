@@ -3,13 +3,14 @@ local utils = require("utils")
 local action = {}
 local Action = {}
 
-function action.new(action, component, interface, linha)
+function action.new(action, component, interface, linha, variable)
    local self = {
       action = action,
       component = component,
+      interface = interface,
+      variable = nil,
       temEnd = false,
       pai = nil,
-      interface = interface,
       linha = linha,
       propriedades = {},
       tipo = "action",

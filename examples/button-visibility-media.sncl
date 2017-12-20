@@ -1,50 +1,45 @@
-port pBody1 image
+port pBody1 mainImage
 port pBody2 buttonDisappear
 
-region rgImage
+media mainText
+   src: "medias/sub1.txt"
+   area textPause
+      text: "pause"
+   end
+end
+
+media mainImage
+   src: "medias/image1.jpg"
+   visible: true
    height: 90%
 end
 
-media image
-   src: "medias/image1.jpg"
-   rg: rgImage
-   visible: true
-end
-
 region rgButton
-   width: 10%
-   height: 10%
-   bottom: 0px
-   right: 45%
+   width: 10% height: 10%
+   bottom: 0px right: 45%
 end
 
-media buttonDisappear
-   src: "medias/button-red.png"
-   rg: rgButton
-   focusIndex: 1
-   focusBorderWidth: 3
-end
-
-media buttonAppear
-   src: "medias/button-green.png"
-   rg: rgButton
-   focusIndex: 1
-   focusBorderWidth: 3
-end
-
-onSelection buttonDisappear.RED do
-   set image.visible
-      value: false
+macro makeButton(mName, source)
+   media mName
+      src: source
+      rg: rgButton
+      focusIndex: 1
+      focusBorderWidth: 3
    end
-   start buttonAppear end
-   stop buttonDisappear end
 end
 
-onSelection buttonAppear.GREEN do
-   set image.visible
-      value: true
+makeButton("buttonDisappear", "medias/button-red.png")
+makeButton("buttonAppear", "medias/button-green.png")
+
+macro makeLink(bt1, bt2, color, value)
+   onSelection bt1.color do
+      set mainImage.visible
+         value: value
+      end
+      stop bt1 end
+      start bt2 end
    end
-   start buttonDisappear end
-   stop buttonAppear end
 end
 
+makeLink("buttonDisappear", "buttonAppear", "RED", "false")
+makeLink("buttonAppear", "buttonDisappear", "GREEN", "true")

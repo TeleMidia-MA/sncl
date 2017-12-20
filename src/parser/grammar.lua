@@ -262,7 +262,10 @@ propertiesValues = {
    ["selBorderColor"]          = {1, dataType.color},
    ["focusBorderWidth"]        = {1, dataType.integer},
    ["focusBorderTransparency"] = {1, dataType.percent},
-   ["freeze"]                  = {1, dataType.boolean1},
+   ["freeze"]                  = {1, dataType.boolean},
+   ["fontColor"]               = {1, dataType.color},
+   ["fontSize"]                = {1, dataType.integer},
+   ["text"]                    = {1, dataType.string},
    -- TODO: Separate area properties
    ["coords"]                  = {4, dataType.percent+dataType.pixel},
    ["begin"]                   = {1, dataType.time+dataType.seconds},

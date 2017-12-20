@@ -115,17 +115,31 @@ function parseLinkAction(str)
       table.insert(words, word)
    end
    local action = words[1]
-   local media = words[2]
+   local component = words[2]
    local interface = nil
-
-   local barra = media:find("%.")
-
-   if barra then
-      interface = media:sub(barra+1)
-      media = media:sub(1, barra-1)
+   local variable = nil
+   if action == "set" then
+      local ponto = component:find("%.")
+      if ponto then
+         interface = component:sub(ponto+1)
+         component = component:sub(1, ponto-1)
+      end
+      if interface then
+         ponto = interface:find("%.")
+         if ponto then
+            variable = interface:sub(ponto+1)
+            interface = interface:sub(1, ponto-1)
+         end
+      end
+   else
+      local ponto = component:find("%.")
+      if ponto then
+         interface = component:sub(ponto+1)
+         component = component:sub(1, ponto-1)
+      end
    end
 
-   local newAction = Action.new(action, media, interface, linhaParser)
+   local newAction = Action.new(action, component, interface, linhaParser, variable)
    newAction.pai = currentElement
    currentElement:addAction(newAction)
    currentElement = newAction
@@ -233,10 +247,10 @@ function parseMacroSon(macro, son, paramsTable)
             cond = paramsTable[macro.params[condition.condition]]:gsub("\"","")
          end
          local component = condition.component
-         if macro.params[condition.component] then
+         if macro.params[component] then
             component = paramsTable[macro.params[condition.component]]:gsub("\"","")
          end
-         local newCondition = Condition.new(cond, new, component)
+         local newCondition = Condition.new(cond, component)
          newElement:addCondition(newCondition)
          newCondition.pai = newElement
       end
@@ -247,10 +261,14 @@ function parseMacroSon(macro, son, paramsTable)
             act = paramsTable[macro.params[action.action]]:gsub("\"","")
          end
          local component = action.component
-         if macro.params[action.component] then
+         local interface = action.interface
+         if macro.params[component] then
             component = paramsTable[macro.params[action.component]]:gsub("\"","")
          end
-         local newAction = Action.new(act, component)
+         if macro.params[interface] then
+            interface = paramsTable[macro.params[action.interface]]:gsub("\"", "")
+         end
+         local newAction = Action.new(act, component, interface)
          for pos, val in pairs(action.propriedades) do
             local value = paramsTable[macro.params[val]]
             newAction:addPropriedade(pos, "\""..value.."\"")
@@ -336,9 +354,9 @@ end
 
 function lpegMatch(regex, string)
    if lpeg.match(regex, string) then
-   --   if lpeg.match(regex, string) == #string+1 then
-         return true
-   --   end
+      --   if lpeg.match(regex, string) == #string+1 then
+      return true
+      --   end
    else
       return false
    end
