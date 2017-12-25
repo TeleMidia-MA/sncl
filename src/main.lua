@@ -2,13 +2,12 @@
 local lpeg = require("lpeg")
 
 -- Globals
-linhaParser = 1
-arquivoEntrada = nil
+parserLine = 1
 insideMacro = false
 hasError = false
 currentElement = nil
 
-tabelaSimbolos = {
+symbolTable = {
    macros = {},
    rules = {},
    regions = {},
@@ -23,27 +22,26 @@ require("parser.grammar")
 require("parser.parse")
 require("elements.require")
 
-function beginParse(entrada, saida, play)
-   arquivoEntrada = entrada
-   if not entrada:find(".sncl") then
+function beginParse(input, outputFile, play)
+   if not input:find(".sncl") then
       utils.printErro("Invalid file extension")
       return
    end
 
-   local conteudoEntrada = utils.lerArquivo(entrada)
-   if not conteudoEntrada then
+   local inputContent = utils.readFile(input)
+   if not inputContent then
       utils.printErro("Error reading input file")
       return
    end
 
-   lpeg.match(gramaticaSncl, conteudoEntrada)
+   lpeg.match(gramaticaSncl, inputContent)
 
    -- Checar se o parser chegou no final do arquivo
-   local nLinhas = 0
-   for _ in io.lines(entrada) do
-      nLinhas = nLinhas+1
+   local lineNum = 0
+   for _ in io.lines(input) do
+      lineNum = lineNum+1
    end
-   if linhaParser < nLinhas then
+   if parserLine < lineNum then
       utils.printErro("Parsing error", linhaParser)
       return
    end
@@ -59,14 +57,14 @@ function beginParse(entrada, saida, play)
       utils.printErro("Error creating output file")
       return
    end
-   if saida then
-      utils.escreverArquivo(saida, output)
+   if outputFile then
+      utils.writeFile(outputFile, output)
    else
-      saida = entrada:sub(1, entrada:len()-4)
-      saida = saida.."ncl"
-      utils.escreverArquivo(saida, output)
+      outputFile = input:sub(1, input:len()-4)
+      outputFile = outputFile.."ncl"
+      utils.writeFile(outputFile, output)
    end
    if play then
-      os.execute("ginga "..saida)
+      os.execute("ginga "..outputFile)
    end
 end

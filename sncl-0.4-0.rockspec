@@ -39,7 +39,7 @@ build = {
       ["elements.condition"] = "src/elements/condition.lua",
       ["elements.switch"]    = "src/elements/switch.lua",
       ["elements.rule"]      = "src/elements/rule.lua",
-      ["elements.elemento"]  = "src/elements/elemento.lua",
+      ["elements.element"]  = "src/elements/element.lua",
    },
    install = {
       bin = {

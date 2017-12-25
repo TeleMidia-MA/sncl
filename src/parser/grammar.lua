@@ -12,7 +12,7 @@ gramaticaSncl = {
    Espacos = t.space
    /function(str)
       if str == "\n" then
-         linhaParser = linhaParser+1
+         parserLine = parserLine+1
       end
    end,
    Symbols = (P"@"+P"_"+P"/"+P"."+P"%"+P"-"),
@@ -26,9 +26,9 @@ gramaticaSncl = {
    /function(str)
       str = str:gsub("%s+", "")
       if currentElement ~= nil then
-         currentElement:parsePropriedade(str)
+         currentElement:parseProperty(str)
       else
-         utils.printErro("Property"..str.." declared in invalid context", linhaParser)
+         utils.printErro("Property"..str.." declared in invalid context", parserLine)
       end
    end,
 
@@ -42,17 +42,17 @@ gramaticaSncl = {
    End = (P"end" * SPC^0)
    /function()
       if currentElement == nil then
-         utils.printErro("No element to end", linhaParser)
+         utils.printErro("No element to end", parserLine)
          return
       end
-      if currentElement.tipo == "macro" then
+      if currentElement._type == "macro" then
          insideMacro = false
       end
-      currentElement.temEnd = true
-      if currentElement.pai == nil then
+      currentElement.hasEnd = true
+      if currentElement.father == nil then
          currentElement = nil
       else
-         currentElement = currentElement.pai
+         currentElement = currentElement.father
       end
    end,
 
@@ -65,7 +65,7 @@ gramaticaSncl = {
    ------ REGION ------
    RegionId = (P"region" *P" "^1 *V"Id" *SPC^0)
    /function(str)
-      local newRegion = Elemento.novo("region", linhaParser)
+      local newRegion = Elemento.new("region", parserLine)
       utils.newElement(str, newRegion)
    end,
    Region = (V"RegionId"
@@ -77,7 +77,7 @@ gramaticaSncl = {
    ------ CONTEXT ------
    ContextId = (P"context"*P" "^1*V"Id"*SPC^0)
    /function(str)
-      local newContext = Elemento.novo("context", linhaParser)
+      local newContext = Elemento.new("context", parserLine)
       utils.newElement(str, newContext)
    end,
    Context = (V"ContextId"
@@ -87,7 +87,7 @@ gramaticaSncl = {
    ------ MEDIA ------
    MediaId = (P"media" *P" "^1* V"Id" *SPC^0)
    /function(str)
-      local newMedia = Elemento.novo("media", linhaParser)
+      local newMedia = Elemento.new("media", parserLine)
       utils.newElement(str, newMedia)
    end,
    Media = V"MediaId"
@@ -97,7 +97,7 @@ gramaticaSncl = {
    ------ AREA ------
    AreaId = P"area" *P" "^1* V"Id" *SPC^0
    /function(str)
-      local newArea = Elemento.novo("area", linhaParser)
+      local newArea = Elemento.new("area", parserLine)
       utils.newElement(str, newArea)
    end,
    Area = (V"AreaId"
@@ -117,23 +117,23 @@ gramaticaSncl = {
    /function(str)
       local id, params, quant = parseIdMacro(str)
       if id == nil then
-         utils.printErro("Invalid Id", linhaParser)
+         utils.printErro("Invalid Id", parserLine)
          return
       end
-      if tabelaSimbolos[id] == nil then
+      if symbolTable[id] == nil then
          local newMacro = Macro.new(id)
          newMacro:setParams(params)
          newMacro.quantParams = quant
-         tabelaSimbolos[id] = newMacro
-         tabelaSimbolos.macros[id] = tabelaSimbolos[id]
+         symbolTable[id] = newMacro
+         symbolTable.macros[id] = symbolTable[id]
          if currentElement ~= nil then
-            utils.printErro("Macro can not be declared inside of "..currentElement.tipo, linhaParser)
+            utils.printErro("Macro can not be declared inside of "..currentElement._type, parserLine)
             return
          else
             currentElement = newMacro
          end
       else
-         utils.printErro("Id "..id.." already declared", linhaParser)
+         utils.printErro("Id "..id.." already declared", parserLine)
          return
       end
       insideMacro = true

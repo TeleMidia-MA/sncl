@@ -1,41 +1,41 @@
 local utils = require("utils")
 local lpeg = require("lpeg")
+lpeg.locale(lpeg)
+local V, P, R, C, Cg = lpeg.V, lpeg.P, lpeg.R, lpeg.C, lpeg.Cg
 
 function parseId(str)
-   local words = utils.separarEspaco(str)
+   local words = utils.splitSpace(str)
 
    if #words == 1 then
-      return nil, words[1]
+      return words[1]
    elseif #words == 2 then
-      return nil, words[2]
-   elseif #words == 3 then
-      return words[1], words[3]
+      return words[2]
    else
-      utils.printErro("Invalid id "..str, linhaParser)
+      utils.printErro("Invalid id "..str, parserLine)
       return nil
    end
 end
 
 function parseRefer(str)
    if currentElement == nil then
-      utils.printErro("Invalid declaration of refer", linhaParser)
+      utils.printErro("Invalid declaration of refer", parserLine)
       return
    end
 
-   local eleType = currentElement.tipo
+   local eleType = currentElement._type
    if eleType ~= "context" and eleType ~= "media" and eleType ~= "switch" then
-      utils.printErro("Invalid declaration of refer", linhaParser)
+      utils.printErro("Invalid declaration of refer", parserLine)
       return
    end
 
    local sign = str:find(":")
    if sign then
       local value = str:sub(sign+1)
-      local ponto = value:find("%.")
+      local dot = value:find("%.")
       local interface, media
-      if ponto then
-         interface = value:sub(ponto+1)
-         media =  value:sub(1, ponto-1)
+      if dot then
+         interface = value:sub(dot+1)
+         media =  value:sub(1, dot-1)
       else
          media = value
       end
@@ -51,54 +51,54 @@ function parseLinkCondition(str)
    end
 
    if #words < 3 then
-      utils.printErro("Error in link declaration", linhaParser)
+      utils.printErro("Error in link declaration", parserLine)
       return
    end
    local condCount, mediaCount = 1, 2
    local condition = words[condCount]
    local media = words[mediaCount]
    while condition and media do
-      condition = utils.separarPonto(condition)
+      condition = utils.splitSymbol(condition, "%.")
 
       local interface
-      media, interface = utils.separarPonto(media)
+      media, interface = utils.splitSymbol(media, "%.")
 
       if currentElement ~= nil then
-         if currentElement.tipo == "link" then --Se for link, adicionar condicao
-            local newCondition = Condition.new(condition, media, interface, linhaParser)
-            newCondition.pai = currentElement
+         if currentElement._type == "link" then --Se for link, adicionar condicao
+            local newCondition = Condition.new(condition, media, interface, parserLine)
+            newCondition.father = currentElement
             currentElement:addCondition(newCondition)
 
-         elseif currentElement.tipo == "context" then
-            local newLink = Link.new(linhaParser)
-            newLink.pai = currentElement
-            currentElement:addFilho(newLink)
+         elseif currentElement._type == "context" then
+            local newLink = Link.new(parserLine)
+            newLink.father = currentElement
+            currentElement:addSon(newLink)
             currentElement = newLink
-            local newCondition = Condition.new(condition, media, interface, linhaParser)
-            newCondition.pai = currentElement
+            local newCondition = Condition.new(condition, media, interface, parserLine)
+            newCondition.father = currentElement
             currentElement:addCondition(newCondition)
 
-         elseif currentElement.tipo == "macro" then
+         elseif currentElement._type == "macro" then
             local newLink = Link.new()
-            currentElement:addFilho(newLink)
-            newLink.pai = currentElement
+            currentElement:addSon(newLink)
+            newLink.father = currentElement
             local newCondition = Condition.new(condition, media, interface)
-            newCondition.pai = newLink
+            newCondition.father = newLink
             newLink:addCondition(newCondition)
             currentElement = newLink
 
          else
-            utils.printErro("Condition can be declared only inside a link", linhaParser)
+            utils.printErro("Condition can be declared only inside a link", parserLine)
             return
          end
       else
-         local newLink = Link.new(linhaParser)
-         newLink.pai = currentElement
+         local newLink = Link.new(parserLine)
+         newLink.father = currentElement
          currentElement = newLink
-         table.insert(tabelaSimbolos.body, newLink)
+         table.insert(symbolTable.body, newLink)
 
-         local newCondition = Condition.new(condition, media, interface, linhaParser)
-         newCondition.pai = currentElement
+         local newCondition = Condition.new(condition, media, interface, parserLine)
+         newCondition.father = currentElement
          currentElement:addCondition(newCondition)
 
       end
@@ -139,8 +139,8 @@ function parseLinkAction(str)
       end
    end
 
-   local newAction = Action.new(action, component, interface, linhaParser, variable)
-   newAction.pai = currentElement
+   local newAction = Action.new(action, component, interface, parserLine, variable)
+   newAction.father = currentElement
    currentElement:addAction(newAction)
    currentElement = newAction
 end
@@ -162,20 +162,19 @@ function parsePort(str)
    end
 
    local id = words[2]
-   local media, interface = utils.separarPonto(words[3])
+   local media, interface = utils.splitSymbol(words[3], "%.")
 
-   local newPort = Port.novo(media, interface, currentElement, linhaParser-1)
+   local newPort = Port.new(media, interface, currentElement, parserLine-1)
    newPort:setId(id)
 
    if currentElement then
-      currentElement:addFilho(newPort)
+      currentElement:addSon(newPort)
    end
 end
 
 function parseIdMacro(str)
    local paramString = string.match(str,"%(.*%)")
-   local port, id = parseId(str:gsub("%(.*%)", ""))
-   --paramString = paramString:gsub("%s+", "")
+   local id = parseId(str:gsub("%(.*%)", ""))
 
    local paramsTable = {}
    local count = 1
@@ -186,110 +185,123 @@ function parseIdMacro(str)
    return id, paramsTable, count-1
 end
 
+
+local field = '(' * lpeg.Cs( (lpeg.P(1)-')') ) * ')' + lpeg.C( (1-lpeg.S',\n')^0 )
+local record = lpeg.Ct(field * (',' * field)^0) * (lpeg.P'\n' + -1)
+function csv (s)
+   return lpeg.match(record, s)
+end
+
 function parseMacroChamada (str)
    str = str:gsub("*", "", 1)
    str = str:gsub("%s+", "")
 
    local paramString = string.match(str,"%(.*%)")
+   paramString = paramString:sub(2)
+   paramString = paramString:sub(1, #paramString-1)
    local idMacro = str:gsub("%(.*%)", "")
 
    if utils.isMacroSon(currentElement) then
       if idMacro == utils.isMacroSon(currentElement) then
-         utils.printErro("Macro "..idMacro.." not declared", linhaParser-1)
+         utils.printErro("Macro "..idMacro.." not declared", parserLine-1)
          return
       end
    end
 
-   if tabelaSimbolos.macros[idMacro] == nil then --Se a macro não foi declarada
-      utils.printErro("Macro "..idMacro.." not declared", linhaParser-1)
+   if symbolTable.macros[idMacro] == nil then
+      utils.printErro("Macro "..idMacro.." not declared", parserLine-1)
       return
    end
 
-   local paramsTable = {}
-   for w in paramString:gmatch('".-"') do
-      w = w:gsub("\"", "")
-      table.insert(paramsTable, w)
+   local paramsTable = csv(paramString)
+   local macroElement = symbolTable.macros[idMacro]
+   for pos, val in pairs(paramsTable) do
+      paramsTable[pos] = val:gsub("\"", "")
+      --val = val:gsub("\"", "")
    end
 
-   local macro = tabelaSimbolos.macros[idMacro]
-
-   if (#paramsTable ~= macro.quantParams) then
-      utils.printErro("Macro "..idMacro.." receives "..macro.quantParams.." parameters, "..#paramsTable.." are being passed", linhaParser)
+   if (#paramsTable ~= macroElement.quantParams) then
+      utils.printErro("Macro "..idMacro.." receives "..macroElement.quantParams.." parameters, "..#paramsTable.." are being passed", parserLine)
       return
    end
 
-   for _, macroSon in pairs(macro.filhos) do --Copiando filhos
-      parseMacroSon(macro, macroSon, paramsTable)
+   -- Parse of the sons of the macro
+   for _, macroSon in pairs(macroElement.sons) do
+      parseMacroSon(macroElement, macroSon, paramsTable)
    end
 
-   for pos, val in pairs(macro.propriedades) do
-      if macro.params[val] then
-         if paramsTable[macro.params[val]] then
-            currentElement:addPropriedade(pos, paramsTable[macro.params[val]])
+   -- Parse of properties that are inside the macro but outside of its sons
+   for pos, val in pairs(macroElement.properties) do
+      if macroElement.params[val] then
+         if paramsTable[macroElement.params[val]] then
+            currentElement:addProperty(pos, paramsTable[macroElement.params[val]])
             -- TODO: Se o valor for "nil"
          end
       else
-         currentElement:addPropriedade(pos, val)
+         currentElement:addProperty(pos, val)
       end
    end
+end
+
+function parseMacroSonLink(macro, son, paramsTable)
+   newElement = Link.new()
+
+   for _, condition in pairs(son.conditions) do --Copiar condicoes
+      -- Check if condition and component are parameters
+      local cond = condition.condition
+      if macro.params[condition.condition] then
+         cond = paramsTable[macro.params[condition.condition]]:gsub("\"","")
+      end
+      local component = condition.component
+      if macro.params[component] then
+         component = paramsTable[macro.params[condition.component]]:gsub("\"","")
+      end
+      local newCondition = Condition.new(cond, component)
+      newElement:addCondition(newCondition)
+      newCondition.father = newElement
+   end
+
+   for _, action in pairs(son.actions) do -- Copiar acoes
+      local act = action.action
+      if macro.params[action.action] then
+         act = paramsTable[macro.params[action.action]]:gsub("\"","")
+      end
+      local component = action.component
+      local interface = action.interface
+      if macro.params[component] then
+         component = paramsTable[macro.params[action.component]]:gsub("\"","")
+      end
+      if macro.params[interface] then
+         interface = paramsTable[macro.params[action.interface]]:gsub("\"", "")
+      end
+      local newAction = Action.new(act, component, interface)
+      for pos, val in pairs(action.properties) do
+         local value = paramsTable[macro.params[val]]
+         newAction:addProperty(pos, "\""..value.."\"")
+      end
+      newAction.hasEnd = true
+      newElement:addAction(newAction)
+      newAction.father = newElement
+   end
+
+   newElement.hasEnd = true
+   table.insert(symbolTable.body, newElement)
 end
 
 function parseMacroSon(macro, son, paramsTable)
    local newElement
    local father = currentElement
-   if son.tipo == 'link' then
-      newElement = Link.new()
-
-      for _, condition in pairs(son.conditions) do --Copiar condicoes
-         -- Check if condition and component are parameters
-         local cond = condition.condition
-         if macro.params[condition.condition] then
-            cond = paramsTable[macro.params[condition.condition]]:gsub("\"","")
-         end
-         local component = condition.component
-         if macro.params[component] then
-            component = paramsTable[macro.params[condition.component]]:gsub("\"","")
-         end
-         local newCondition = Condition.new(cond, component)
-         newElement:addCondition(newCondition)
-         newCondition.pai = newElement
-      end
-
-      for _, action in pairs(son.actions) do -- Copiar acoes
-         local act = action.action
-         if macro.params[action.action] then
-            act = paramsTable[macro.params[action.action]]:gsub("\"","")
-         end
-         local component = action.component
-         local interface = action.interface
-         if macro.params[component] then
-            component = paramsTable[macro.params[action.component]]:gsub("\"","")
-         end
-         if macro.params[interface] then
-            interface = paramsTable[macro.params[action.interface]]:gsub("\"", "")
-         end
-         local newAction = Action.new(act, component, interface)
-         for pos, val in pairs(action.propriedades) do
-            local value = paramsTable[macro.params[val]]
-            newAction:addPropriedade(pos, "\""..value.."\"")
-         end
-         newAction.temEnd = true
-         newElement:addAction(newAction)
-         newAction.pai = newElement
-      end
-
-      newElement.temEnd = true
-      table.insert(tabelaSimbolos.body, newElement)
-
+   if son._type == 'link' then
+      parseMacroSonLink(macro, son, paramsTable)
    else
-      if son.tipo == 'media' then
-         newElement = Elemento.novo("media", linhaParser)
-      elseif son.tipo == 'context' then
-         newElement = Elemento.novo("context", linhaParser)
-      elseif son.tipo == 'area' then
-         newElement = Elemento.novo("area", linhaParser)
-      elseif son.tipo == "region" then
-         newElement = Elemento.novo("region", linhaParser)
+      if son._type == 'media' then
+         newElement = Elemento.new("media", parserLine)
+      elseif son._type == 'context' then
+         newElement = Elemento.new("context", parserLine)
+      elseif son._type == 'area' then
+         newElement = Elemento.new("area", parserLine)
+      elseif son._type == "region" then
+         newElement = Elemento.new("region", parserLine)
       end
       currentElement = newElement
 
@@ -300,18 +312,19 @@ function parseMacroSon(macro, son, paramsTable)
          newElement:setId(son.id)
       end
 
-      for name, val in pairs(son.propriedades) do --Copiar Propriedades
+      for name, val in pairs(son.properties) do --Copiar properties
          local value = paramsTable[macro.params[val]]
          if value then --Se a propriedade é parametro
-            newElement:addPropriedade(name, value)
+            newElement:addProperty(name, value)
          else --Se a propriedade não é parametro
-            newElement:addPropriedade(name, val)
+            newElement:addProperty(name, val)
          end
       end
-      if paramsTable[macro.params[son._type]] then
-         newElement._type = paramsTable[macro.params[son._type]]
+      -- TODO: type de macro ta com aspas extra
+      if paramsTable[macro.params[son.mType]] then
+         newElement.mType = paramsTable[macro.params[son.mType]]
       else
-         newElement._type = son._type
+         newElement.mType = son.mType
       end
       if paramsTable[macro.params[son.src]] then
          newElement.src = paramsTable[macro.params[son.src]]
@@ -323,27 +336,26 @@ function parseMacroSon(macro, son, paramsTable)
       else
          newElement.region = son.region
       end
-      if paramsTable[macro.params[son.temPort]] then
-         newElement.temPort = paramsTable[macro.params[son.temPort]]
+      if paramsTable[macro.params[son.hasPort]] then
+         newElement.hasPort = paramsTable[macro.params[son.hasPort]]
       else
-         newElement.temPort = son.temPort
+         newElement.hasPort = son.hasPort
       end
-      for _, aux in pairs(son.filhos) do --Copiar Filhos
+      for _, aux in pairs(son.sons) do --Copiar Sons
          parseMacroSon(macro, aux, paramsTable)
       end
-
-      newElement.temEnd = true
+      newElement.hasEnd = true
    end
 
    if newElement ~= nil then
       if father ~= nil then
-         father:addFilho(newElement)
-         newElement.pai = father
+         father:addSon(newElement)
+         newElement.father = father
       else
          if newElement.id then
-            if tabelaSimbolos[newElement.id] == nil then
-               tabelaSimbolos[newElement.id] = newElement
-               table.insert(tabelaSimbolos.body, tabelaSimbolos[newElement.id])
+            if symbolTable[newElement.id] == nil then
+               symbolTable[newElement.id] = newElement
+               table.insert(symbolTable.body, symbolTable[newElement.id])
             end
          end
       end

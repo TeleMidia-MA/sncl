@@ -16,7 +16,7 @@ function connector.new(id)
          n = 0
       },
       connectorParams = {},
-      tipo = "connector",
+      _type = "connector",
    }
    setmetatable(self, {__index = Connector})
    return self
@@ -38,7 +38,7 @@ function Connector:check()
             times = 1,
          }
          self.conditions.n = self.conditions.n+1
-         for pos, val in pairs(condition.propriedades) do
+         for pos, val in pairs(condition.properties) do
             self.conditions[cond][pos] = true
             self.connectorParams[pos] = true
          end
@@ -54,7 +54,7 @@ function Connector:check()
             times = 1,
          }
          self.actions.n = self.actions.n+1
-         for pos, val in pairs(action.propriedades) do
+         for pos, val in pairs(action.properties) do
             self.actions[act][pos] = true
             self.connectorParams[pos] = true
          end

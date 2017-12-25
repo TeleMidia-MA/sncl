@@ -1,5 +1,5 @@
 Macro = require("elements.macro")
-Elemento = require("elements.elemento")
+Elemento = require("elements.element")
 Connector = require("elements.connector")
 Port = require("elements.port")
 Link = require("elements.link")

@@ -8,8 +8,8 @@ function condition.new(condition, component, interface, linha)
       component = component,
       interface = interface,
       linha = linha,
-      propriedades = {},
-      pai = nil,
+      properties = {},
+      father = nil,
       tipo = "condition",
    }
    setmetatable(self, {__index = Condition})
@@ -17,7 +17,7 @@ function condition.new(condition, component, interface, linha)
 end
 
 function Condition:check()
-   local componentElement = tabelaSimbolos[self.component]
+   local componentElement = symbolTable[self.component]
 
    if not componentElement then
       utils.printErro("Element "..self.component.." not declared", self.linha)
@@ -39,15 +39,15 @@ function Condition:check()
    if self.interface then
       -- Se o component não tem interface, erro
       if lpegMatch(dataType.button, self.interface) then -- Se a interface for um botão
-         self.propriedades["key"] = self.interface
+         self.properties["key"] = self.interface
          self.interface = nil
-      elseif not self.component:getFilho(self.interface) then -- Se a interface não existir
+      elseif not self.component:getSon(self.interface) then -- Se a interface não existir
          utils.printErro("Invalid interface "..self.interface.." of element "..self.component.id, self.linha)
          return ""
       end
 
       -- So pode ter key quando for onSelection
-      if self.propriedades.key then
+      if self.properties.key then
          if self.condition ~= "onSelection" then
             utils.printErro("Invalid interface "..self.key..", buttons can not be an interface", self.linha)
          end
@@ -55,11 +55,11 @@ function Condition:check()
 
       -- Se o component tem refer
       --[[
-      if tabelaSimbolos[self.component].refer then
-         local refer = tabelaSimbolos[self.component].refer
-         local referredMedia = tabelaSimbolos[refer.media]
+      if symbolTable[self.component].refer then
+         local refer = symbolTable[self.component].refer
+         local referredMedia = symbolTable[refer.media]
          if referredMedia then
-            if referredMedia:getFilho(self.interface) == false and referredMedia:getPropriedade(self.interface) == false and tabelaSimbolos[self.component]:getFilho(self.interface) == false then
+            if referredMedia:getSon(self.interface) == false and referredMedia:getPropriedade(self.interface) == false and symbolTable[self.component]:getSon(self.interface) == false then
                utils.printErro("Invalid interface "..self.interface, self.linha)
                return
             end
@@ -71,15 +71,15 @@ function Condition:check()
       ]]
    end
 
-   -- Component tem pai
-   if self.component.pai then
-      if self.pai.pai ~= self.component and self.component.pai ~= self.pai.pai then
+   -- Component tem father
+   if self.component.father then
+      if self.father.father ~= self.component and self.component.father ~= self.father.father then
          utils.printErro("Invalid element", self.linha)
          return
       end
-   -- Component não tem pai
+   -- Component não tem father
    else
-      if self.pai.pai then
+      if self.father.father then
          utils.printErro("Invalid element", self.linha)
          return
       end
@@ -93,7 +93,7 @@ function Condition:toNCL (indent)
    end
    NCL = NCL..">"
 
-   for pos, val in pairs(self.propriedades) do
+   for pos, val in pairs(self.properties) do
       NCL = NCL..indent.."   <bindParam name=\""..pos.."\" value=\""..val.."\"/>"
    end
 

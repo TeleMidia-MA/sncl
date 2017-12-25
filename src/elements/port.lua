@@ -3,40 +3,40 @@ local utils = require("utils")
 local port = {}
 local Port = {}
 
-function port.novo(component, interface, pai, linha)
+function port.new(component, interface, father, line)
    local self = {
       id = nil,
-      pai = pai,
+      father = father,
       component = component,
       interface = interface,
-      linha = linha,
-      tipo = "port",
+      line = line,
+      _type = "port",
    }
    setmetatable(self, {__index = Port})
    return self
 end
 
 function Port:setId(id)
-   if tabelaSimbolos[id] then
-      utils.printErro("Element "..id.." already declared", self.linha)
+   if symbolTable[id] then
+      utils.printErro("Element "..id.." already declared", self.line)
       return
    end
    self.id = id
 
    if not insideMacro then
-      tabelaSimbolos[id] = self
-      table.insert(tabelaSimbolos.body, tabelaSimbolos[id])
+      symbolTable[id] = self
+      table.insert(symbolTable.body, symbolTable[id])
    end
 end
 
 function Port:check() 
-   if tabelaSimbolos[self.component] == nil then
-      utils.printErro("No element "..self.component, self.linha)
+   if symbolTable[self.component] == nil then
+      utils.printErro("No element "..self.component, self.line)
       return ""
    end
 
-   if tabelaSimbolos[self.component].pai ~= self.pai then
-      utils.printErro("Element "..self.component.." is invalid in this context", self.linha)
+   if symbolTable[self.component].father ~= self.father then
+      utils.printErro("Element "..self.component.." is invalid in this context", self.line)
       return ""
    end
 end
@@ -44,8 +44,8 @@ end
 function Port:toNCL(indent)
    local NCL = indent.."<port id=\""..self.id.."\" component=\""..self.component.."\""
    if self.interface then
-      if tabelaSimbolos[self.component]:getFilho(self.interface) == nil then
-         utils.printErro("Element "..self.interface.." is invalid", self.linha)
+      if symbolTable[self.component]:getSon(self.interface) == nil then
+         utils.printErro("Element "..self.interface.." is invalid", self.line)
          return ""
       end
       NCL = NCL.." interface=\""..self.interface.."\""

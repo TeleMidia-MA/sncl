@@ -2,16 +2,16 @@ local utils = require("utils")
 local link = {}
 local Link = {}
 
-function link.new(linha)
+function link.new(line)
    local self = {
       xconnector = nil,
       temEnd = false,
       pai = nil,
-      linha = linha,
+      line = line,
       conditions = {},
       actions = {},
-      propriedades = {},
-      tipo = "link",
+      properties = {},
+      _type = "link",
    }
    setmetatable(self, {__index = Link})
    return self
@@ -24,7 +24,7 @@ function Link:addAction(action)
    table.insert(self.actions, action)
 end
 function Link:addPropriedade(nome, valor)
-   self.propriedades[nome] = valor
+   self.properties[nome] = valor
 end
 
 function Link:createConnector()
@@ -39,7 +39,7 @@ function Link:createConnector()
       else
          condId = condId.."N"
       end
-      for prop,_ in pairs(condition.propriedades) do
+      for prop,_ in pairs(condition.properties) do
          prop = prop:sub(1,1):upper()..prop:sub(2)
          if not condId:find(prop) then
             condId = condId..prop
@@ -56,7 +56,7 @@ function Link:createConnector()
       else
          actionId = actionId.."N"
       end
-      for prop, _ in pairs(action.propriedades) do
+      for prop, _ in pairs(action.properties) do
          prop = prop:sub(1,1):upper()..prop:sub(2)
          if not actionId:find(prop) then
             actionId = actionId..prop
@@ -65,18 +65,18 @@ function Link:createConnector()
    end
 
    connId = condId..actionId
-   if not tabelaSimbolos.connectors[connId] then
+   if not symbolTable.connectors[connId] then
       local newConnector = Connector.new(connId)
       newConnector:addConditions(self.conditions)
       newConnector:addActions(self.actions)
-      tabelaSimbolos.connectors[connId] = newConnector
+      symbolTable.connectors[connId] = newConnector
    end
    self.xconnector = connId
 end
 
 function Link:check()
    if self.hasEnd == false then
-      utils.printErro("Element Link does not have end", self.linha)
+      utils.printErro("Element Link does not have end", self.line)
       return
    end
    for _, val in pairs(self.conditions) do
@@ -92,7 +92,7 @@ function Link:toNCL(indent)
    local NCL = indent.."<link xconnector=\""..self.xconnector.."\">"
 
    -- Link Params
-   for pos, val in pairs(self.propriedades) do
+   for pos, val in pairs(self.properties) do
       NCL = NCL..indent.."   <linkParam name=\""..pos.."\" value=\""..val.."\"/>"
    end
 
@@ -110,7 +110,7 @@ function Link:toNCL(indent)
       hasAction = true
    end
    if not hasCondition or not hasAction then
-      utils.printErro("Link element must have at least 1 action and 1 condition", self.linha)
+      utils.printErro("Link element must have at least 1 action and 1 condition", self.line)
       return ""
    end
 
@@ -122,7 +122,7 @@ end
 function Link:parsePropriedade(str)
    local name, value = utils.separateSymbol(str)
    if name and value then
-      self.propriedades[name] = value
+      self.properties[name] = value
    end
 end
 

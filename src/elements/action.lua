@@ -3,17 +3,17 @@ local utils = require("utils")
 local action = {}
 local Action = {}
 
-function action.new(action, component, interface, linha, variable)
+function action.new(action, component, interface, line, variable)
    local self = {
       action = action,
       component = component,
       interface = interface,
       variable = nil,
-      temEnd = false,
-      pai = nil,
-      linha = linha,
-      propriedades = {},
-      tipo = "action",
+      hasEnd = false,
+      father = nil,
+      line = line,
+      properties = {},
+      _type = "action",
    }
    setmetatable(self, {__index= Action})
    return self
@@ -21,33 +21,33 @@ end
 
 function Action:getAction() return self.action end
 
-function Action:addPropriedade (name, value)
+function Action:addProperty (name, value)
    value = value:gsub("\"", "") -- Remover aspas
-   self.propriedades[name] = value
+   self.properties[name] = value
 end
 
 function Action:check()
-   local componentElement = tabelaSimbolos[self.component]
+   local componentElement = symbolTable[self.component]
 
    if not componentElement then
-      utils.printErro("Element "..self.component.." not declared", self.linha)
+      utils.printErro("Element "..self.component.." not declared", self.line)
       return ""
    end
    self.component = componentElement
 
-   if self.temEnd == false then
-      utils.printErro("Element Action does not have end", self.linha)
+   if self.hasEnd == false then
+      utils.printErro("Element Action does not have end", self.line)
       return ""
    end
 
    -- Component can not be a region
-   if self.component.tipo == "region" then
-      utils.printErro("Element "..self.component.id.." invalid in this context", self.linha)
+   if self.component._type == "region" then
+      utils.printErro("Element "..self.component.id.." invalid in this context", self.line)
       return ""
    end
 
    -- Check if is a valid action property
-   for pos,_ in pairs(self.propriedades) do
+   for pos,_ in pairs(self.properties) do
       if not lpegMatch(dataType.actionProperties, pos) then
          utils.printErro("Invalid property "..pos.." in Action")
          return ""
@@ -57,8 +57,8 @@ function Action:check()
    --Se a action tem interface
    if self.interface then
       -- Se o component não tem interface, erro
-      if not (self.component:getFilho(self.interface) or self.component:getPropriedade(self.interface)) then
-         utils.printErro("Invalid interface "..self.interface.." of element "..self.component.id, self.linha)
+      if not (self.component:getSon(self.interface) or self.component:getProperty(self.interface)) then
+         utils.printErro("Invalid interface "..self.interface.." of element "..self.component.id, self.line)
          return ""
       end
 
@@ -66,29 +66,29 @@ function Action:check()
       --[[
       if self.component.refer then
          local refer = self.component.refer
-         local referredMedia = tabelaSimbolos[refer.media]
+         local referredMedia = symbolTable[refer.media]
          if referredMedia then
-            if not (referredMedia:getFilho(self.interface) and 
-               self.component:getFilho(self.interface)) then
-               utils.printErro("Invalid interface "..self.interface.." of element "..self.component, self.linha)
+            if not (referredMedia:getSon(self.interface) and 
+               self.component:getSon(self.interface)) then
+               utils.printErro("Invalid interface "..self.interface.." of element "..self.component, self.line)
                return ""
             end
          else
-            utils.printErro("Element "..self.interface.." not declared.", self.linha)
+            utils.printErro("Element "..self.interface.." not declared.", self.line)
             return ""
          end
       end
       ]]
    end
 
-   if self.component.pai then --Se component tem pai
-      if self.pai.pai ~= self.component.pai then --Se pai do Link e do Component são diferentes
-         utils.printErro("Invalid element "..self.component.id.." in the context", self.linha)
+   if self.component.father then --Se component tem father
+      if self.father.father ~= self.component.father then --Se father do Link e do Component são diferentes
+         utils.printErro("Invalid element "..self.component.id.." in the context", self.line)
          return ""
       end
-   else --Se component não tem pai
-      if self.pai.pai then --Se Link tem pai
-         utils.printErro("Invalid element "..self.component.id.." in the context", self.linha)
+   else --Se component não tem father
+      if self.father.father then --Se Link tem father
+         utils.printErro("Invalid element "..self.component.id.." in the context", self.line)
          return ""
       end
    end
@@ -101,7 +101,7 @@ function Action:toNCL(indent)
    end
    NCL = NCL..">"
 
-   for pos, val in pairs(self.propriedades) do
+   for pos, val in pairs(self.properties) do
       NCL = NCL..indent.."   <bindParam name=\""..pos.."\" value=\""..val.."\"/>"
    end
 
@@ -109,11 +109,11 @@ function Action:toNCL(indent)
    return NCL
 end
 
-function Action:parsePropriedade(str)
-   local name, value = utils.separateSymbol(str)
+function Action:parseProperty(str)
+   local name, value = utils.splitSymbol(str, ":")
 
    if name and value then
-      self.propriedades[name] = value
+      self.properties[name] = value
    end
 end
 

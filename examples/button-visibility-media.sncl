@@ -1,13 +1,6 @@
 port pBody1 mainImage
 port pBody2 buttonDisappear
 
-media mainText
-   src: "medias/sub1.txt"
-   area textPause
-      text: "pause"
-   end
-end
-
 media mainImage
    src: "medias/image1.jpg"
    visible: true
@@ -25,6 +18,7 @@ macro makeButton(mName, source)
       rg: rgButton
       focusIndex: 1
       focusBorderWidth: 3
+      zIndex: 100
    end
 end
 

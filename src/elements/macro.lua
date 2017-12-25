@@ -2,16 +2,16 @@ local utils = require("utils")
 local macro = {}
 local Macro = {}
 
-function macro.new(id, linha)
+function macro.new(id, line)
    local self = {
       id = id,
-      temEnd = false,
-      pai = nil,
-      linha = linha,
-      propriedades = {},
-      filhos = {},
+      hasEnd = false,
+      father = nil,
+      line = line,
+      properties = {},
+      sons = {},
       params = {},
-      tipo = "macro",
+      _type = "macro",
       quantParams = 0,
    }
    setmetatable(self, {__index = Macro})
@@ -21,16 +21,23 @@ end
 function Macro:setEnd(bool) self.hasEnd = bool end
 function Macro:setParams(params) self.params = params end
 
-function Macro:addPropriedade(name, value)
-   self.propriedades[name] = value
+function Macro:addProperty(name, value)
+   print(name, value)
+   value = value:gsub("\"", "")
+   self.properties[name] = value
 end
 
-function Macro:addFilho(son) table.insert(self.filhos, son) end
+function Macro:parseProperty(str)
+   local name, value = utils.splitSymbol(str, ":")
+   self:addProperty(name, value)
+end
+
+function Macro:addSon(son) table.insert(self.sons, son) end
 
 function Macro:check() end
 
 function Macro:parseProperty(str)
-   local name, value = utils.separateSymbol(str)
+   local name, value = utils.splitSymbol(str, ":")
    if name and value then
       if not value:match('".-"') then -- Se nao tem aspas
          if not self.params[value] and name ~= "rg" then
@@ -38,7 +45,7 @@ function Macro:parseProperty(str)
             return
          end
       end
-      self.propriedades[name] = value
+      self.properties[name] = value
    else
    end
 end

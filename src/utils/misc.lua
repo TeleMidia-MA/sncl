@@ -1,7 +1,7 @@
 local utils= {}
 local colors = require("ansicolors")
 
-function utils.lerArquivo(fileLocation)
+function utils.readFile(fileLocation)
    local file = io.open(fileLocation, 'r')
    if file then
       local fileContent = file:read('*a')
@@ -9,30 +9,30 @@ function utils.lerArquivo(fileLocation)
          return fileContent
       end
    end
-   utils.printErro("Arquivo não pode ser aberto.")
+   utils.printErro("File could not be opened")
    return nil
 end
 
-function utils.escreverArquivo(arquivo, conteudo)
-   arquivo = io.open(arquivo, "w")
-   if arquivo then
-      io.output(arquivo)
-      io.write(conteudo)
-      io.close(arquivo)
+function utils.writeFile(file, content)
+   file = io.open(file, "w")
+   if file then
+      io.output(file)
+      io.write(content)
+      io.close(file)
    else
-      utils.printErro("Erro ao criar arquivo de saída.")
+      utils.printErro("Could not create output file")
       return nil
    end
 end
 
-function utils.printErro(string, linha)
-   linha = linha or ""
-   local arquivo = arquivoEntrada or ""
-   io.write(colors("%{bright}"..arquivo..":"..linha..": %{red}erro:%{reset} "..string.."\n"))
+function utils.printErro(string, line)
+   line = line or ""
+   local file = fileEntrada or ""
+   io.write(colors("%{bright}"..file..":"..line..": %{red}erro:%{reset} "..string.."\n"))
    hasError = true
 end
 
-function utils.separarEspaco(string)
+function utils.splitSpace(string)
    if string then
       local words = {}
       for w in string:gmatch("%S+") do
@@ -43,19 +43,10 @@ function utils.separarEspaco(string)
    return nil
 end
 
-function utils.separateSymbol(str)
-   local sign = str:find(":")
+function utils.splitSymbol(str, symbol)
+   local sign = str:find(symbol)
    if sign then
       return str:sub(1, sign-1), str:sub(sign+1)
-   else
-      return str
-   end
-end
-
-function utils.separarPonto(str)
-   local dot = str:find("%.")
-   if dot then
-      return str:sub(1,dot-1), str:sub(dot+1)
    else
       return str
    end
@@ -64,20 +55,20 @@ end
 function utils.isMacroSon(element) 
    if element then
       while element  do
-         if element.tipo == "macro" then
+         if element._type == "macro" then
             return element
          end
-         element = element.pai
+         element = element.father
       end
    end
    return nil
 end
 
 function utils.newElement (str, element)
-   local port, id = parseId(str)
+   local id = parseId(str)
 
    element:setId(id)
-   element.temPort = port
+   element.hasPort = port
 
    if currentElement then
       --[[
@@ -90,8 +81,8 @@ function utils.newElement (str, element)
          end
       end
       ]]
-      element.pai = currentElement
-      currentElement:addFilho(element)
+      element.father = currentElement
+      currentElement:addSon(element)
       currentElement = element
    else
       currentElement = element
@@ -99,20 +90,20 @@ function utils.newElement (str, element)
 end
 
 function utils.checkDependenciesElements()
-   for _, val in pairs(tabelaSimbolos.macros) do
-      if not val.temEnd then
+   for _, val in pairs(symbolTable.macros) do
+      if not val.hasEnd then
          utils.printErro("Macro "..val.id.." sem end.")
          return
       end
    end
 
-   for pos, val in pairs(tabelaSimbolos.body) do
-      if not val.pai then
+   for pos, val in pairs(symbolTable.body) do
+      if not val.father then
          val:check()
       end
    end
 
-   for pos, val in pairs(tabelaSimbolos.connectors) do
+   for pos, val in pairs(symbolTable.connectors) do
       val:check()
    end
 end
@@ -123,8 +114,8 @@ function utils.genNCL()
    <ncl id="main" xmlns="http://www.ncl.org.br/NCL3.0/EDTVProfile">]]
 
    local body = indent.."<body>"
-   for _, val in pairs(tabelaSimbolos.body) do
-      if not val.pai then
+   for _, val in pairs(symbolTable.body) do
+      if not val.father then
          body = body..val:toNCL(indent.."   ")
       end
    end
@@ -133,7 +124,7 @@ function utils.genNCL()
    local head = indent.."<head>"
 
    local ruleBase = nil
-   for _, val in pairs(tabelaSimbolos.rules) do
+   for _, val in pairs(symbolTable.rules) do
       if not ruleBase then
          ruleBase = indent.."   <ruleBase>"
       end
@@ -145,11 +136,11 @@ function utils.genNCL()
    end
 
    local regionBase = nil
-   for _, val in pairs(tabelaSimbolos.regions) do
+   for _, val in pairs(symbolTable.regions) do
       if not regionBase then
          regionBase = indent.."   <regionBase>"
       end
-      if val.pai == nil then
+      if val.father == nil then
          regionBase = regionBase..val:toNCL(indent.."      ")
       end
    end
@@ -159,7 +150,7 @@ function utils.genNCL()
    end
 
    local descriptorBase = nil
-   for _, val in pairs(tabelaSimbolos.descriptors) do
+   for _, val in pairs(symbolTable.descriptors) do
       if not descriptorBase then
          descriptorBase = indent.."   <descriptorBase>"
       end
@@ -171,7 +162,7 @@ function utils.genNCL()
    end
 
    local connectorBase = nil
-   for _, val in pairs(tabelaSimbolos.connectors) do
+   for _, val in pairs(symbolTable.connectors) do
       if not connectorBase then
          connectorBase = indent.."   <connectorBase>"
       end
