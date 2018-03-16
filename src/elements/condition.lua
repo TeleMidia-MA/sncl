@@ -2,36 +2,43 @@ local utils = require("utils")
 local condition = {}
 local Condition = {}
 
-function condition.new(condition, component, interface, linha)
+--[[
+-- condition<> ->
+-- component<> ->
+-- interface<> ->
+-- properties<> ->
+-- line<> ->
+-- father<> ->
+-- hasEnd<> ->
+--]]
+function condition.new (condition, component, interface, line)
    local self = {
       condition = condition,
       component = component,
       interface = interface,
-      linha = linha,
+      line = line,
       properties = {},
-      father = nil,
-      tipo = "condition",
+      _type = "condition",
    }
    setmetatable(self, {__index = Condition})
    return self
 end
 
 function Condition:check()
-   local componentElement = symbolTable[self.component]
-
-   if not componentElement then
-      utils.printErro("Element "..self.component.." not declared", self.linha)
-      return ""
-   end
-   self.component = componentElement
-
-   if self.temEnd == false then
-      utils.printErro("Element Action does not have end", self.linha)
+   if symbolTable[self.component] then
+      self.component = symbolTable[self.component]
+   else
+      utils.printErro("Element "..self.component.." not declared", self.line)
       return ""
    end
 
-   if self.component.tipo == "region" then
-      utils.printErro("Element "..self.component.id.." invalid in this context", self.linha)
+   if not self.hasEnd  then
+      utils.printErro("Element Condition does not have end", self.line)
+      return ""
+   end
+
+   if self.component._type == "region" then
+      utils.printErro("Element "..self.component.id.." invalid in this context", self.line)
       return ""
    end
 
@@ -42,14 +49,14 @@ function Condition:check()
          self.properties["key"] = self.interface
          self.interface = nil
       elseif not self.component:getSon(self.interface) then -- Se a interface não existir
-         utils.printErro("Invalid interface "..self.interface.." of element "..self.component.id, self.linha)
+         utils.printErro("Invalid interface "..self.interface.." of element "..self.component.id, self.line)
          return ""
       end
 
       -- So pode ter key quando for onSelection
       if self.properties.key then
          if self.condition ~= "onSelection" then
-            utils.printErro("Invalid interface "..self.key..", buttons can not be an interface", self.linha)
+            utils.printErro("Invalid interface "..self.key..", buttons can not be an interface", self.line)
          end
       end
 
@@ -60,11 +67,11 @@ function Condition:check()
          local referredMedia = symbolTable[refer.media]
          if referredMedia then
             if referredMedia:getSon(self.interface) == false and referredMedia:getPropriedade(self.interface) == false and symbolTable[self.component]:getSon(self.interface) == false then
-               utils.printErro("Invalid interface "..self.interface, self.linha)
+               utils.printErro("Invalid interface "..self.interface, self.line)
                return
             end
          else
-            utils.printErro("Element "..self.component.." not declared.", self.linha)
+            utils.printErro("Element "..self.component.." not declared.", self.line)
             return
          end
       end
@@ -74,13 +81,13 @@ function Condition:check()
    -- Component tem father
    if self.component.father then
       if self.father.father ~= self.component and self.component.father ~= self.father.father then
-         utils.printErro("Invalid element", self.linha)
+         utils.printErro("Invalid element", self.line)
          return
       end
    -- Component não tem father
    else
       if self.father.father then
-         utils.printErro("Invalid element", self.linha)
+         utils.printErro("Invalid element", self.line)
          return
       end
    end

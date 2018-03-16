@@ -2,11 +2,17 @@ local utils = require("utils")
 local link = {}
 local Link = {}
 
+--[[
+-- xconnector<> ->
+-- conditions<> ->
+-- actions<> ->
+-- properties<> ->
+-- hasEnd<> ->
+-- father<> ->
+-- line<> ->
+--]]
 function link.new(line)
    local self = {
-      xconnector = nil,
-      temEnd = false,
-      pai = nil,
       line = line,
       conditions = {},
       actions = {},
@@ -23,8 +29,8 @@ end
 function Link:addAction(action)
    table.insert(self.actions, action)
 end
-function Link:addPropriedade(nome, valor)
-   self.properties[nome] = valor
+function Link:addProperty(name, value)
+   self.properties[name] = value
 end
 
 function Link:createConnector()
@@ -119,7 +125,7 @@ function Link:toNCL(indent)
    return NCL
 end
 
-function Link:parsePropriedade(str)
+function Link:parseProperty(str)
    local name, value = utils.separateSymbol(str)
    if name and value then
       self.properties[name] = value

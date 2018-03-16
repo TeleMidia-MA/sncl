@@ -1,19 +1,26 @@
 local utils = require("utils")
--- @module element
 local element = {}
-
--- class table
 local Element = {}
 
+-- Elements can be: <media>, <region>, <descriptor>
+
+--[[
+-- id<> ->
+-- _type<> -> The type of the element
+-- mType<string> -> if it's a media, the type of the media
+-- hasPort<> ->
+-- refer<> ->
+-- properties<> ->
+-- sons<> ->
+-- father<> ->
+-- hasEnd<> ->
+-- line<> ->
+--]]
 function element.new(_type, line)
    local self = {
       id = "",
       _type = _type,
-      mType = nil,
-      hasEnd = false,
-      hasPort = false,
       line = line,
-      father, refer,
       properties = {},
       sons = {},
    }
@@ -23,13 +30,13 @@ end
 
 --Set
 function Element:setId(id)
-   if symbolTable[id] and self._type ~= "descriptor" then -- Se ja existe o Id
+   -- If an element with this id is already declared (descriptors dont have id)
+   if symbolTable[id] and self._type ~= "descriptor" then
       utils.printErro("Element "..id.." already declared", self.line)
       return nil
    end
    self.id = id
-   -- Não é pra adicionar a tabela de simbolos
-   -- se o element tiver dentro de uma macro
+   -- If the element is inside a macro, dont add it to the symbolTable
    if not insideMacro then
       symbolTable[id] = self
       if self._type == "region" then
@@ -41,6 +48,7 @@ function Element:setId(id)
       end
    end
 end
+
 function Element:setRefer(component, interface)
    self.refer = {
       component = component,
@@ -156,7 +164,6 @@ function Element:sonHasProperty(prop)
    end
 end
 
---Misc
 function Element:check()
    if not self.hasEnd then
       utils.printErro("Element "..self.id.." has no end.", self.line)

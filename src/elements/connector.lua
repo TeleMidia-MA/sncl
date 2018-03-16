@@ -1,11 +1,19 @@
 local connector = {}
-
 local Connector = {}
 
+--[[
+-- id<> ->
+-- linkParams<> ->
+-- linkCondition<> ->
+-- linkActions<> ->
+-- conditions<> ->
+-- actions<> ->
+-- connectorParams<> ->
+-- father<> ->
+--]]
 function connector.new(id)
    local self = {
       id = id,
-      pai = nil,
       linkParams = {},
       linkConditions = {},
       linkActions = {},

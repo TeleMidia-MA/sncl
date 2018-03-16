@@ -1,11 +1,17 @@
 local utils = require("utils")
-
 local port = {}
 local Port = {}
 
+--[[
+-- id<> ->
+-- component<> ->
+-- interface<> ->
+-- hasEnd<> ->
+-- father<> ->
+-- line<> ->
+--]]
 function port.new(component, interface, father, line)
    local self = {
-      id = nil,
       father = father,
       component = component,
       interface = interface,

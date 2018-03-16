@@ -2,15 +2,23 @@ local utils = require("utils")
 local macro = {}
 local Macro = {}
 
+--[[
+-- id<> ->
+-- properties<> ->
+-- sons<> ->
+-- params<> ->
+-- quantParams<> ->
+-- hasEnd<> ->
+-- father<> ->
+-- line<> ->
+--]]
 function macro.new(id, line)
    local self = {
       id = id,
-      hasEnd = false,
-      father = nil,
-      line = line,
       properties = {},
       sons = {},
       params = {},
+      line = line,
       _type = "macro",
       quantParams = 0,
    }
