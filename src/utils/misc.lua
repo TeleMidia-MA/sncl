@@ -1,109 +1,105 @@
 local utils= {}
 local colors = require("ansicolors")
 
-function utils.readFile(fileLocation)
-   local file = io.open(fileLocation, 'r')
-   if file then
-      local fileContent = file:read('*a')
-      if fileContent then
-         return fileContent
-      end
+function utils.readFile(file)
+   file = io.open(file, 'r')
+   if not file then
+      utils.printErro("Can't open file")
+      return nil
    end
-   utils.printErro("File could not be opened")
-   return nil
+   local fileContent = file:read('*a')
+   if not fileContent then
+      utils.printErro("Can't read file")
+      return nil
+   end
+   return fileContent
 end
 
 function utils.writeFile(file, content)
    file = io.open(file, "w")
-   if file then
-      io.output(file)
-      io.write(content)
-      io.close(file)
-   else
+   if not file then
       utils.printErro("Could not create output file")
       return nil
    end
+   io.output(file)
+   io.write(content)
+   io.close(file)
 end
 
-function utils.printErro(string, line)
+function utils.printErro(errString, line)
    line = line or ""
-   local file = fileEntrada or ""
-   io.write(colors("%{bright}"..file..":"..line..": %{red}erro:%{reset} "..string.."\n"))
-   hasError = true
+   local file = gblInputFile or ""
+   io.write(colors("%{bright}"..file..":"..line..": %{red}erro:%{reset} "..errString.."\n"))
+   gblHasError = true
 end
 
-function utils.splitSpace(string)
-   if string then
-      local words = {}
-      for w in string:gmatch("%S+") do
-         table.insert(words, w)
-      end
-      return words
+function utils.splitSpace(str)
+   local words = {}
+   for w in str:gmatch("%S+") do
+      table.insert(words, w)
    end
-   return nil
+   return words
 end
 
 function utils.splitSymbol(str, symbol)
    local sign = str:find(symbol)
    if sign then
       return str:sub(1, sign-1), str:sub(sign+1)
-   else
-      return str
    end
+   return str
 end
 
 function utils.isMacroSon(element) 
    if element then
-      while element  do
+      while element do
+         if element._type == "macro" then
+            return true
+         end
+         element = element.father
+      end
+   end
+   return false
+end
+
+function utils.getMacroFather(element)
+   if element then
+      while element do
          if element._type == "macro" then
             return element
          end
          element = element.father
       end
    end
-   return nil
+   return false
 end
 
-function utils.newElement (str, element)
-   local id = parseId(str)
+function utils.newElement (idStr, element)
+   element:setId(parseId(idStr))
 
-   element:setId(id)
-   element.hasPort = port
-
-   if currentElement then
-      --[[
-      if element.tipo == "context" then
-         if currentElement.tipo ~= "context" and
-            currentElement.tipo ~= "macro" and
-            currentElement.tipo ~= "switch" then
-            utils.printErro("Context can not be declared inside of"..currentElement.tipo..".", linhaParser)
-            return
-         end
-      end
-      ]]
-      element.father = currentElement
-      currentElement:addSon(element)
-      currentElement = element
+   if gblCurrentElement then
+      element.father = gblCurrentElement
+      gblCurrentElement:addSon(element)
+      gblCurrentElement = element
    else
-      currentElement = element
+      gblCurrentElement = element
    end
 end
 
 function utils.checkDependenciesElements()
-   for _, val in pairs(symbolTable.macros) do
+   for _, val in pairs(gblSymbolTable.macros) do
       if not val.hasEnd then
          utils.printErro("Macro "..val.id.." sem end.")
          return
       end
    end
 
-   for pos, val in pairs(symbolTable.body) do
+   for pos, val in pairs(gblSymbolTable.body) do
       if not val.father then
          val:check()
       end
    end
 
-   for pos, val in pairs(symbolTable.connectors) do
+   for pos, val in pairs(gblSymbolTable.connectors) do
       val:check()
    end
 end
@@ -114,7 +110,7 @@ function utils.genNCL()
    <ncl id="main" xmlns="http://www.ncl.org.br/NCL3.0/EDTVProfile">]]
 
    local body = indent.."<body>"
-   for _, val in pairs(symbolTable.body) do
+   for _, val in pairs(gblSymbolTable.body) do
       if not val.father then
          body = body..val:toNCL(indent.."   ")
       end
@@ -124,7 +120,7 @@ function utils.genNCL()
    local head = indent.."<head>"
 
    local ruleBase = nil
-   for _, val in pairs(symbolTable.rules) do
+   for _, val in pairs(gblSymbolTable.rules) do
       if not ruleBase then
          ruleBase = indent.."   <ruleBase>"
       end
@@ -136,7 +132,7 @@ function utils.genNCL()
    end
 
    local regionBase = nil
-   for _, val in pairs(symbolTable.regions) do
+   for _, val in pairs(gblSymbolTable.regions) do
       if not regionBase then
          regionBase = indent.."   <regionBase>"
       end
@@ -150,7 +146,7 @@ function utils.genNCL()
    end
 
    local descriptorBase = nil
-   for _, val in pairs(symbolTable.descriptors) do
+   for _, val in pairs(gblSymbolTable.descriptors) do
       if not descriptorBase then
          descriptorBase = indent.."   <descriptorBase>"
       end
@@ -162,7 +158,7 @@ function utils.genNCL()
    end
 
    local connectorBase = nil
-   for _, val in pairs(symbolTable.connectors) do
+   for _, val in pairs(gblSymbolTable.connectors) do
       if not connectorBase then
          connectorBase = indent.."   <connectorBase>"
       end

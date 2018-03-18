@@ -71,11 +71,11 @@ function Link:createConnector()
    end
 
    connId = condId..actionId
-   if not symbolTable.connectors[connId] then
+   if not gblSymbolTable.connectors[connId] then
       local newConnector = Connector.new(connId)
       newConnector:addConditions(self.conditions)
       newConnector:addActions(self.actions)
-      symbolTable.connectors[connId] = newConnector
+      gblSymbolTable.connectors[connId] = newConnector
    end
    self.xconnector = connId
 end

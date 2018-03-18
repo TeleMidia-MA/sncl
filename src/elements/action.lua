@@ -34,8 +34,8 @@ end
 
 function Action:check()
    -- Check if the component points to an element that was declared
-   if symbolTable[self.component] then
-      self.component = symbolTable[self.component]
+   if gblSymbolTable[self.component] then
+      self.component = gblSymbolTable[self.component]
    else
       utils.printErro("Element "..self.component.." not declared", self.line)
       return ""
@@ -74,7 +74,7 @@ function Action:check()
       --[[
       if self.component.refer then
          local refer = self.component.refer
-         local referredMedia = symbolTable[refer.media]
+         local referredMedia = gblSymbolTable[refer.media]
          if referredMedia then
             if not (referredMedia:getSon(self.interface) and 
                self.component:getSon(self.interface)) then

@@ -1,13 +1,16 @@
---Variaveis globais
 local lpeg = require("lpeg")
+local utils = require("utils")
+require("parser.grammar")
+require("parser.parse")
+require("elements.require")
 
--- Globals
-parserLine = 1
-insideMacro = false
-hasError = false
-currentElement = nil
-
-symbolTable = {
+-- Global Variables
+gblParserLine = 1
+gblInsideMacro = false
+gblHasError = false
+gblCurrentElement = nil
+gblInputFile= nil
+gblSymbolTable = {
    macros = {},
    rules = {},
    regions = {},
@@ -16,18 +19,13 @@ symbolTable = {
    body = {},
 }
 
-local utils = require("utils")
-
-require("parser.grammar")
-require("parser.parse")
-require("elements.require")
-
 function beginParse(input, outputFile, play)
    if not input:find(".sncl") then
       utils.printErro("Invalid file extension")
       return
    end
 
+   gblInputFile = input
    local inputContent = utils.readFile(input)
    if not inputContent then
       utils.printErro("Error reading input file")
@@ -36,24 +34,24 @@ function beginParse(input, outputFile, play)
 
    lpeg.match(gramaticaSncl, inputContent)
 
-   -- Checar se o parser chegou no final do arquivo
+   -- Check if parser reached the end of the file
    local lineNum = 0
    for _ in io.lines(input) do
       lineNum = lineNum+1
    end
-   if parserLine < lineNum then
-      utils.printErro("Parsing error", linhaParser)
+   if gblParserLine < lineNum then
+      utils.printErro("Parsing error", gblParserLine)
       return
    end
 
    utils.checkDependenciesElements()
-   if hasError then
+   if gblHasError then
       utils.printErro("Error creating output file")
       return
    end
    local output = utils.genNCL()
 
-   if hasError then
+   if gblHasError then
       utils.printErro("Error creating output file")
       return
    end

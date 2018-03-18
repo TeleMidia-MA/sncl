@@ -25,8 +25,8 @@ function condition.new (condition, component, interface, line)
 end
 
 function Condition:check()
-   if symbolTable[self.component] then
-      self.component = symbolTable[self.component]
+   if gblSymbolTable[self.component] then
+      self.component = gblSymbolTable[self.component]
    else
       utils.printErro("Element "..self.component.." not declared", self.line)
       return ""
@@ -62,11 +62,11 @@ function Condition:check()
 
       -- Se o component tem refer
       --[[
-      if symbolTable[self.component].refer then
-         local refer = symbolTable[self.component].refer
-         local referredMedia = symbolTable[refer.media]
+      if gblSymbolTable[self.component].refer then
+         local refer = gblSymbolTable[self.component].refer
+         local referredMedia = gblSymbolTable[refer.media]
          if referredMedia then
-            if referredMedia:getSon(self.interface) == false and referredMedia:getPropriedade(self.interface) == false and symbolTable[self.component]:getSon(self.interface) == false then
+            if referredMedia:getSon(self.interface) == false and referredMedia:getPropriedade(self.interface) == false and gblSymbolTable[self.component]:getSon(self.interface) == false then
                utils.printErro("Invalid interface "..self.interface, self.line)
                return
             end

@@ -11,23 +11,13 @@ function parseId(str)
    elseif #words == 2 then
       return words[2]
    else
-      utils.printErro("Invalid id "..str, parserLine)
+      utils.printErro("Invalid id "..str, gblParserLine)
       return nil
    end
 end
 
 function parseRefer(str)
-   if currentElement == nil then
-      utils.printErro("Invalid declaration of refer", parserLine)
-      return
-   end
-
-   local eleType = currentElement._type
-   if eleType ~= "context" and eleType ~= "media" and eleType ~= "switch" then
-      utils.printErro("Invalid declaration of refer", parserLine)
-      return
-   end
-
+   -- Format of refer: "refer: component.interface"
    local sign = str:find(":")
    if sign then
       local value = str:sub(sign+1)
@@ -39,7 +29,7 @@ function parseRefer(str)
       else
          media = value
       end
-      currentElement:setRefer(media, interface)
+      gblCurrentElement:setRefer(media, interface)
    end
 end
 
@@ -51,7 +41,7 @@ function parseLinkCondition(str)
    end
 
    if #words < 3 then
-      utils.printErro("Error in link declaration", parserLine)
+      utils.printErro("Error in link declaration", gblParserLine)
       return
    end
    local condCount, mediaCount = 1, 2
@@ -63,43 +53,43 @@ function parseLinkCondition(str)
       local interface
       media, interface = utils.splitSymbol(media, "%.")
 
-      if currentElement ~= nil then
-         if currentElement._type == "link" then --Se for link, adicionar condicao
-            local newCondition = Condition.new(condition, media, interface, parserLine)
-            newCondition.father = currentElement
-            currentElement:addCondition(newCondition)
+      if gblCurrentElement ~= nil then
+         if gblCurrentElement._type == "link" then --Se for link, adicionar condicao
+            local newCondition = Condition.new(condition, media, interface, gblParserLine)
+            newCondition.father = gblCurrentElement
+            gblCurrentElement:addCondition(newCondition)
 
-         elseif currentElement._type == "context" then
-            local newLink = Link.new(parserLine)
-            newLink.father = currentElement
-            currentElement:addSon(newLink)
-            currentElement = newLink
-            local newCondition = Condition.new(condition, media, interface, parserLine)
-            newCondition.father = currentElement
-            currentElement:addCondition(newCondition)
+         elseif gblCurrentElement._type == "context" then
+            local newLink = Link.new(gblParserLine)
+            newLink.father = gblCurrentElement
+            gblCurrentElement:addSon(newLink)
+            gblCurrentElement = newLink
+            local newCondition = Condition.new(condition, media, interface, gblParserLine)
+            newCondition.father = gblCurrentElement
+            gblCurrentElement:addCondition(newCondition)
 
-         elseif currentElement._type == "macro" then
+         elseif gblCurrentElement._type == "macro" then
             local newLink = Link.new()
-            currentElement:addSon(newLink)
-            newLink.father = currentElement
+            gblCurrentElement:addSon(newLink)
+            newLink.father = gblCurrentElement
             local newCondition = Condition.new(condition, media, interface)
             newCondition.father = newLink
             newLink:addCondition(newCondition)
-            currentElement = newLink
+            gblCurrentElement = newLink
 
          else
-            utils.printErro("Condition can be declared only inside a link", parserLine)
+            utils.printErro("Condition can be declared only inside a link", gblParserLine)
             return
          end
       else
-         local newLink = Link.new(parserLine)
-         newLink.father = currentElement
-         currentElement = newLink
-         table.insert(symbolTable.body, newLink)
+         local newLink = Link.new(gblParserLine)
+         newLink.father = gblCurrentElement
+         gblCurrentElement = newLink
+         table.insert(gblSymbolTable.body, newLink)
 
-         local newCondition = Condition.new(condition, media, interface, parserLine)
-         newCondition.father = currentElement
-         currentElement:addCondition(newCondition)
+         local newCondition = Condition.new(condition, media, interface, gblParserLine)
+         newCondition.father = gblCurrentElement
+         gblCurrentElement:addCondition(newCondition)
 
       end
       condCount = condCount+3
@@ -139,10 +129,10 @@ function parseLinkAction(str)
       end
    end
 
-   local newAction = Action.new(action, component, interface, parserLine, variable)
-   newAction.father = currentElement
-   currentElement:addAction(newAction)
-   currentElement = newAction
+   local newAction = Action.new(action, component, interface, gblParserLine, variable)
+   newAction.father = gblCurrentElement
+   gblCurrentElement:addAction(newAction)
+   gblCurrentElement = newAction
 end
 
 function parseLinkActionParam(str)
@@ -151,7 +141,7 @@ function parseLinkActionParam(str)
    local paramName = str:sub(1, sign-1)
    local paramValue = str:sub(sign+1)
 
-   currentElement:addParam(paramName, paramValue)
+   gblCurrentElement:addParam(paramName, paramValue)
 end
 
 function parsePort(str)
@@ -164,11 +154,11 @@ function parsePort(str)
    local id = words[2]
    local media, interface = utils.splitSymbol(words[3], "%.")
 
-   local newPort = Port.new(media, interface, currentElement, parserLine-1)
+   local newPort = Port.new(media, interface, gblCurrentElement, gblParserLine-1)
    newPort:setId(id)
 
-   if currentElement then
-      currentElement:addSon(newPort)
+   if gblCurrentElement then
+      gblCurrentElement:addSon(newPort)
    end
 end
 
@@ -192,7 +182,7 @@ function csv (s)
    return lpeg.match(record, s)
 end
 
-function parseMacroChamada (str)
+function parseMacroCall (str)
    str = str:gsub("*", "", 1)
    str = str:gsub("%s+", "")
 
@@ -201,27 +191,25 @@ function parseMacroChamada (str)
    paramString = paramString:sub(1, #paramString-1)
    local idMacro = str:gsub("%(.*%)", "")
 
-   if utils.isMacroSon(currentElement) then
-      if idMacro == utils.isMacroSon(currentElement) then
-         utils.printErro("Macro "..idMacro.." not declared", parserLine-1)
-         return
-      end
+   -- Cant nest macros
+   if utils.isMacroSon(gblCurrentElement) then
+      utils.printErro("Macro "..idMacro.." not declared", gblParserLine-1)
+      return
    end
-
-   if symbolTable.macros[idMacro] == nil then
-      utils.printErro("Macro "..idMacro.." not declared", parserLine-1)
+   -- Cant call a macro that is not declared yet
+   if not gblSymbolTable.macros[idMacro] then
+      utils.printErro("Macro "..idMacro.." not declared", gblParserLine-1)
       return
    end
 
    local paramsTable = csv(paramString)
-   local macroElement = symbolTable.macros[idMacro]
+   local macroElement = gblSymbolTable.macros[idMacro]
    for pos, val in pairs(paramsTable) do
       paramsTable[pos] = val:gsub("\"", "")
-      --val = val:gsub("\"", "")
    end
 
    if (#paramsTable ~= macroElement.quantParams) then
-      utils.printErro("Macro "..idMacro.." receives "..macroElement.quantParams.." parameters, "..#paramsTable.." are being passed", parserLine)
+      utils.printErro("Macro "..idMacro.." receives "..macroElement.quantParams.." parameters, "..#paramsTable.." are being passed", gblParserLine)
       return
    end
 
@@ -234,11 +222,11 @@ function parseMacroChamada (str)
    for pos, val in pairs(macroElement.properties) do
       if macroElement.params[val] then
          if paramsTable[macroElement.params[val]] then
-            currentElement:addProperty(pos, paramsTable[macroElement.params[val]])
+            gblCurrentElement:addProperty(pos, paramsTable[macroElement.params[val]])
             -- TODO: Se o valor for "nil"
          end
       else
-         currentElement:addProperty(pos, val)
+         gblCurrentElement:addProperty(pos, val)
       end
    end
 end
@@ -285,25 +273,25 @@ function parseMacroSonLink(macro, son, paramsTable)
    end
 
    newElement.hasEnd = true
-   table.insert(symbolTable.body, newElement)
+   table.insert(gblSymbolTable.body, newElement)
 end
 
 function parseMacroSon(macro, son, paramsTable)
    local newElement
-   local father = currentElement
+   local father = gblCurrentElement
    if son._type == 'link' then
       parseMacroSonLink(macro, son, paramsTable)
    else
       if son._type == 'media' then
-         newElement = Elemento.new("media", parserLine)
+         newElement = Elemento.new("media", gblParserLine)
       elseif son._type == 'context' then
-         newElement = Elemento.new("context", parserLine)
+         newElement = Elemento.new("context", gblParserLine)
       elseif son._type == 'area' then
-         newElement = Elemento.new("area", parserLine)
+         newElement = Elemento.new("area", gblParserLine)
       elseif son._type == "region" then
-         newElement = Elemento.new("region", parserLine)
+         newElement = Elemento.new("region", gblParserLine)
       end
-      currentElement = newElement
+      gblCurrentElement = newElement
 
       if macro.params[son.id] then --Se o Id é um argumento
          local id = paramsTable[macro.params[son.id]]
@@ -353,15 +341,15 @@ function parseMacroSon(macro, son, paramsTable)
          newElement.father = father
       else
          if newElement.id then
-            if symbolTable[newElement.id] == nil then
-               symbolTable[newElement.id] = newElement
-               table.insert(symbolTable.body, symbolTable[newElement.id])
+            if gblSymbolTable[newElement.id] == nil then
+               gblSymbolTable[newElement.id] = newElement
+               table.insert(gblSymbolTable.body, gblSymbolTable[newElement.id])
             end
          end
       end
    end
 
-   currentElement = father
+   gblCurrentElement = father
 end
 
 function lpegMatch(regex, string)

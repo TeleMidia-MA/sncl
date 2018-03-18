@@ -12,7 +12,7 @@ gramaticaSncl = {
    Espacos = t.space
    /function(str)
       if str == "\n" then
-         parserLine = parserLine+1
+         gblParserLine = gblParserLine+1
       end
    end,
    Symbols = (P"@"+P"_"+P"/"+P"."+P"%"+P"-"),
@@ -25,10 +25,10 @@ gramaticaSncl = {
    Property = (V"PropertyName" *P" "^0* P":" *P" "^0* V"PropertyValue" *SPC^0)
    /function(str)
       str = str:gsub("%s+", "")
-      if currentElement ~= nil then
-         currentElement:parseProperty(str)
+      if gblCurrentElement ~= nil then
+         gblCurrentElement:parseProperty(str)
       else
-         utils.printErro("Property"..str.." declared in invalid context", parserLine)
+         utils.printErro("Property"..str.." declared in invalid context", gblParserLine)
       end
    end,
 
@@ -41,18 +41,18 @@ gramaticaSncl = {
 
    End = (P"end" * SPC^0)
    /function()
-      if currentElement == nil then
-         utils.printErro("No element to end", parserLine)
+      if not gblCurrentElement then
+         utils.printErro("No element to end", gblParserLine)
          return
       end
-      if currentElement._type == "macro" then
-         insideMacro = false
+      if gblCurrentElement._type == "macro" then
+         gblInsideMacro = false
       end
-      currentElement.hasEnd = true
-      if currentElement.father == nil then
-         currentElement = nil
+      gblCurrentElement.hasEnd = true
+      if not gblCurrentElement.father then
+         gblCurrentElement = nil
       else
-         currentElement = currentElement.father
+         gblCurrentElement = gblCurrentElement.father
       end
    end,
 
@@ -65,7 +65,7 @@ gramaticaSncl = {
    ------ REGION ------
    RegionId = (P"region" *P" "^1 *V"Id" *SPC^0)
    /function(str)
-      local newRegion = Elemento.new("region", parserLine)
+      local newRegion = Elemento.new("region", gblParserLine)
       utils.newElement(str, newRegion)
    end,
    Region = (V"RegionId"
@@ -77,7 +77,7 @@ gramaticaSncl = {
    ------ CONTEXT ------
    ContextId = (P"context"*P" "^1*V"Id"*SPC^0)
    /function(str)
-      local newContext = Elemento.new("context", parserLine)
+      local newContext = Elemento.new("context", gblParserLine)
       utils.newElement(str, newContext)
    end,
    Context = (V"ContextId"
@@ -87,7 +87,7 @@ gramaticaSncl = {
    ------ MEDIA ------
    MediaId = (P"media" *P" "^1* V"Id" *SPC^0)
    /function(str)
-      local newMedia = Elemento.new("media", parserLine)
+      local newMedia = Elemento.new("media", gblParserLine)
       utils.newElement(str, newMedia)
    end,
    Media = V"MediaId"
@@ -97,7 +97,7 @@ gramaticaSncl = {
    ------ AREA ------
    AreaId = P"area" *P" "^1* V"Id" *SPC^0
    /function(str)
-      local newArea = Elemento.new("area", parserLine)
+      local newArea = Elemento.new("area", gblParserLine)
       utils.newElement(str, newArea)
    end,
    Area = (V"AreaId"
@@ -108,7 +108,7 @@ gramaticaSncl = {
    MacroCallParams = V"PropertyValue" *P" "^0* (P","*P" "^0*V"PropertyValue"*P" "^0)^0,
    MacroCall = V"Id" *P" "^0*P"("*P" "^0*V"MacroCallParams"^-1*P" "^0*P")" *SPC^0
    /function(str)
-      parseMacroChamada(str)
+      parseMacroCall(str)
    end,
 
    MacroParams = V"PropertyName"*P" "^0* (P","*P" "^0*V"PropertyName"*P" "^0)^0,
@@ -116,27 +116,27 @@ gramaticaSncl = {
    MacroId = P"macro" *P" "^1* V"Id" *P" "^0*P"("*P" "^0*V"MacroParams"^-1*P" "^0*P")" *SPC^0
    /function(str)
       local id, params, quant = parseIdMacro(str)
-      if id == nil then
-         utils.printErro("Invalid Id", parserLine)
+      if not id then
+         utils.printErro("Invalid Id", gblParserLine)
          return
       end
-      if symbolTable[id] == nil then
+      if not gblSymbolTable[id] then
          local newMacro = Macro.new(id)
          newMacro:setParams(params)
          newMacro.quantParams = quant
-         symbolTable[id] = newMacro
-         symbolTable.macros[id] = symbolTable[id]
-         if currentElement ~= nil then
-            utils.printErro("Macro can not be declared inside of "..currentElement._type, parserLine)
+         gblSymbolTable[id] = newMacro
+         gblSymbolTable.macros[id] = gblSymbolTable[id]
+         if gblCurrentElement then
+            utils.printErro("Macro can not be declared inside of "..gblCurrentElement._type, gblParserLine)
             return
          else
-            currentElement = newMacro
+            gblCurrentElement = newMacro
          end
       else
-         utils.printErro("Id "..id.." already declared", parserLine)
+         utils.printErro("Id "..id.." already declared", gblParserLine)
          return
       end
-      insideMacro = true
+      gblInsideMacro = true
    end,
    Macro = (V"MacroId"
    * (V"Comentario"+V"MacroCall"+V"Property"+V"Media"+V"Area"+V"Context"+V"Link"+V"Region")^0

@@ -30,21 +30,21 @@ end
 
 --Set
 function Element:setId(id)
-   -- If an element with this id is already declared (descriptors dont have id)
-   if symbolTable[id] and self._type ~= "descriptor" then
-      utils.printErro("Element "..id.." already declared", self.line)
-      return nil
-   end
    self.id = id
-   -- If the element is inside a macro, dont add it to the symbolTable
-   if not insideMacro then
-      symbolTable[id] = self
+   -- If the element is inside a macro, dont check the global symbol table
+   if not gblInsideMacro then
+      -- If an element with this id is already declared (descriptors dont have id)
+      if gblSymbolTable[id] and self._type ~= "descriptor" then
+         utils.printErro("Element "..id.." already declared", self.line)
+         return nil
+      end
+      gblSymbolTable[id] = self
       if self._type == "region" then
-         symbolTable.regions[id] = symbolTable[id]
+         gblSymbolTable.regions[id] = gblSymbolTable[id]
       elseif self._type == "descriptor" then
-         symbolTable.descriptors[id] = symbolTable[id]
+         gblSymbolTable.descriptors[id] = gblSymbolTable[id]
       else
-         table.insert(symbolTable.body, symbolTable[id])
+         table.insert(gblSymbolTable.body, gblSymbolTable[id])
       end
    end
 end
@@ -64,7 +64,10 @@ end
 
 function Element:parseProperty(str)
    local name, value = utils.splitSymbol(str, ":")
-   local macroFather = utils.isMacroSon(self)
+   local macroFather = nil
+   if utils.isMacroSon(self) then
+      macroFather = utils.getMacroFather(self)
+   end
 
    if not (name and value) then
       utils.printErro("Error parsing", self.line)
@@ -250,7 +253,7 @@ end
 
 function Element:createDescritor()
    if self.region then
-      if symbolTable.regions[self.region:gsub("\"", "")] == nil then
+      if gblSymbolTable.regions[self.region:gsub("\"", "")] == nil then
          utils.printErro("Region "..self.region.." not declared", self.line)
       end
       local id = self.region:gsub("\"", "").."Desc"
