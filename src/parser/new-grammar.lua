@@ -1,19 +1,20 @@
 local lpeg = require"lpeg"
 local inspect = require"inspect"
 
+-- TODO: Macro
+-- TODO: macro m1(,,,,,) <- Isso é pra da erro
+
 local line = 1
 
 --[[
 -- V = variable
 -- P
 -- R = Range(Any char in the range)
--- C = capture
 -- S = Set(Any char in the set)
 -- Ct = Table Capture
 --]]
-local V, P, R, C, S = lpeg.V, lpeg.P, lpeg.R, lpeg.C, lpeg.S
-
-local Ct, Cg, Cs = lpeg.Ct, lpeg.Cg, lpeg.Cs
+local V, P, R, S = lpeg.V, lpeg.P, lpeg.R, lpeg.S
+local C, Ct, Cg, Cs = lpeg.C, lpeg.Ct, lpeg.Cg, lpeg.Cs -- Captures
 
 function makeProperty(str)
    return str / function(name, value)
@@ -31,17 +32,24 @@ function makePresentationElement(str)
 end
 
 function makeRelationship(str)
-   return str/ function(role, media, ...)
-      local tb = {...}
-      return {role=role, component=media}
+   return str/ function(rl, cp, iFace, ...)
+      return {role=rl, component=cp, interface=iFace}
    end
 end
+
 function makeRelationshipElement(str, _type)
    return str/function(...)
-      local tb = {...}
-      local element = {_type = _type,...}
+      --local tb = {...}
+      local element = {_type = _type, ...}
       --print_table(element)
       return element
+   end
+end
+
+function makeMacro(str)
+   return str/function(...)
+      local tb = {..., _type="macro"}
+      return tb
    end
 end
 
@@ -65,30 +73,35 @@ grammar = require('pegdebug').trace({
    End = P"end"
    /function()
    end,
-   Reserved = (P"media"+"context"+"area"+"region"+"onBegin"+"onEnd"+"start"+"stop"+"do"),
-   Id = (R("az", "AZ", "__") * V"Alnum"^0),
+   Reserved = P"media"+"context"+"area"+"region"+"onBegin"+"onEnd"+"start"+"stop"+"do",
+   Id = R("az", "AZ", "__") * V"Alnum"^0,
+   PropertyValue = (V"Letter"+V"Num")^1,
+   Property = makeProperty( (C(V"Id") *V"Spc"^0* P":" *V"Spc"^0* C(V"PropertyValue") * V"Spc"^0) ),
 
    PresentationElement = V"Spc"^0*makePresentationElement(C(V"Reserved") *V"Spc"^1 * C(V"Id") *V"Spc"^1
    *(V"PresentationElement" + V"Property"+V"Spc")^0
    *C(V"End")),
 
-   PropertyValue = (V"Letter"+V"Num")^1,
-   Property = makeProperty( (C(V"Id") *V"Spc"^0* P":" *V"Spc"^0* C(V"PropertyValue") * V"Spc"^0) ),
+   Link = V"Spc"^0*Ct(V"Condition" *V"Spc"^1* ((V"Property"+V"Action")-V"End")^0 *C(V"End")*V"Spc"^0),
 
    Condition = makeRelationshipElement(V"ConditionId" *V"Spc"^1* (V"RepeatCondition"+V"Spc")^0 *P"do","condition"),
-   ConditionId = makeRelationship(C(V"Reserved") *V"Spc"^1* C(V"Id"), "condition"),
+   ConditionId = makeRelationship(C(V"Reserved") *V"Spc"^1* (C(V"Id")*(P"."*C(V"Id"))^-1), "condition"),
    RepeatCondition = P"and" *V"Spc"^1* V"ConditionId",
 
    Action = makeRelationshipElement(V"ActionId" *V"Spc"^1* (V"RepeatAction"+V"Spc")^0*
       (V"Property")^0* 
       C(V"End") *V"Spc"^0, "action"),
-   RepeatAction = (P"and" *V"Spc"^1*V"ActionId"),
-   ActionId = makeRelationship(C(V"Reserved") *V"Spc"^1* C(V"Id"),"action"),
+   ActionId = makeRelationship(C(V"Reserved") *V"Spc"^1* (C(V"Id")*(P"."*C(V"Id"))^-1),"action"),
+   RepeatAction = P"and" *V"Spc"^1*V"ActionId",
 
-   Link = V"Spc"^0*Ct(V"Condition" *V"Spc"^1* ((V"Property"+V"Action")-V"End")^0 *C(V"End")*V"Spc"^0),
+   Macro = makeMacro(P"macro" *V"Spc"^1* V"Id"* V"Arguments" *V"Spc"^0* V"End"),
+   -- Comma Separated Values:
+   Arguments = P"("* Ct(V"Field" * (',' * V"Field")^0) * P')',
+   Field = '"' * Cs(((P(1) - '"') + P'""' / '"')^0) * '"' + C((1 - S',\n)"')^0),
 
-   START = V"Spc"^0*Ct((V"PresentationElement"+V"Link")^1) * V"Spc"^0
-   /function(str, str1)
+   --START = V"Spc"^0*Ct((V"PresentationElement"+V"Link")^1) * V"Spc"^0
+   START = (V"Macro")
+   /function(str)
       print_table(str)
       print("Line:", line)
    end,

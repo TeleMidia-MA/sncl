@@ -1,25 +1,23 @@
 onBegin m1 and onEnd m2 do
    right: 29
    left: 30
-   bottom: 50
    start m2 and stop m3
       bottom: 100
+      top: 50
    end
 end
 
-media m6
+onBegin m1 do
+   start m2 
+      bot: 100
+   end
 end
 
-onEnd m1 do
-   bottom: 50
+onBegin m1 do
+   top: 200
+   start m2
+   end
 end
-
-media m3
-end
-
-media m4
-end
-
 
 
 
