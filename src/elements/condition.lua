@@ -11,17 +11,23 @@ local Condition = {}
 -- father<> ->
 -- hasEnd<> ->
 --]]
-function condition.new (condition, component, interface, line)
+function condition.new (line)
    local self = {
-      condition = condition,
-      component = component,
-      interface = interface,
-      line = line,
       properties = {},
       _type = "condition",
    }
    setmetatable(self, {__index = Condition})
    return self
+end
+
+function Condition:parseStr(str)
+   local words = {}
+   for word in str:gmatch("%S+") do
+      table.insert(words, word)
+   end
+   if #words < 3 then
+      utils.printErro("Error in link declaration", gblParserLine)
+   end
 end
 
 function Condition:check()

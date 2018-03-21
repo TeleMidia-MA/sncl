@@ -5,11 +5,9 @@ require("parser.parse")
 require("elements.require")
 
 -- Global Variables
-gblParserLine = 1
-gblInsideMacro = false
-gblHasError = false
-gblCurrentElement = nil
-gblInputFile= nil
+gblParserLine = 0
+gblInsideMacro, gblHasError = false, false
+gblCurrentElement, gblInputFile = nil, nil
 gblSymbolTable = {
    macros = {},
    rules = {},

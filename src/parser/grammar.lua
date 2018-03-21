@@ -2,6 +2,7 @@ local lpeg = require("lpeg")
 local utils = require("utils")
 local t = lpeg.locale()
 local V, P, R, C = lpeg.V, lpeg.P, lpeg.R, lpeg.C
+local Cb = lpeg.Cb
 
 local SPC = V"Espacos"
 
@@ -104,6 +105,42 @@ gramaticaSncl = {
    * (V"Comentario"+V"Property")^0
    * V"End"^-1),
 
+   ------ LINK ------
+   Link = (V"Condition"
+   * SPC^0* (V"Comentario"+V"Property"+V"Action")^0
+   * V"End"^0)
+   /function(str)
+      print(str)
+      local newLink = Link.new(gblParserLine)
+      print"Link Criado"
+   end,
+
+   Condition = (V"ConditionParse")
+   /function(str)
+      print(str)
+      local newCondition = Condition.new(gblParserLine)
+      newCondition:parseStr(str)
+      --parseLinkCondition(str)
+   end,
+   ConditionParse = ((t.alnum+V"Symbols")^1 *P" "^1* (V"Id"*(P"."*V"Id")^-1) *P" "^0* V"CondTerm" *P" "^0),
+   CondTerm = ((P"and" *P" "^1* V"ConditionParse") + (P"do")),
+
+   Action = ( V"ActionMedia"
+   * (V"Comentario"+V"Property")^0
+   * V"End"^-1)
+   /function(str)
+      print(str)
+      local newAction = Action.new(gblParserLine)
+   end,
+   ActionMedia = (t.alnum^1 *P" "^1* (t.alnum+V"Symbols")^1 *SPC^1)
+   /function(str)
+      --parseLinkAction(str)
+   end,
+   -- ActionParam = (t.alnum^1 *P" "^0* P":" *P" "^0* V"String"* SPC^0)
+   -- /function(str)
+   --    --parseLinkActionParam(str)
+   -- end,
+
    ------ MACRO ------
    MacroCallParams = V"PropertyValue" *P" "^0* (P","*P" "^0*V"PropertyValue"*P" "^0)^0,
    MacroCall = V"Id" *P" "^0*P"("*P" "^0*V"MacroCallParams"^-1*P" "^0*P")" *SPC^0
@@ -142,31 +179,7 @@ gramaticaSncl = {
    * (V"Comentario"+V"MacroCall"+V"Property"+V"Media"+V"Area"+V"Context"+V"Link"+V"Region")^0
    * V"End"^-1),
 
-   ------ LINK ------
-   Link = (V"Condition"
-   * SPC^0* (V"Comentario"+V"Property"+V"Action")^0
-   * V"End"^0),
 
-   ------ CONDITION ------
-   Condition = (V"ConditionParse")
-   /function(str)
-      parseLinkCondition(str)
-   end,
-   ConditionParse = ((t.alnum+V"Symbols")^1 *P" "^1* (V"Id"*(P"."*V"Id")^-1) *P" "^0* V"CondTerm"*P" "^0),
-   CondTerm = ((P"and" *P" "^1* V"ConditionParse") + (P"do")),
-
-   ------ ACTION ------
-   ActionMedia = (t.alnum^1 *P" "^1* (t.alnum+V"Symbols")^1 *SPC^1)
-   /function(str)
-      parseLinkAction(str)
-   end,
-   ActionParam = (t.alnum^1 *P" "^0* P":" *P" "^0* V"String"* SPC^0)
-   /function(str)
-      parseLinkActionParam(str)
-   end,
-   Action = ( V"ActionMedia"
-   * (V"Comentario"+V"Property")^0
-   * V"End"^-1),
    --
    -- START --
    INICIAL = SPC^0 * (V"Comentario"+V"Macro"+V"MacroCall"+V"Port"+V"Region"+V"Media"+V"Context"+V"Link")^0,

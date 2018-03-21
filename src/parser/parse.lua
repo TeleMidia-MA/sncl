@@ -53,7 +53,7 @@ function parseLinkCondition(str)
       local interface
       media, interface = utils.splitSymbol(media, "%.")
 
-      if gblCurrentElement ~= nil then
+      if gblCurrentElement then
          if gblCurrentElement._type == "link" then --Se for link, adicionar condicao
             local newCondition = Condition.new(condition, media, interface, gblParserLine)
             newCondition.father = gblCurrentElement
@@ -175,7 +175,6 @@ function parseIdMacro(str)
    return id, paramsTable, count-1
 end
 
-
 local field = '(' * lpeg.Cs( (lpeg.P(1)-')') ) * ')' + lpeg.C( (1-lpeg.S',\n')^0 )
 local record = lpeg.Ct(field * (',' * field)^0) * (lpeg.P'\n' + -1)
 function csv (s)
@@ -231,6 +230,7 @@ function parseMacroCall (str)
    end
 end
 
+-- If the son of the macro is a link
 function parseMacroSonLink(macro, son, paramsTable)
    newElement = Link.new()
 
