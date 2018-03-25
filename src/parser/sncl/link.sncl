@@ -1,12 +1,16 @@
 onBegin m1 do
    start m2 end
    stop m3.a1 
-      delay: 20s
+      asd: 20s
    end
 end
 
-context c1
-   onBegin m6 do
-      start m7 end
+macro macro1(media1, media2, del)
+   onBegin media1 do
+      start media2 end
+      start media3 end
+      delay: del
    end
 end
+
+macro1("m10", "m11", "a100s")

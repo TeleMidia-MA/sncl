@@ -3,6 +3,7 @@ local lpeg = require"lpeg"
 require"grammar"
 require"pegdebug"
 require"gen"
+require"process"
 
 local inspect = require"inspect"
 
@@ -13,6 +14,7 @@ gblPresTbl = {}
 gblLinkTbl = {}
 gblMacroTbl = {}
 gblMacroCallTbl = {}
+gblHeadTbl = {}
 
 _DEBUG_PEG = false
 _DEBUG_PARSE_TABLE = false
@@ -29,14 +31,21 @@ function beginParse()
    end
 
    resolveMacroCalls(gblMacroCallTbl)
+   resolveXConnectors(gblLinkTbl)
 
    if _DEBUG_SYMBOL_TABLE then
-      print("Symbol Table:", inspect.inspect(gblPresTbl))
-      print("Link Table:", inspect.inspect(gblLinkTbl))
-      print("Macro Table:", inspect.inspect(gblMacroTbl))
-      print("Macro Call Table:", inspect.inspect(gblMacroCallTbl))
+      print("Head Table:", inspect.inspect(gblHeadTbl))
+      -- print("Symbol Table:", inspect.inspect(gblPresTbl))
+      -- print("Link Table:", inspect.inspect(gblLinkTbl))
+      -- print("Macro Table:", inspect.inspect(gblMacroTbl))
+      -- print("Macro Call Table:", inspect.inspect(gblMacroCallTbl))
    end
-   local NCL = genNCL()
+   local NCL = "\n<head>"
+   NCL= NCL..genHeadNCL("\n   ")
+   NCL = NCL.."\n</head>"
+   NCL = NCL.."\n<body>"
+   NCL = NCL..genBodyNCL("\n   ")
+   NCL = NCL.."\n</body>"
    print(NCL)
 end
 

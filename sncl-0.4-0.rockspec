@@ -30,6 +30,7 @@ build = {
       ["utils"]              = "src/utils/misc.lua",
       ["pegdebug"]           = "src/utils/pegdebug.lua",
       ["inspect"]            = "src/utils/inspect.lua",
+      ["process"] = "src/parser/process.lua",
       ["grammar"]     = "src/parser/grammar.lua",
       ["parse-tree"]  = "src/parser/parse-tree.lua",
       ["gen"]         = "src/parser/gen.lua",

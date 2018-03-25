@@ -110,7 +110,6 @@ function parseTree.makeLink(str)
                   element.properties = {}
                end
                parseTree.addProperties(element, val)
-
             end
          elseif val == "end" then
             element.hasEnd = true

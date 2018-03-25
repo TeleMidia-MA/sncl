@@ -2,26 +2,26 @@ local ins = require"inspect"
 local utils = require"utils"
 
 function genLink(ele, indent)
-   local NCL = indent.."<link xconnector= >"
+   local NCL = indent.."<link xconnector=\""..ele.xconnector.."\" >"
 
    for _, act in pairs(ele.actions) do
-      NCL = NCL..indent.."   <bind role="..act.role.." component="..act.component
+      NCL = NCL..indent.."   <bind role=\""..act.role.."\" component=\""..act.component.."\""
       if act.interface then
-         NCL = NCL.." interface="..act.interface
+         NCL = NCL.." interface=\""..act.interface.."\""
       end
       NCL = NCL.." >"
       if act.properties then
          for name, value in pairs(act.properties) do
-            NCL = NCL..indent.."      <bindParam name="..name.." value="..value.."/>"
+            NCL = NCL..indent.."      <bindParam name=\""..name.."\" value=\""..value.."\" />"
          end
       end
       NCL = NCL..indent.."   </bind>"
    end
 
    for _, cond in pairs(ele.conditions) do
-      NCL = NCL..indent.."   <bind role="..cond.role.." component="..cond.component
+      NCL = NCL..indent.."   <bind role=\""..cond.role.."\" component=\""..cond.component.."\""
       if cond.interface then
-         NCL = NCL.." interface="..cond.interface
+         NCL = NCL.." interface=\""..cond.interface.."\""
       end
       NCL = NCL.." >"
       NCL = NCL..indent.."   </bind>"
@@ -32,10 +32,10 @@ function genLink(ele, indent)
 end
 
 function genPresentation(ele, indent)
-   local NCL = indent.."<"..ele._type.." id="..ele.id..">"
+   local NCL = indent.."<"..ele._type.." id=\""..ele.id.."\" >"
    if ele.properties then
       for name, value in pairs(ele.properties) do
-         NCL = NCL..indent.."   <property name="..name.." value="..value.."/>"
+         NCL = NCL..indent.."   <property name=\""..name.."\" value=\""..value.."\" />"
       end
    end
    if ele.sons then
@@ -47,13 +47,12 @@ function genPresentation(ele, indent)
          end
       end
    end
-   NCL = NCL..indent.."</"..ele._type..">"
+   NCL = NCL..indent.."</"..ele._type.." >"
    return NCL
 end
 
-function genNCL()
+function genBodyNCL(indent)
    local NCL = ""
-   local indent = "\n"
    for _, ele in pairs(gblPresTbl) do
       if ele._type and not ele.father then
          NCL = NCL..genPresentation(ele, indent)
@@ -69,77 +68,69 @@ function genNCL()
    return NCL
 end
 
-function containValue(tbl, arg)
-   for _, val in pairs(tbl) do
-      if val == arg then
-         return true
+function genConditions(conds, indent)
+   local NCL = ""
+   for pos, val in pairs(conds) do
+      print(pos, val)
+      NCL = NCL..indent.."<simpleCondition role=\""..pos.."\""
+      if val > 1 then
+         NCL = NCL.." max=\"unbounded\" qualifier=\"and\""
       end
+      NCL = NCL..">"
+      NCL = NCL..indent.."</simpleCondition>"
    end
-   return false
+   return NCL
 end
 
-function getIndex(tbl, arg)
-   for pos, val in pairs(tbl) do
-      if val == arg then
-         return pos
+function genActions(acts, indent)
+   local NCL = ""
+   for pos, val in pairs(acts) do
+      print(pos, val)
+      NCL = NCL..indent.."<simpleAction role=\""..pos.."\""
+      if val > 1 then
+         NCL = NCL.." max=\"unbounded\" qualifier=\"par\""
       end
+      NCL = NCL..">"
+      NCL = NCL..indent.."</simpleActions>"
    end
-   return nil
+   return NCL
 end
 
-function genMacroSon(element, macro, arguments)
-   local newEle = {properties = {}, sons={}}
-   -- If the Id is a parameter, a new element have to be created
-   if containValue(macro.parameters, element.id) then
-      newEle.id = arguments[getIndex(macro.parameters, element.id)]
+function genXConnector(xconn, indent)
+   local NCL = ""
+   NCL = NCL..indent.."<causalConnector id=\""..xconn.id.."\" >"
+   local nConds = 0
+   for _, _ in pairs(xconn.conditions) do
+      nConds = nConds+1
+   end
+   if nConds > 1 then
+      NCL = NCL..indent.."   <compoundCondition operator=\"and\" >"
+      NCL = NCL..genConditions(xconn.conditions, indent.."      ")
+      NCL = NCL..indent.."   </compoundCondition>"
    else
-      newEle.id = element.id
+      NCL = NCL..genConditions(xconn.conditions, indent.."   ")
    end
-
-   if gblPresTbl[newEle.id] then
-      utils.printErro("Id "..newEle.id.." already declared")
-      return nil
+   local nActs = 0
+   for _, _ in pairs(xconn.actions) do
+      nActs = nActs+1
    end
-   gblPresTbl[newEle.id] = newEle
-   if element.properties then
-      for name, value in pairs(element.properties) do
-         -- If a property is a parameter, create the property
-         -- with the new value
-         if containValue(macro.parameters, name) then
-            newEle.properties[name] = arguments[getIndex(macro.parameters, name)]
-         end
-      end
+   if nActs > 1 then
+      NCL = NCL..indent.."   <compoundAction operator=\"par\" >"
+      NCL = NCL..genActions(xconn.actions, indent.."      ")
+      NCL = NCL..indent.."   </compoundAction>"
+   else
+      NCL = NCL..genActions(xconn.actions, indent.."   ")
    end
-   if element.sons then
-      for _, son in pairs(element.sons) do
-         local newSon = genMacroSon(son, macro, arguments)
-         newSon.father = newEle
-         table.insert(newEle.sons, newSon)
-      end
-   end
-   newEle._type = element._type
-   return newEle
+   NCL = NCL..indent.."</causalConnector>"
+   return NCL
 end
 
-function resolveMacro(macro, arguments)
-   for _, son in pairs(macro.sons) do
-      genMacroSon(son, macro, arguments)
-   end
-end
-
-function resolveMacroCalls(tbl)
-   for _, call in pairs(tbl) do
-      local macro = gblMacroTbl[call.macro]
-      if not macro then
-         utils.printErro("Macro "..call.macro.." not declared")
-         return nil
+function genHeadNCL(indent)
+   local NCL = ""
+   for _, val in pairs(gblHeadTbl) do
+      if val._type == "xconnector"then
+         NCL = NCL..genXConnector(val,indent)
       end
-      if #macro.parameters ~= #call.arguments then
-         utils.printErro("Wrong number of arguments on call "..macro.id)
-         return nil
-      end
-      resolveMacro(macro, call.arguments)
    end
+   return NCL
 end
-
-
