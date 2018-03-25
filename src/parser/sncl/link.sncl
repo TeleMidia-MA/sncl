@@ -19,5 +19,10 @@ onBegin m1 do
    end
 end
 
-
-
+onBegin m3 do
+   start c1 end
+   start c2.i2 
+      asd: 30s
+   end
+   delay: 20s
+end
