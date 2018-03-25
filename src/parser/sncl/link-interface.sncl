@@ -1,0 +1,8 @@
+onBegin m1.i1 and onEnd m3.asd do
+   start m100.m3 
+      left:100
+   end
+end
+
+onEnd m2 do
+end

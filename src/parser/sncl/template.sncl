@@ -1,0 +1,43 @@
+medias = include "medias" -- A sncl document
+
+forEach media in medias do -- Select all top-level medias
+   ...
+end
+
+forEach context in medias do -- Select all top-level contexts
+   ...
+end
+
+forEach media > context in medias do -- Select all medias direct child of a context
+   onSelection media.RIGHT do -- On use of the right key
+      start media.next end  --Start the next media (It is a circular list)
+   end
+end
+-- Se eu usasse o #, teria que ter a informação do total de medias do mesmo jeito
+
+forEach media > context["c1"] in medias do -- Can select the elements by Id
+   onSelection media.RIGHT do
+      abort media[1] and start media.next end  --Or by Index
+   end
+end
+
+media m1
+   class: "slide-photos"
+end
+
+forEach media#slide-photo in medias do
+   onBegin media do
+      start media.next end
+   end
+end
+
+-- Não tem como saber o maximo de elementos (#)
+-- Notação pra a info de qnts elementos tão selecionados?
+
+-- Language Selectors:
+-- None        -> All elements
+-- [<string>]  -> Select by Id
+-- [<integer>] -> Select by Index
+-- E > F       -> Elements of type E child of element of type F
+-- E#C         -> Elements of type E with class C
+-- E.next, E.previous <- N gostei
