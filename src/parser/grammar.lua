@@ -6,8 +6,6 @@ require"gen"
 
 -- TODO: macro m1(,,,,,) <- Isso é pra da erro
 
-local line = 0
-
 local V, P, R, S = lpeg.V, lpeg.P, lpeg.R, lpeg.S
 local C, Ct, Cg, Cs = lpeg.C, lpeg.Ct, lpeg.Cg, lpeg.Cs
 
@@ -18,7 +16,7 @@ grammar = {
    Spc = S(" \t\n")
    /function(st)
       if st == '\n' then
-         line = line+1
+         gblParserLine = gblParserLine+1
       end
    end,
    Digit = R("09"),
@@ -76,6 +74,5 @@ grammar = {
       if _DEBUG_PARSE_TABLE then
          print("Parse Tree:", inspect.inspect(str))
       end
-      print("Line:", line)
    end,
 }

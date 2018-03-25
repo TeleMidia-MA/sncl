@@ -13,4 +13,24 @@ macro macro1(media1, media2, del)
    end
 end
 
+macro macro2()
+   media m2
+   end
+   media m11
+   end
+end
+
 macro1("m10", "m11", "a100s")
+macro2()
+
+media media3
+end
+
+media m3
+   area a1 end
+end
+
+media m1
+end
+
+media m10 end
