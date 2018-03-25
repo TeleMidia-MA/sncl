@@ -7,6 +7,7 @@ require"gen"
 local inspect = require"inspect"
 
 -- TODO: Macro cant have recursion
+-- TODO: Check if the sons are valid elements
 
 gblPresTbl = {}
 gblLinkTbl = {}
@@ -15,7 +16,7 @@ gblMacroCallTbl = {}
 
 _DEBUG_PEG = false
 _DEBUG_PARSE_TABLE = false
-_DEBUG_SYMBOL_TABLE = false
+_DEBUG_SYMBOL_TABLE = true
 
 function beginParse()
    local file = io.open(arg[1])
@@ -31,10 +32,11 @@ function beginParse()
 
    if _DEBUG_SYMBOL_TABLE then
       print("Symbol Table:", inspect.inspect(gblPresTbl))
-      print("macro table:", inspect.inspect(gblMacroTbl))
-      print("macro call table:", inspect.inspect(gblMacroCallTbl))
+      print("Link Table:", inspect.inspect(gblLinkTbl))
+      print("Macro Table:", inspect.inspect(gblMacroTbl))
+      print("Macro Call Table:", inspect.inspect(gblMacroCallTbl))
    end
-   local NCL = genNCL(gblPresTbl,"")
+   local NCL = genNCL()
    print(NCL)
 end
 

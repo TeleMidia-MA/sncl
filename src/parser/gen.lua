@@ -1,9 +1,38 @@
 local ins = require"inspect"
 local utils = require"utils"
 
+function genLink(ele, indent)
+   local NCL = indent.."<link xconnector= >"
+
+   for _, act in pairs(ele.actions) do
+      NCL = NCL..indent.."   <bind role="..act.role.." component="..act.component
+      if act.interface then
+         NCL = NCL.." interface="..act.interface
+      end
+      NCL = NCL.." >"
+      if act.properties then
+         for name, value in pairs(act.properties) do
+            NCL = NCL..indent.."      <bindParam name="..name.." value="..value.."/>"
+         end
+      end
+      NCL = NCL..indent.."   </bind>"
+   end
+
+   for _, cond in pairs(ele.conditions) do
+      NCL = NCL..indent.."   <bind role="..cond.role.." component="..cond.component
+      if cond.interface then
+         NCL = NCL.." interface="..cond.interface
+      end
+      NCL = NCL.." >"
+      NCL = NCL..indent.."   </bind>"
+   end
+
+   local NCL = NCL..indent.."</link>"
+   return NCL
+end
+
 function genPresentation(ele, indent)
-   local NCL = ""
-   NCL = NCL..indent.."<"..ele._type.." id="..ele.id..">"
+   local NCL = indent.."<"..ele._type.." id="..ele.id..">"
    if ele.properties then
       for name, value in pairs(ele.properties) do
          NCL = NCL..indent.."   <property name="..name.." value="..value.."/>"
@@ -12,7 +41,7 @@ function genPresentation(ele, indent)
    if ele.sons then
       for _, son in pairs(ele.sons) do
          if son._type == "link" then
-            -- TODO: Link
+            NCL = NCL..genLink(son, indent.."   ")
          else
             NCL = NCL..genPresentation(son, indent.."   ")
          end
@@ -22,14 +51,21 @@ function genPresentation(ele, indent)
    return NCL
 end
 
-function genNCL(tbl)
+function genNCL()
    local NCL = ""
    local indent = "\n"
-   for _, ele in pairs(tbl) do
+   for _, ele in pairs(gblPresTbl) do
       if ele._type and not ele.father then
-         NCL = NCL..genPresentation(ele, indent.."")
+         NCL = NCL..genPresentation(ele, indent)
       end
    end
+
+   for _, ele in pairs(gblLinkTbl) do
+      if not ele.father then
+         NCL = NCL..genLink(ele, indent)
+      end
+   end
+
    return NCL
 end
 

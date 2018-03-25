@@ -43,7 +43,7 @@ grammar = {
    Property = sT.makeProperty( (C(V"Id") *V"Spc"^0* P":" *V"Spc"^0* C(V"PropertyValue") * V"Spc"^0) ),
 
    PresentationElement = V"Spc"^0* sT.makePresentationElement(C(V"Reserved") *V"Spc"^1 * C(V"Id") *V"Spc"^1
-   *(V"PresentationElement" + V"Property"+V"Spc")^0 *C(V"End")),
+   *(V"PresentationElement" + V"Property"+sT.makeLink(V"Link")+V"Spc")^0 *C(V"End")),
 
    Link = V"Spc"^0*(V"Condition" *V"Spc"^1* ((V"Property"+V"Action")-V"End")^0 *C(V"End")*V"Spc"^0),
 
@@ -69,7 +69,7 @@ grammar = {
    MacroCall = V"Spc"^0*sT.makeMacroCall(C(V"Id") * V"Arguments"),
    Arguments = P"("*  Ct(( (V"FieldArguments"^-1 * (',' * V"FieldArguments")^0)) ) * P')',
    FieldArguments = V"Spc"^0*P'"'*C(V"Id")*P'"'*V"Spc"^0,
-   -- TODO: Can accept more thing other than Id
+   -- TODO: Can accept more things other than Id
 
    START = (V"Spc"^0* Ct((V"Macro"+V"PresentationElement"+sT.makeLink(V"Link")+V"MacroCall")^0) * V"Spc"^0)* V"EOS"
    /function(str)

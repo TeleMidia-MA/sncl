@@ -1,28 +1,12 @@
-onBegin m1 and onEnd m2 do
-   right: 29
-   left: 30
-   start m2 and stop m3
-      bottom: 100
-      top: 50
-   end
-end
-
 onBegin m1 do
-   start m2 
-      bot: 100
+   start m2 end
+   stop m3.a1 
+      delay: 20s
    end
 end
 
-onBegin m1 do
-   top: 200
-   start m2
+context c1
+   onBegin m6 do
+      start m7 end
    end
-end
-
-onBegin m3 do
-   start c1 end
-   start c2.i2 
-      asd: 30s
-   end
-   delay: 20s
 end

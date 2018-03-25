@@ -116,7 +116,7 @@ function parseTree.makeLink(str)
             element.hasEnd = true
          end
       end
-      table.insert(gblLinkTable, element)
+      table.insert(gblLinkTbl, element)
       return element
    end
 end
@@ -170,7 +170,6 @@ function parseTree.makeMacroLinkSon(str)
                if not element.properties then
                   element.properties = {}
                end
-               -- TODO: Check if property already exists
                for name, value in pairs(val) do
                   if name ~= "_type" then
                      if element.properties[name] then
