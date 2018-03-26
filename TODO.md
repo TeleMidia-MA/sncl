@@ -33,30 +33,23 @@ macro createFoto(id, src)
    end
 end
 
-macro createLink(m1, m2)
+macro createSeqPhotos(m1, m2)
    onEnd m1 do
       start m2 end
    end
 end
 
-macro createSlideshow(table)
-   context slideshow
-      createLink()
-      createFoto()
+macro createSelectAlbum()
+end
 
-      media buttonNext
-         focusIndex: 1
-         moveLeft: 2
-         moveRight: 2
-      end
-      media buttonPrev
-         focusIndex: 2
-         moveLeft: 1
-         moveRight: 1
-      end
-
+macro createAlbum(table)
+   context album
       assert medias[photo] > 0
    end
+end
+
+macro createSlideshow()
+   createAlbum()
 end
 
 createSlideshow(slideshow)

@@ -41,7 +41,7 @@ function resolveMacroLinkSon(son, macro, args)
    local newEle = {_type="link", actions={}, conditions={}}
 
    for _, act in pairs(son.actions) do
-      local newAct = {}
+      local newAct = {_type="action"}
       newAct.role = act.role
       if utils.containValue(macro.parameters, act.component) then
          newAct.component = args[utils.getIndex(macro.parameters, act.component)]
@@ -70,13 +70,14 @@ function resolveMacroLinkSon(son, macro, args)
    end
 
    for _, cond in pairs(son.conditions) do
-      local newCond = {}
+      local newCond = {_type="condition"}
       newCond.role = cond.role
       if utils.containValue(macro.parameters, cond.component) then
          newCond.component = args[utils.getIndex(macro.parameters, cond.component)]
       else
          newCond.component = cond.component
       end
+      -- TODO: BUTTONS
       if cond.interface then
          if utils.containValue(macro.parameters, cond.interface) then
             newCond.interface = args[utils.getIndex(macro.parameters, cond.interface)]

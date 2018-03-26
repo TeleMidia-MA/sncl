@@ -65,13 +65,12 @@ grammar = {
    FieldArguments = V"Spc"^0*P'"'*C(V"PropertyValue")*P'"'*V"Spc"^0,
    -- TODO: Can accept more things other than Id
 
-   START = (V"Spc"^0* Ct((V"Macro"+V"PresentationElement"+sT.makeLink(V"Link")+V"MacroCall")^0) * V"Spc"^0)* V"EOS"
+   START = ((V"Spc"^0* Ct((V"Macro"+V"PresentationElement"+sT.makeLink(V"Link")+V"MacroCall")^0) * V"Spc"^0)* V"EOS")
    /function(str)
       if _DEBUG_PARSE_TABLE then
+         print("PARSE:",str)
          print("Parse Tree:", inspect.inspect(str))
       end
    end,
-
-
 }
 

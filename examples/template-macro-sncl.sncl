@@ -1,0 +1,46 @@
+makeMedia("mAlbum1", "medias/image1.jpg")
+makeMedia("mAlbum2", "medias/image1.jpg")
+
+macro makeMedia(id, src)
+   media id
+      src: src
+   end
+end
+
+context album1
+   media a1f1
+      refer: mAlbum1
+   end
+   makeMedia("a1f2", "medias/image2.jpg")
+   makeMedia("a1f3", "medias/image3.jpg")
+   onEnd a1f1 do
+      start a1f2 end
+   end
+   onEnd a1f2 do
+      start a1f3 end
+   end
+end
+
+context album2
+   media a2f1
+      refer: mAlbum2
+   end
+   makeMedia("a2f2", "medias/image2.jpg")
+   makeMedia("a2f3", "medias/image3.jpg")
+  onEnd a2f1 do
+      start a2f2 end
+   end
+   onEnd a2f2 do
+      start a2f3 end
+   end
+end
+
+onSelection mAlbum1 do
+   start album1 end
+   stop album2 end
+end
+
+onSelection mAlbum2 do
+   start album2 end
+   stop album1 end
+end

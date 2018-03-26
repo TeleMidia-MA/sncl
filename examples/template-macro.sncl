@@ -1,0 +1,27 @@
+macro createMedia(src)
+   media ___
+      src: src
+   end
+end
+
+macro createAlbum(imgs)
+   createMedia()
+   onEnd ___ do
+      start ___ end
+   end
+   assert #media["photo"] > 1
+end
+
+macro createSlideshow(albums)
+   -- Port to first context
+   context ___
+      createAlbum()
+      assert #context["album"] > 1
+   end
+   onSelection ___ do
+      stop ___ end
+      start ___ end
+   end
+end
+
+createSlideshow()

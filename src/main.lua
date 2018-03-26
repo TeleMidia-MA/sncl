@@ -11,7 +11,6 @@ require"process"
 -- TODO: Check if the sons are valid elements
 
 gblParserLine = 1
-
 gblPresTbl = {}
 gblLinkTbl = {}
 gblMacroTbl = {}
@@ -23,6 +22,7 @@ _DEBUG_PARSE_TABLE = false
 _DEBUG_SYMBOL_TABLE = false
 
 function beginParse(input, output, play)
+   local parsed = nil
    gblInputFile = input
    local snclInput = utils.readFile(input)
    if not snclInput then
@@ -33,8 +33,13 @@ function beginParse(input, output, play)
    if _DEBUG_PEG then
       lpeg.match(require("pegdebug").trace(grammar), snclInput)
    else
-      lpeg.match(grammar, snclInput)
+      parsed = lpeg.match(grammar, snclInput)
    end
+   if not parsed then
+      utils.printErro("Error creating output file")
+      return
+   end
+   print("LINE:", gblParserLine)
 
    resolveMacroCalls(gblMacroCallTbl)
    resolveXConnectors(gblLinkTbl)
@@ -48,8 +53,7 @@ function beginParse(input, output, play)
       print("Macro Call Table:", inspect.inspect(gblMacroCallTbl))
    end
 
-   -- TODO: Dont output if the parser didnt reach end of the file
-   if gblHasError then
+   if gblHasError or not parsed then
       utils.printErro("Error creating output file")
       return
    end
