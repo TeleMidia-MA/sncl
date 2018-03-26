@@ -33,6 +33,25 @@ function utils.printErro(errString, line)
    gblHasError = true
 end
 
+
+function utils.containValue(tbl, arg)
+   for _, val in pairs(tbl) do
+      if val == arg then
+         return true
+      end
+   end
+   return false
+end
+
+function utils.getIndex(tbl, arg)
+   for pos, val in pairs(tbl) do
+      if val == arg then
+         return pos
+      end
+   end
+   return nil
+end
+
 -- function utils.genNCL()
 --    local indent = "\n   "
 --    local NCL = [[<?xml version="1.0" encoding="ISO-8859-1"?>

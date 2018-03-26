@@ -1,0 +1,13 @@
+onSelection m1.GREEN do
+   start m2 end
+   start m3.a1
+      delay: 20s
+   end
+end
+
+media m1 end
+media m2 end
+media m3
+   area a1
+   end
+end

@@ -1,40 +1,35 @@
 local ins = require"inspect"
 local utils = require"utils"
 
+function genBind(ele, indent)
+   local NCL = ""
+   if not gblPresTbl[ele.component] then
+      utils.printErro("No element "..ele.component.." declared")
+      return ""
+   end
+   NCL = NCL..indent.."<bind role=\""..ele.role.."\" component=\""..ele.component.."\""
+   if ele.interface then
+      NCL = NCL.." interface=\""..ele.interface.."\""
+   end
+   NCL = NCL.." >"
+   if ele.properties then
+      for name, value in pairs(ele.properties) do
+         NCL = NCL..indent.."   <bindParam name=\""..name.."\" value=\""..value.."\"/>"
+      end
+   end
+   NCL = NCL..indent.."</bind>"
+   return NCL
+end
+
 function genLink(ele, indent)
    local NCL = indent.."<link xconnector=\""..ele.xconnector.."\" >"
 
    for _, act in pairs(ele.actions) do
-      if not gblPresTbl[act.component] then
-         utils.printErro("No element "..act.component.." declared")
-         return ""
-      end
-      NCL = NCL..indent.."   <bind role=\""..act.role.."\" component=\""..act.component.."\""
-      if act.interface then
-         NCL = NCL.." interface=\""..act.interface.."\""
-      end
-      NCL = NCL.." >"
-      if act.properties then
-         for name, value in pairs(act.properties) do
-            NCL = NCL..indent.."      <bindParam name=\""..name.."\" value=\""..value.."\" />"
-         end
-      end
-      NCL = NCL..indent.."   </bind>"
+      NCL = NCL..genBind(act,indent.."   ")
    end
-
    for _, cond in pairs(ele.conditions) do
-      if not gblPresTbl[cond.component] then
-         utils.printErro("No element "..cond.component.." declared")
-         return ""
-      end
-      NCL = NCL..indent.."   <bind role=\""..cond.role.."\" component=\""..cond.component.."\""
-      if cond.interface then
-         NCL = NCL.." interface=\""..cond.interface.."\""
-      end
-      NCL = NCL.." >"
-      NCL = NCL..indent.."   </bind>"
+      NCL = NCL..genBind(cond, indent.."   ")
    end
-
    if ele.properties then
       for name, value in pairs(ele.properties) do
          NCL = NCL..indent.."   <linkParam name=\""..name.."\" value=\""..value.."\" />"
@@ -52,6 +47,7 @@ function genPresentation(ele, indent)
          NCL = NCL..indent.."   <property name=\""..name.."\" value=\""..value.."\" />"
       end
    end
+   -- TODO: Check if the son type is valid
    if ele.sons then
       for _, son in pairs(ele.sons) do
          if son._type == "link" then
@@ -61,7 +57,7 @@ function genPresentation(ele, indent)
          end
       end
    end
-   NCL = NCL..indent.."</"..ele._type.." >"
+   NCL = NCL..indent.."</"..ele._type..">"
    return NCL
 end
 
@@ -82,12 +78,15 @@ function genBodyNCL(indent)
    return NCL
 end
 
-function genConditions(conds, indent)
+function genConditions(conds, indent, props)
    local NCL = ""
    for pos, val in pairs(conds) do
       NCL = NCL..indent.."<simpleCondition role=\""..pos.."\""
       if val > 1 then
          NCL = NCL.." max=\"unbounded\" qualifier=\"and\""
+      end
+      if utils.containValue(props, "__keyValue") and pos=="onSelection" then
+         NCL = NCL.." key=\"$__keyValue\""
       end
       NCL = NCL..">"
       NCL = NCL..indent.."</simpleCondition>"
@@ -95,12 +94,15 @@ function genConditions(conds, indent)
    return NCL
 end
 
-function genActions(acts, indent)
+function genActions(acts, indent, props)
    local NCL = ""
    for pos, val in pairs(acts) do
       NCL = NCL..indent.."<simpleAction role=\""..pos.."\""
       if val > 1 then
          NCL = NCL.." max=\"unbounded\" qualifier=\"par\""
+      end
+      if pos == "set" then
+         NCL = NCL.." value=\"$setValue\""
       end
       NCL = NCL..">"
       NCL = NCL..indent.."</simpleAction>"
@@ -112,42 +114,58 @@ function genXConnector(xconn, indent)
    local NCL = ""
    NCL = NCL..indent.."<causalConnector id=\""..xconn.id.."\" >"
    local nConds = 0
-   for _, _ in pairs(xconn.conditions) do
+   for _, _ in pairs(xconn.condition) do
       nConds = nConds+1
    end
    if nConds > 1 then
       NCL = NCL..indent.."   <compoundCondition operator=\"and\" >"
-      NCL = NCL..genConditions(xconn.conditions, indent.."      ")
+      NCL = NCL..genConditions(xconn.condition, indent.."      ", xconn.properties)
       NCL = NCL..indent.."   </compoundCondition>"
    else
-      NCL = NCL..genConditions(xconn.conditions, indent.."   ")
+      NCL = NCL..genConditions(xconn.condition, indent.."   ", xconn.properties)
    end
    local nActs = 0
-   for _, _ in pairs(xconn.actions) do
+   for _, _ in pairs(xconn.action) do
       nActs = nActs+1
    end
    if nActs > 1 then
       NCL = NCL..indent.."   <compoundAction operator=\"par\" >"
-      NCL = NCL..genActions(xconn.actions, indent.."      ")
+      NCL = NCL..genActions(xconn.action, indent.."      ")
       NCL = NCL..indent.."   </compoundAction>"
    else
-      NCL = NCL..genActions(xconn.actions, indent.."   ")
+      NCL = NCL..genActions(xconn.action, indent.."   ")
+   end
+   for _, value in pairs(xconn.properties) do
+      NCL = NCL..indent.."   <connectorParam name=\""..value.."\" />"
    end
    NCL = NCL..indent.."</causalConnector>"
+   return NCL
+end
+
+function genRegion(ele, indent)
+   local NCL = indent.."<region id=\""..ele.id.."\""
+   for name, value in pairs(ele.properties) do
+      NCL = NCL.." "..name.."=\""..value.."\""
+   end
+   NCL = NCL.."/>"
    return NCL
 end
 
 function genHeadNCL(indent)
    local NCL = ""
    local connBase = ""
+   local regionBase = ""
    for _, val in pairs(gblHeadTbl) do
       if val._type == "xconnector"then
          connBase = connBase..genXConnector(val,indent.."   ")
+      elseif val._type == "region" then
+         regionBase = regionBase..genRegion(val, indent.."   ")
       end
    end
+   NCL = NCL..indent.."<regionBase>"
+   NCL = NCL..regionBase..indent.."</regionBase>"
    NCL = NCL..indent.."<connectorBase>"
-   NCL = NCL..connBase
-   NCL = NCL..indent.."</connectorBase>"
+   NCL = NCL..connBase..indent.."</connectorBase>"
    return NCL
 end
 

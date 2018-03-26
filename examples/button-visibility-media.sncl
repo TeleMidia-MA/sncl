@@ -1,6 +1,3 @@
-port pBody1 mainImage
-port pBody2 buttonDisappear
-
 media mainImage
    src: "medias/image1.jpg"
    visible: true

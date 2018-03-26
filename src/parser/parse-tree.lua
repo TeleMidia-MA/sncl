@@ -1,7 +1,15 @@
 local ins = require"inspect"
 local utils = require"utils"
 
+local lpeg = require"lpeg"
 local parseTree = {}
+
+local R, P = lpeg.R, lpeg.P
+
+Buttons = R"09"+R"AZ"+P"*"+P"#"+P"MENU"+P"INFO"+P"GUIDE"+P"CURSOR_DOWN"
+   +P"CURSOR_LEFT"+P"CURSOR_RIGHT"+P"CURSOR_UP"+P"CHANNEL_DOWN"+P"CHANNEL_UP"
+   +P"VOLUME_DOWN"+P"VOLUME_UP"+P"ENTER"+P"RED"+P"GREEN"+P"YELLOW"+P"BLUE"
+   +P"BLACK"+P"EXIT"+P"POWER"+P"REWIND"+P"STOP"+P"EJECT"+P"PLAY"+P"RECORD"+P"PAUSE"
 
 function parseTree.makeProperty(str)
    return str / function(name, value)
@@ -26,11 +34,16 @@ function parseTree.makePresentationElement(str)
       local tb = {...}
       local element = {_type=_type, id=id, hasEnd = false}
 
-      if gblPresTbl[element.id] or gblMacroTbl[element.id] then
+      if gblPresTbl[element.id] or gblMacroTbl[element.id] or gblHeadTbl[element.id ]then
          utils.printErro("Id "..element.id.." already declared")
          return nil
       end
-      gblPresTbl[element.id] = element
+
+      if element._type == "region" then
+         gblHeadTbl[element.id] = element
+      else
+         gblPresTbl[element.id] = element
+      end
 
       for pos, val in pairs(tb) do
          if type(val) == 'table' then
@@ -58,12 +71,14 @@ function parseTree.makePresentationElement(str)
    end
 end
 
+-- Make the each condition and action
 function parseTree.makeRelationship(str)
    return str/ function(rl, cp, iFace, ...)
-      return {role=rl, component=cp, interface=iFace, ...}
+      local element = {role = rl, component = cp, interface=iFace,...}
+      return element
    end
 end
-
+-- Join the conditions and actions that are linked by "and"
 function parseTree.makeBind(str, _type)
    return str/function(...)
       local tb = {...}
@@ -78,7 +93,13 @@ function parseTree.makeBind(str, _type)
             else
                element.role = val.role
                element.component = val.component
-               element.interface = val.interface
+               if val.interface then
+                  if lpeg.match(Buttons, val.interface) and _type=="condition" then
+                     element.properties = {__keyValue=val.interface}
+                  else
+                     element.interface = val.interface
+                  end
+               end
             end
          elseif val == "end" then
             element.hasEnd = true
@@ -87,7 +108,6 @@ function parseTree.makeBind(str, _type)
       return element
    end
 end
-
 
 function parseTree.makeLink(str)
    return str/function(...)
@@ -149,6 +169,7 @@ function parseTree.makeMacroPresentationSon(str)
       return element
    end
 end
+
 function parseTree.makeMacroLinkSon(str)
    return str/function(...)
       local tb = {...}
@@ -186,6 +207,7 @@ function parseTree.makeMacroLinkSon(str)
       return element
    end
 end
+
 function parseTree.makeMacro(str)
    return str/function(id, ...)
       local tb = {...}
@@ -197,7 +219,7 @@ function parseTree.makeMacro(str)
       end
       gblMacroTbl[element.id] = element
 
-      for pos, val in pairs(tb) do
+      for _, val in pairs(tb) do
          if type(val) == 'table' then
             if val.parameters then -- If it is the parameters table
                element.parameters = val.parameters
@@ -225,3 +247,4 @@ function parseTree.makeMacroCall(str)
 end
 
 return parseTree
+
