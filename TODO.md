@@ -15,4 +15,49 @@
    3. [ ] Revert port to how it was
    4. [ ] Add transition properties in Media
 
+# Templates
 
+### Slideshow example:
+
+```
+-- Producer
+slideshow:
+   fotos(m1, "src1", m2, "src2")
+end
+
+-- Programmer
+macro createFoto(id, src)
+   media id
+      src: src
+
+   end
+end
+
+macro createLink(m1, m2)
+   onEnd m1 do
+      start m2 end
+   end
+end
+
+macro createSlideshow(table)
+   context slideshow
+      createLink()
+      createFoto()
+
+      media buttonNext
+         focusIndex: 1
+         moveLeft: 2
+         moveRight: 2
+      end
+      media buttonPrev
+         focusIndex: 2
+         moveLeft: 1
+         moveRight: 1
+      end
+
+      assert medias[photo] > 0
+   end
+end
+
+createSlideshow(slideshow)
+```
