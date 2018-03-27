@@ -1,5 +1,6 @@
 local utils = require"utils"
 local ins = require"inspect"
+local lpeg = require"lpeg"
 
 function resolveMacroPresentationSon(element, macro, arguments)
    local newEle = {properties = {}, sons={}}
@@ -33,6 +34,7 @@ function resolveMacroPresentationSon(element, macro, arguments)
          table.insert(newEle.sons, newSon)
       end
    end
+   newEle._region = element._region
    newEle._type = element._type
    return newEle
 end
@@ -83,6 +85,10 @@ function resolveMacroLinkSon(son, macro, args)
             newCond.interface = args[utils.getIndex(macro.parameters, cond.interface)]
          else
             newCond.interface = cond.interface
+         end
+         if lpeg.match(Buttons, newCond.interface) then
+            newCond.properties = {__keyValue=newCond.interface}
+            newCond.interface = nil
          end
       end
       table.insert(newEle.conditions, newCond)

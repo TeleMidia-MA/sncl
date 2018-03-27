@@ -41,6 +41,13 @@ function genLink(ele, indent)
 end
 
 function genPresentation(ele, indent)
+   -- Check if the refered region is decladed
+   if ele._region then
+      if not gblHeadTbl[ele._region] then
+         utils.printErro("Region "..ele._region.." not declared")
+         return ""
+      end
+   end
    local NCL = indent.."<"..ele._type.." id=\""..ele.id.."\" >"
    if ele.properties then
       for name, value in pairs(ele.properties) do
@@ -151,21 +158,28 @@ function genRegion(ele, indent)
    return NCL
 end
 
+function genDesc(ele, indent)
+   local NCL = indent.."<descriptor id=\""..ele.id.."\" region=\""..ele.region.."\" />"
+   return NCL
+end
+
 function genHeadNCL(indent)
    local NCL = ""
-   local connBase = ""
-   local regionBase = ""
+   local connBase = "\n      <connectorBase>"
+   local regionBase = "      <regionBase>"
+   local descBase = "      <descriptorBase>"
    for _, val in pairs(gblHeadTbl) do
       if val._type == "xconnector"then
          connBase = connBase..genXConnector(val,indent.."   ")
       elseif val._type == "region" then
          regionBase = regionBase..genRegion(val, indent.."   ")
+      elseif val._type == "descriptor" then
+         descBase = descBase..genDesc(val, indent.."   ")
       end
    end
-   NCL = NCL..indent.."<regionBase>"
-   NCL = NCL..regionBase..indent.."</regionBase>"
-   NCL = NCL..indent.."<connectorBase>"
-   NCL = NCL..connBase..indent.."</connectorBase>"
+   NCL = NCL..connBase..indent.."</connectorBase>\n"
+   NCL = NCL..regionBase..indent.."</regionBase>\n"
+   NCL = NCL..descBase..indent.."</descriptorBase>"
    return NCL
 end
 

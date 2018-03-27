@@ -27,7 +27,7 @@ function utils.writeFile(file, content)
 end
 
 function utils.printErro(errString, line)
-   line = line or ""
+   line = line or gblParserLine
    local file = gblInputFile or ""
    io.write(colors("%{bright}"..file..":"..line..": %{red}erro:%{reset} "..errString.."\n"))
    gblHasError = true

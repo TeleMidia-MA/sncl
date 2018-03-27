@@ -6,6 +6,7 @@ require"pegdebug"
 require"gen"
 require"process"
 
+local R, P = lpeg.R, lpeg.P
 
 -- TODO: Macro cant have recursion
 -- TODO: Check if the sons are valid elements
@@ -39,7 +40,6 @@ function beginParse(input, output, play)
       utils.printErro("Error creating output file")
       return
    end
-   print("LINE:", gblParserLine)
 
    resolveMacroCalls(gblMacroCallTbl)
    resolveXConnectors(gblLinkTbl)
@@ -67,6 +67,10 @@ function beginParse(input, output, play)
    if play then
       os.execute("ginga "..outputFile)
    end
-
 end
+
+Buttons = R"09"+R"AZ"+P"*"+P"#"+P"MENU"+P"INFO"+P"GUIDE"+P"CURSOR_DOWN"
+   +P"CURSOR_LEFT"+P"CURSOR_RIGHT"+P"CURSOR_UP"+P"CHANNEL_DOWN"+P"CHANNEL_UP"
+   +P"VOLUME_DOWN"+P"VOLUME_UP"+P"ENTER"+P"RED"+P"GREEN"+P"YELLOW"+P"BLUE"
+   +P"BLACK"+P"EXIT"+P"POWER"+P"REWIND"+P"STOP"+P"EJECT"+P"PLAY"+P"RECORD"+P"PAUSE"
 

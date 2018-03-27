@@ -1,20 +1,22 @@
 local ins = require"inspect"
 local utils = require"utils"
-
 local lpeg = require"lpeg"
 local parseTree = {}
 
 local R, P = lpeg.R, lpeg.P
 
-Buttons = R"09"+R"AZ"+P"*"+P"#"+P"MENU"+P"INFO"+P"GUIDE"+P"CURSOR_DOWN"
-   +P"CURSOR_LEFT"+P"CURSOR_RIGHT"+P"CURSOR_UP"+P"CHANNEL_DOWN"+P"CHANNEL_UP"
-   +P"VOLUME_DOWN"+P"VOLUME_UP"+P"ENTER"+P"RED"+P"GREEN"+P"YELLOW"+P"BLUE"
-   +P"BLACK"+P"EXIT"+P"POWER"+P"REWIND"+P"STOP"+P"EJECT"+P"PLAY"+P"RECORD"+P"PAUSE"
-
 function parseTree.makeProperty(str)
    return str / function(name, value)
       return {_type="property",[name]=value}
    end
+end
+
+function parseTree.addDesc(id, region)
+   gblHeadTbl[id] = {
+      _type="descriptor",
+      region=region,
+      id = id
+   }
 end
 
 function parseTree.addProperties(element, properties)
@@ -23,8 +25,24 @@ function parseTree.addProperties(element, properties)
          if element.properties[name] then
             utils.printErro("Property "..name.." already declared")
             return nil
+         else
+            --[[ If the name of the property is "rg", it is a region
+            Then the descriptor property must be added and
+            the descriptor element that links the media and the region
+            must be created --]]
+            if name == "rg" then
+               if element._region then
+                  utils.printErro("Region "..val.." already declared")
+                  return nil
+               end
+               element._region = val
+               element.properties.descriptor = "__desc"..val
+               parseTree.addDesc(element.properties.descriptor, val)
+            -- It it's not a region, then just add it
+            else
+               element.properties[name] = val
+            end
          end
-         element.properties[name] = val
       end
    end
 end
@@ -54,7 +72,7 @@ function parseTree.makePresentationElement(str)
                   element.properties = {}
                end
                parseTree.addProperties(element, val)
-            -- If it is not a property, it is an element that is a son
+               -- If it is not a property, it is an element that is a son
             else
                if not element.sons then
                   element.sons = {}
@@ -153,7 +171,7 @@ function parseTree.makeMacroPresentationSon(str)
                   element.properties = {}
                end
                parseTree.addProperties(element, val)
-            -- If it is not a property, it is an element that is a son
+               -- If it is not a property, it is an element that is a son
             else
                if not element.sons then
                   element.sons = {}
