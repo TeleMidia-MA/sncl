@@ -42,6 +42,9 @@ end
 
 function genPresentation(ele, indent)
    -- Check if the refered region is decladed
+   if ele._type == "macro-call" then
+      return ""
+   end
    if ele._region then
       if not gblHeadTbl[ele._region] then
          utils.printErro("Region "..ele._region.." not declared")

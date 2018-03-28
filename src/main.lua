@@ -37,7 +37,7 @@ function beginParse(input, output, play)
       parsed = lpeg.match(grammar, snclInput)
    end
    if not parsed then
-      utils.printErro("Error creating output file")
+      utils.printErro("Error parsing document")
       return
    end
 

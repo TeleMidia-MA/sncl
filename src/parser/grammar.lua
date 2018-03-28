@@ -37,7 +37,7 @@ grammar = {
    Property = sT.makeProperty( (C(V"Id") *V"Spc"^0* P":" *V"Spc"^0* C(V"PropertyValue") * V"Spc"^0) ),
 
    PresentationElement = V"Spc"^0* sT.makePresentationElement(C(V"Reserved") *V"Spc"^1 * C(V"Id") *V"Spc"^1
-   *(V"PresentationElement" + V"Property"+sT.makeLink(V"Link")+V"Spc")^0 *C(V"End")),
+   *(V"PresentationElement" + V"Property"+sT.makeLink(V"Link")+V"MacroCall"+V"Spc")^0 *C(V"End")),
 
    Link = V"Spc"^0*(V"Condition" *V"Spc"^1* ((V"Property"+V"Action")-V"End")^0 *C(V"End")*V"Spc"^0),
 

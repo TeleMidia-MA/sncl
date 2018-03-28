@@ -2,11 +2,11 @@ local utils = require"utils"
 local ins = require"inspect"
 local lpeg = require"lpeg"
 
-function resolveMacroPresentationSon(element, macro, arguments)
-   local newEle = {properties = {}, sons={}}
+function resolveMacroPresentationSon(element, macro, call)
+   local newEle = {_type = element._type, _region = element.region, father = call.father, properties = {}, sons={}, }
    -- If the Id is a parameter, a new element have to be created
    if utils.containValue(macro.parameters, element.id) then
-      newEle.id = arguments[utils.getIndex(macro.parameters, element.id)]
+      newEle.id = call.arguments[utils.getIndex(macro.parameters, element.id)]
    else
       newEle.id = element.id
    end
@@ -21,7 +21,7 @@ function resolveMacroPresentationSon(element, macro, arguments)
          -- If a property is a parameter, create the property
          -- with the new value
          if utils.containValue(macro.parameters, value) then
-            newEle.properties[name] = arguments[utils.getIndex(macro.parameters, value)]
+            newEle.properties[name] = call.arguments[utils.getIndex(macro.parameters, value)]
          else
             newEle.properties[name] = value
          end
@@ -29,13 +29,14 @@ function resolveMacroPresentationSon(element, macro, arguments)
    end
    if element.sons then
       for _, son in pairs(element.sons) do
-         local newSon = resolveMacroSon(son, macro, arguments)
+         local newSon = resolveMacroSon(son, macro, call.arguments)
          newSon.father = newEle
          table.insert(newEle.sons, newSon)
       end
    end
-   newEle._region = element._region
-   newEle._type = element._type
+   if call.father then
+      call.father.sons[newEle.id] = newEle
+   end
    return newEle
 end
 
@@ -106,13 +107,14 @@ function resolveMacroLinkSon(son, macro, args)
       end
    end
    table.insert(gblLinkTbl, newEle)
+
 end
-function resolveMacro(macro, arguments)
+function resolveMacro(macro, call)
    for _, son in pairs(macro.sons) do
       if son._type== "link" then
          resolveMacroLinkSon(son, macro, arguments)
       else
-         resolveMacroPresentationSon(son, macro, arguments)
+         resolveMacroPresentationSon(son, macro, call)
       end
    end
 end
@@ -128,7 +130,7 @@ function resolveMacroCalls(tbl)
          utils.printErro("Wrong number of arguments on call "..macro.id)
          return nil
       end
-      resolveMacro(macro, call.arguments)
+      resolveMacro(macro, call)
    end
 end
 

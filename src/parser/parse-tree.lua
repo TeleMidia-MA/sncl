@@ -239,9 +239,9 @@ function parseTree.makeMacro(str)
 
       for _, val in pairs(tb) do
          if type(val) == 'table' then
-            if val.parameters then -- If it is the parameters table
+            if val.parameters then -- If val is the parameter table 
                element.parameters = val.parameters
-            else -- If it is the elements in the macro body
+            else -- If val is the sons
                if not element.sons then
                   element.sons = {}
                end
@@ -259,8 +259,9 @@ end
 
 function parseTree.makeMacroCall(str)
    return str/function(mc, args, ...)
-      local tb = {macro = mc, arguments = args}
+      local tb = {_type="macro-call", macro = mc, arguments = args, ...}
       table.insert(gblMacroCallTbl, tb)
+      return tb
    end
 end
 
