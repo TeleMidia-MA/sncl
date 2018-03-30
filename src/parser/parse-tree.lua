@@ -1,17 +1,29 @@
 local ins = require"inspect"
 local utils = require"utils"
 local lpeg = require"lpeg"
-local parseTree = {}
+local pT = {}
 
 local R, P = lpeg.R, lpeg.P
 
-function parseTree.makeProperty(str)
+function pT.makePort(str)
+   return str / function(id, comp, iface)
+      local element = {_type="port", id=id, component=comp, interface = iface}
+      if gblPresTbl[id] then
+         utils.printErr("Id "..id.." already declared")
+         return nil
+      end
+      gblPresTbl[id] = element
+      return element
+   end
+end
+
+function pT.makeProperty(str)
    return str / function(name, value)
       return {_type="property",[name]=value}
    end
 end
 
-function parseTree.addDesc(id, region)
+function pT.makeDesc(id, region)
    gblHeadTbl[id] = {
       _type="descriptor",
       region=region,
@@ -19,35 +31,37 @@ function parseTree.addDesc(id, region)
    }
 end
 
-function parseTree.addProperties(element, properties)
-   for name, val in pairs(properties) do
-      if name ~="_type" then
-         if element.properties[name] then
-            utils.printErro("Property "..name.." already declared")
-            return nil
-         else
-            --[[ If the name of the property is "rg", it is a region
+function pT.addProperty(element, name, value)
+   if name ~="_type" then
+      if element.properties[name] then
+         utils.printErro("Property "..name.." already declared")
+         return nil
+      else
+         --[[ If the name of the property is "rg", it is a region
             Then the descriptor property must be added and
             the descriptor element that links the media and the region
             must be created --]]
-            if name == "rg" then
-               if element._region then
-                  utils.printErro("Region "..val.." already declared")
-                  return nil
-               end
-               element._region = val
-               element.properties.descriptor = "__desc"..val
-               parseTree.addDesc(element.properties.descriptor, val)
-            -- It it's not a region, then just add it
-            else
-               element.properties[name] = val
+         if name == "rg" then
+            if element._region then
+               utils.printErro("Region "..value.." already declared")
+               return nil
             end
+            element._region = value
+            element.descriptor = "__desc"..value
+            pT.makeDesc(element.descriptor, value)
+            -- It it's not a region, then just add it
+         elseif name=="src" then
+            element.src = value
+         elseif name=="type" then
+            element.type = value
+         else
+            element.properties[name] = value
          end
       end
    end
 end
 
-function parseTree.makePresentationElement(str)
+function pT.makePresentationElement(str)
    return str / function(_type, id, ...)
       local tb = {...}
       local element = {_type=_type, id=id, hasEnd = false}
@@ -71,7 +85,9 @@ function parseTree.makePresentationElement(str)
                if not element.properties then
                   element.properties = {}
                end
-               parseTree.addProperties(element, val)
+               for name, value in pairs(val) do
+                  pT.addProperty(element, name, value)
+               end
                -- If it is not a property, it is an element that is a son
             else
                if not element.sons then
@@ -90,14 +106,15 @@ function parseTree.makePresentationElement(str)
 end
 
 -- Make the each condition and action
-function parseTree.makeRelationship(str)
-   return str/ function(rl, cp, iFace, ...)
-      local element = {role = rl, component = cp, interface=iFace,...}
+function pT.makeRelationship(str)
+   return str/ function(rl, cp, iface, ...)
+      local element = {role = rl, component = cp, interface=iface,...}
       return element
    end
 end
+
 -- Join the conditions and actions that are linked by "and"
-function parseTree.makeBind(str, _type)
+function pT.makeBind(str, _type)
    return str/function(...)
       local tb = {...}
       local element = {_type = _type, hasEnd = false}
@@ -107,7 +124,9 @@ function parseTree.makeBind(str, _type)
                if not element.properties then
                   element.properties = {}
                end
-               parseTree.addProperties(element, val)
+               for name, value in pairs(val) do
+                  pT.addProperty(element, name, value)
+               end
             else
                element.role = val.role
                element.component = val.component
@@ -127,7 +146,7 @@ function parseTree.makeBind(str, _type)
    end
 end
 
-function parseTree.makeLink(str)
+function pT.makeLink(str)
    return str/function(...)
       local tb = {...}
       local element = {_type="link", hasEnd = false}
@@ -147,7 +166,9 @@ function parseTree.makeLink(str)
                if not element.properties then
                   element.properties = {}
                end
-               parseTree.addProperties(element, val)
+               for name, value in pairs(val) do
+                  pT.addProperty(element, name, value)
+               end
             end
          elseif val == "end" then
             element.hasEnd = true
@@ -158,7 +179,7 @@ function parseTree.makeLink(str)
    end
 end
 
-function parseTree.makeMacroPresentationSon(str)
+function pT.makeMacroPresentationSon(str)
    return str / function(_type, id, ...)
       local tb = {...}
       local element = {_type=_type, id=id, hasEnd = false}
@@ -170,7 +191,9 @@ function parseTree.makeMacroPresentationSon(str)
                if not element.properties then
                   element.properties = {}
                end
-               parseTree.addProperties(element, val)
+               for name, value in pairs(val) do
+                  element.properties[name] = value
+               end
                -- If it is not a property, it is an element that is a son
             else
                if not element.sons then
@@ -188,7 +211,7 @@ function parseTree.makeMacroPresentationSon(str)
    end
 end
 
-function parseTree.makeMacroLinkSon(str)
+function pT.makeMacroLinkSon(str)
    return str/function(...)
       local tb = {...}
       local element = {_type="link", hasEnd = false}
@@ -226,7 +249,7 @@ function parseTree.makeMacroLinkSon(str)
    end
 end
 
-function parseTree.makeMacro(str)
+function pT.makeMacro(str)
    return str/function(id, ...)
       local tb = {...}
       local element = {id = id, _type="macro", sons={}, hasEnd = false}
@@ -257,7 +280,7 @@ function parseTree.makeMacro(str)
    end
 end
 
-function parseTree.makeMacroCall(str)
+function pT.makeMacroCall(str)
    return str/function(mc, args, ...)
       local tb = {_type="macro-call", macro = mc, arguments = args, ...}
       table.insert(gblMacroCallTbl, tb)
@@ -265,5 +288,5 @@ function parseTree.makeMacroCall(str)
    end
 end
 
-return parseTree
+return pT
 

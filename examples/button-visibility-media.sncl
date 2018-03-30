@@ -1,5 +1,8 @@
+port pBody1 mainImage
+port pBody2 buttonDisappear
+
 media mainImage
-   src: "medias/image1.jpg"
+   src: medias/image1.jpg
    visible: true
    height: 90%
 end
@@ -32,5 +35,5 @@ macro makeLink(bt1, bt2, color, value)
    end
 end
 
-makeLink("buttonDisappear", "buttonAppear", "RED", "false")
-makeLink("buttonAppear", "buttonDisappear", "GREEN", "true")
+makeLink("buttonDisappear", "buttonAppear", "ENTER", "false")
+makeLink("buttonAppear", "buttonDisappear", "ENTER", "true")

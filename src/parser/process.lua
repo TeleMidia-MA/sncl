@@ -1,9 +1,10 @@
 local utils = require"utils"
 local ins = require"inspect"
 local lpeg = require"lpeg"
+local pT = require"parse-tree"
 
 function resolveMacroPresentationSon(element, macro, call)
-   local newEle = {_type = element._type, _region = element.region, father = call.father, properties = {}, sons={}, }
+   local newEle = {_type = element._type, father = call.father, descriptor=element.descriptor, type=element.type, properties = {}, sons={}, }
    -- If the Id is a parameter, a new element have to be created
    if utils.containValue(macro.parameters, element.id) then
       newEle.id = call.arguments[utils.getIndex(macro.parameters, element.id)]
@@ -21,17 +22,10 @@ function resolveMacroPresentationSon(element, macro, call)
          -- If a property is a parameter, create the property
          -- with the new value
          if utils.containValue(macro.parameters, value) then
-            newEle.properties[name] = call.arguments[utils.getIndex(macro.parameters, value)]
+            pT.addProperty(newEle, name, call.arguments[utils.getIndex(macro.parameters, value)])
          else
-            newEle.properties[name] = value
+            pT.addProperty(newEle, name, value)
          end
-      end
-   end
-   if element.sons then
-      for _, son in pairs(element.sons) do
-         local newSon = resolveMacroSon(son, macro, call.arguments)
-         newSon.father = newEle
-         table.insert(newEle.sons, newSon)
       end
    end
    if call.father then
@@ -40,20 +34,20 @@ function resolveMacroPresentationSon(element, macro, call)
    return newEle
 end
 
-function resolveMacroLinkSon(son, macro, args)
+function resolveMacroLinkSon(son, macro, call)
    local newEle = {_type="link", actions={}, conditions={}}
 
    for _, act in pairs(son.actions) do
       local newAct = {_type="action"}
       newAct.role = act.role
       if utils.containValue(macro.parameters, act.component) then
-         newAct.component = args[utils.getIndex(macro.parameters, act.component)]
+         newAct.component = call.arguments[utils.getIndex(macro.parameters, act.component)]
       else
          newAct.component = act.component
       end
       if act.interface then
          if utils.containValue(macro.parameters, act.interface) then
-            newAct.interface = args[utils.getIndex(macro.parameters, act.interface)]
+            newAct.interface = call.arguments[utils.getIndex(macro.parameters, act.interface)]
          else
             newAct.interface = act.interface
          end
@@ -63,7 +57,7 @@ function resolveMacroLinkSon(son, macro, args)
          for name, value in pairs(act.properties) do
             -- TODO: Check if the name is a parameter?
             if utils.containValue(macro.parameters, value) then
-               newAct.properties[name] = args[utils.getIndex(macro.parameters, value)]
+               newAct.properties[name] = call.arguments[utils.getIndex(macro.parameters, value)]
             else
                newAct.properties[name] = value
             end
@@ -76,14 +70,14 @@ function resolveMacroLinkSon(son, macro, args)
       local newCond = {_type="condition"}
       newCond.role = cond.role
       if utils.containValue(macro.parameters, cond.component) then
-         newCond.component = args[utils.getIndex(macro.parameters, cond.component)]
+         newCond.component = call.arguments[utils.getIndex(macro.parameters, cond.component)]
       else
          newCond.component = cond.component
       end
       -- TODO: BUTTONS
       if cond.interface then
          if utils.containValue(macro.parameters, cond.interface) then
-            newCond.interface = args[utils.getIndex(macro.parameters, cond.interface)]
+            newCond.interface = call.arguments[utils.getIndex(macro.parameters, cond.interface)]
          else
             newCond.interface = cond.interface
          end
@@ -100,7 +94,7 @@ function resolveMacroLinkSon(son, macro, args)
       for name, value in pairs(son.properties) do
          -- TODO: Check if the name is a parameter?
          if utils.containValue(macro.parameters, value) then
-            newEle.properties[name] = args[utils.getIndex(macro.parameters, value)]
+            newEle.properties[name] = call.arguments[utils.getIndex(macro.parameters, value)]
          else
             newEle.properties[name] = value
          end
@@ -112,7 +106,7 @@ end
 function resolveMacro(macro, call)
    for _, son in pairs(macro.sons) do
       if son._type== "link" then
-         resolveMacroLinkSon(son, macro, arguments)
+         resolveMacroLinkSon(son, macro, call)
       else
          resolveMacroPresentationSon(son, macro, call)
       end
@@ -172,6 +166,24 @@ function resolveXConnectors(tbl)
       link.xconnector = newConn.id
       if not gblHeadTbl[newConn.id] then
          gblHeadTbl[newConn.id] = newConn
+      end
+   end
+end
+
+function resolveTemplate()
+   for pos, val in pairs(gblTemplateTbl[1]) do
+      if gblMacroTbl[pos] then
+         local parameters = gblMacroTbl[pos].parameters
+         for id, element in pairs(val) do
+            local call = {_type="macro-call", macro=pos, arguments={}}
+            call.arguments[utils.getIndex(parameters, "id")] = id
+            for _, par in pairs(parameters) do
+               if par ~= "id" then
+                  call.arguments[utils.getIndex(parameters, par)] = element[par]
+               end
+            end
+            table.insert(gblMacroCallTbl, call)
+         end
       end
    end
 end

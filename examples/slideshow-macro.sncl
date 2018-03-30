@@ -1,18 +1,38 @@
-makeMedia("mAlbum1", "medias/image1.jpg")
-makeMedia("mAlbum2", "medias/image1.jpg")
+port pBody1 mAlbum1
+port pBody2 mAlbum2
 
-macro makeMedia(id, src)
+region rgThumbnail
+   width: 25%
+   height: 25%
+end
+
+macro makeThumb(id, src, left, fI, mL)
    media id
       src: src
+      left: left
+      rg: rgThumbnail
+      focusBorderColor: yellow
+      selBorderColor: blue
+      focusIndex: fI
+      moveLeft: mL
+   end
+end
+
+makeThumb("mAlbum1", "medias/image1.jpg", "0%", "1", "2")
+makeThumb("mAlbum2", "medias/image2.jpg", "30%", "2", "1")
+
+macro makePhoto(mId, mSrc)
+   media mId
+      src: mSrc
+      explicitDur: 2
    end
 end
 
 context album1
-   media a1f1
-      refer: mAlbum1
-   end
-   makeMedia("a1f2", "medias/image2.jpg")
-   makeMedia("a1f3", "medias/image3.jpg")
+   port pAlbum1 a1f1
+   makePhoto("a1f1", "medias/image1.jpg")
+   makePhoto("a1f2", "medias/image2.jpg")
+   makePhoto("a1f3", "medias/image3.jpg")
    onEnd a1f1 do
       start a1f2 end
    end
@@ -22,12 +42,11 @@ context album1
 end
 
 context album2
-   media a2f1
-      refer: mAlbum2
-   end
-   makeMedia("a2f2", "medias/image2.jpg")
-   makeMedia("a2f3", "medias/image3.jpg")
-  onEnd a2f1 do
+   port pAlbum2 a2f1
+   makePhoto("a2f1", "medias/image1.jpg")
+   makePhoto("a2f2", "medias/image2.jpg")
+   makePhoto("a2f3", "medias/image3.jpg")
+   onEnd a2f1 do
       start a2f2 end
    end
    onEnd a2f2 do

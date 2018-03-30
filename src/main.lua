@@ -1,6 +1,8 @@
 local lpeg = require"lpeg"
 local utils = require"utils"
 local inspect = require"inspect"
+local lyaml = require"lyaml"
+local ins = require"inspect"
 require"grammar"
 require"pegdebug"
 require"gen"
@@ -22,7 +24,7 @@ _DEBUG_PEG = false
 _DEBUG_PARSE_TABLE = false
 _DEBUG_SYMBOL_TABLE = false
 
-function beginParse(input, output, play)
+function beginParse(input, output, template, play)
    local parsed = nil
    gblInputFile = input
    local snclInput = utils.readFile(input)
@@ -38,7 +40,16 @@ function beginParse(input, output, play)
    end
    if not parsed then
       utils.printErro("Error parsing document")
-      return
+      return -1
+   end
+
+   if template then
+      -- TODO: Check yaml extension
+      -- TODO: Check errors in yaml file
+      local templateContent = utils.readFile(template)
+      gblTemplateTbl = lyaml.load(templateContent, { all = true })
+      print(ins.inspect(gblTemplateTbl))
+      resolveTemplate()
    end
 
    resolveMacroCalls(gblMacroCallTbl)
@@ -52,6 +63,7 @@ function beginParse(input, output, play)
       print("Macro Table:", inspect.inspect(gblMacroTbl))
       print("Macro Call Table:", inspect.inspect(gblMacroCallTbl))
    end
+
 
    if gblHasError or not parsed then
       utils.printErro("Error creating output file")

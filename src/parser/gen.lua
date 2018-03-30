@@ -51,7 +51,23 @@ function genPresentation(ele, indent)
          return ""
       end
    end
-   local NCL = indent.."<"..ele._type.." id=\""..ele.id.."\" >"
+   local NCL = indent.."<"..ele._type.." id=\""..ele.id.."\" "
+   if ele.component then
+      NCL = NCL.."component=\""..ele.component.."\" "
+   end
+   if ele.interface then
+      NCL = NCL.."interface=\""..ele.interface.."\" "
+   end
+   if ele.src then
+      NCL = NCL.."src=\""..ele.src.."\" "
+   end
+   if ele.descriptor then
+      NCL = NCL.."descriptor=\""..ele.descriptor.."\" "
+   end
+   if ele.type then
+      NCL = NCL.."type=\""..ele.type.."\" "
+   end
+   NCL = NCL..">"
    if ele.properties then
       for name, value in pairs(ele.properties) do
          NCL = NCL..indent.."   <property name=\""..name.."\" value=\""..value.."\" />"
@@ -154,8 +170,10 @@ end
 
 function genRegion(ele, indent)
    local NCL = indent.."<region id=\""..ele.id.."\""
-   for name, value in pairs(ele.properties) do
-      NCL = NCL.." "..name.."=\""..value.."\""
+   if ele.properties then
+      for name, value in pairs(ele.properties) do
+         NCL = NCL.." "..name.."=\""..value.."\""
+      end
    end
    NCL = NCL.."/>"
    return NCL

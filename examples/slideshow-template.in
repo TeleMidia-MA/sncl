@@ -1,0 +1,11 @@
+slideshow{
+   album1 {
+      media1:{src:medias/image1.jpg, class:photo}
+      media2:{src:medias/image2.jpg, class:photo}
+      media3:{src:medias/image3.jpg, class:photo}
+      class:album
+   }
+   thumb1{src:medias/image1.jpg, class:thumb}
+   thumb2{src:medias/image2.jpg, class:thumb}
+   class: slideshow
+}

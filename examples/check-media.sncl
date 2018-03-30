@@ -1,3 +1,13 @@
+port pBody media1
+
+region rg1
+   top:0
+   left:0
+   zIndex: 1
+   width: 640
+end
+
 media media1
-   type: "text/html"
+   src:medias/image1.jpg
+   rg: rg1
 end

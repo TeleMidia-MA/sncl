@@ -1,27 +1,18 @@
-macro createMedia(src)
-   media ___
+region rg1
+end
+
+macro makeMedia(id, src, class)
+   media id
       src: src
+      class: class
+      rg: rg1
    end
 end
 
-macro createAlbum(imgs)
-   createMedia()
-   onEnd ___ do
-      start ___ end
-   end
-   assert #media["photo"] > 1
-end
+makeMedia("m1", "medias/image1.jpg", "photo")
 
-macro createSlideshow(albums)
-   -- Port to first context
-   context ___
-      createAlbum()
-      assert #context["album"] > 1
-   end
-   onSelection ___ do
-      stop ___ end
-      start ___ end
+macro makeLink(m1, m2)
+   onEnd m1 do
+      start m2 end
    end
 end
-
-createSlideshow()

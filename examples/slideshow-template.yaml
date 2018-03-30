@@ -1,0 +1,17 @@
+makeMedia:
+  c1Media1:
+    class: photo
+    src: medias/image1.jpg
+  c1Media2:
+    class: photo
+    src: medias/image2.jpg
+
+context1:
+  c1Media1:
+    class: photo # macro addPhoto
+    src: medias/image1.jpg
+  c1Media2:
+    class: photo
+    src: medias/image1.jpg
+  class: album # macro addAlbum
+
