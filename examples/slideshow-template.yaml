@@ -1,17 +1,30 @@
-makeMedia:
+context1: # Primeiro Album
+  class: album
   c1Media1:
     class: photo
     src: medias/image1.jpg
   c1Media2:
     class: photo
     src: medias/image2.jpg
-
-context1:
-  c1Media1:
-    class: photo # macro addPhoto
-    src: medias/image1.jpg
-  c1Media2:
+  c1Media3:
+    class: photo
+    src: medias/image3.jpg
+thumb1:
+  class: thumb
+  src: medias/image1
+  left: 0%
+context2: # Segundo Album
+  class: album
+  c2Media1:
     class: photo
     src: medias/image1.jpg
-  class: album # macro addAlbum
-
+  c2Media2:
+    class: photo
+    src: medias/image2.jpg
+  c2Media3:
+    class: photo
+    src: medias/image3.jpg
+thumb2:
+  class: thumb
+  src: medias/image2
+  left: 30%

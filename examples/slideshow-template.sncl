@@ -1,7 +1,19 @@
-region rg1
+for i=1, #album do
+   addAlbum(album[i])
 end
 
-macro makeMedia(id, src, class)
+macro addAlbum(id, class)
+   context id
+      for i=1, #photo do
+         addPhoto(photo[i])
+      end
+      for i=1, #photo do
+         addLink(photo[i], photo[i+1])
+      end
+   end
+end
+
+macro addPhoto(id, src, class)
    media id
       src: src
       class: class
@@ -9,9 +21,7 @@ macro makeMedia(id, src, class)
    end
 end
 
-makeMedia("m1", "medias/image1.jpg", "photo")
-
-macro makeLink(m1, m2)
+macro addLink(m1, m2)
    onEnd m1 do
       start m2 end
    end
