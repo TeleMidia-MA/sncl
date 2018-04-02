@@ -13,6 +13,7 @@ thumb1:
   class: thumb
   src: medias/image1
   left: 0%
+
 context2: # Segundo Album
   class: album
   c2Media1:

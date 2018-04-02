@@ -4,12 +4,8 @@ end
 
 macro addAlbum(id, class)
    context id
-      for i=1, #photo do
-         addPhoto(photo[i])
-      end
-      for i=1, #photo do
-         addLink(photo[i], photo[i+1])
-      end
+      addPhoto(photo)
+      addLink(photo, photo) -- Como explicitar relacao?
    end
 end
 

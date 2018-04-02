@@ -3,10 +3,6 @@ region rgThumb
    height: 25%
 end
 
-for i=1, #thumb do
-   mkThumb(thumb[i], i, i+1)
-end
-
 macro mkThumb(id, class, src, left, focus, moveLeft)
    media id
       src: src
@@ -18,18 +14,32 @@ macro mkThumb(id, class, src, left, focus, moveLeft)
       moveLeft: moveLeft
    end
 end
-
-for i = 1, #thumb do
-   makeSelec(thumb[i], album[i])
+for i=1, #thumb do
+   mkThumb(thumb[i], i, i+1)
+   -- id, class, src e left tão no yaml
+   -- focus e moveLeft não tão
 end
+
 macro makeSelec(img, album)
    onSelection img do
       start album end
    end
 end
+for i = 1, #thumb do
+   makeSelec(thumb[i], album[i])
+end
 
-for i = 1, #album do
-   addAlbum(album[i])
+macro addPhoto(id, src, class)
+   media id
+      src: src
+      class: class
+      explicitDur: 2
+   end
+end
+macro addLinkSlide(m1, m2)
+   onEnd m1 do
+      start m2 end
+   end
 end
 macro addAlbum(id,class)
    context id
@@ -42,16 +52,7 @@ macro addAlbum(id,class)
          addLinkSlide(photo[i], photo[i+1%#photo])
       end
    end
-   macro addPhoto(id, src, class)
-      media id
-         src: src
-         class: class
-         explicitDur: 2
-      end
-   end
-   macro addLinkSlide(m1, m2)
-      onEnd m1 do
-         start m2 end
-      end
-   end
+end
+for i = 1, #album do
+   addAlbum(album[i])
 end
