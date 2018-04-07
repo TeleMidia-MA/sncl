@@ -4,7 +4,8 @@ local lpeg = require"lpeg"
 local pT = require"parse-tree"
 
 function resolveMacroPresentationSon(element, macro, call)
-   local newEle = {_type = element._type, father = call.father, descriptor=element.descriptor, type=element.type, properties = {}, sons={}, }
+   local newEle = {_type = element._type, father = call.father, descriptor=element.descriptor, properties = {}, sons={}}
+--, type=element.type, 
    -- If the Id is a parameter, a new element have to be created
    if utils.containValue(macro.parameters, element.id) then
       newEle.id = call.arguments[utils.getIndex(macro.parameters, element.id)]
@@ -101,11 +102,11 @@ function resolveMacroLinkSon(son, macro, call)
       end
    end
    table.insert(gblLinkTbl, newEle)
-
 end
+
 function resolveMacro(macro, call)
    for _, son in pairs(macro.sons) do
-      if son._type== "link" then
+      if son._type == "link" then
          resolveMacroLinkSon(son, macro, call)
       else
          resolveMacroPresentationSon(son, macro, call)
@@ -115,16 +116,20 @@ end
 
 function resolveMacroCalls(tbl)
    for _, call in pairs(tbl) do
-      local macro = gblMacroTbl[call.macro]
-      if not macro then
-         utils.printErro("Macro "..call.macro.." not declared")
-         return nil
+      if call.father then
+      else
+         local macro = gblMacroTbl[call.macro]
+         if not macro then
+            utils.printErro("Macro "..call.macro.." not declared")
+            return nil
+         end
+         -- TODO: Nao tem que checar se o pai é um for, e sim se o argumento é um indice
+         if #macro.parameters ~= #call.arguments and call.father._type ~= "for" then
+            utils.printErro("Wrong number of arguments on call "..macro.id)
+            return nil
+         end
+         resolveMacro(macro, call)
       end
-      if #macro.parameters ~= #call.arguments then
-         utils.printErro("Wrong number of arguments on call "..macro.id)
-         return nil
-      end
-      resolveMacro(macro, call)
    end
 end
 
@@ -170,20 +175,30 @@ function resolveXConnectors(tbl)
    end
 end
 
-function resolveTemplate()
-   for pos, val in pairs(gblTemplateTbl[1]) do
-      if gblMacroTbl[pos] then
-         local parameters = gblMacroTbl[pos].parameters
-         for id, element in pairs(val) do
-            local call = {_type="macro-call", macro=pos, arguments={}}
-            call.arguments[utils.getIndex(parameters, "id")] = id
-            for _, par in pairs(parameters) do
-               if par ~= "id" then
-                  call.arguments[utils.getIndex(parameters, par)] = element[par]
+function resolveTemplates(input, tbl)
+   for _, _for in pairs(tbl) do -- Cada 'val' é um for
+      local class = _for.class
+      local elements = {}
+      for pos, ele in pairs(input) do -- Separar os elementos que tem a classe do for
+         ele.id = pos
+         if ele.class == _for.class then
+            table.insert(elements, ele)
+         end
+      end
+      for i = _for.start, #elements do
+         local element = elements[i]
+         for _, son in pairs(_for.sons) do -- Pra cada chamada de macro
+            local macro = gblMacroTbl[son.macro]
+            local parameters = macro.parameters
+            local call = {_type="macro-call", macro=macro.id, arguments = {}}
+            for pos, val in pairs(element) do
+               if utils.containValue(parameters, pos) then
+                  call.arguments[utils.getIndex(parameters, pos)] = element[pos]
                end
             end
-            table.insert(gblMacroCallTbl, call)
+            resolveMacro(macro, call)
          end
       end
    end
 end
+

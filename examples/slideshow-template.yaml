@@ -14,18 +14,18 @@ thumb1:
   src: medias/image1
   left: 0%
 
-context2: # Segundo Album
-  class: album
-  c2Media1:
-    class: photo
-    src: medias/image1.jpg
-  c2Media2:
-    class: photo
-    src: medias/image2.jpg
-  c2Media3:
-    class: photo
-    src: medias/image3.jpg
-thumb2:
-  class: thumb
-  src: medias/image2
-  left: 30%
+# context2: # Segundo Album
+#   class: album
+#   c2Media1:
+#     class: photo
+#     src: medias/image1.jpg
+#   c2Media2:
+#     class: photo
+#     src: medias/image2.jpg
+#   c2Media3:
+#     class: photo
+#     src: medias/image3.jpg
+# thumb2:
+#   class: thumb
+#   src: medias/image2
+#   left: 30%

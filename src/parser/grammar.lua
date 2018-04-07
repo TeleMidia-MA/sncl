@@ -25,7 +25,7 @@ grammar = {
    Letter = V"Lower" + V"Upper",
    Alnum = R("az", "AZ", "09", "__"),
    Num = P("0x") * R("09", "af", "AF") ^ 1 * (S("uU") ^ -1 * S("lL") ^ 2) ^ -1 + R("09") ^ 1 * (S("uU") ^ -1 * S("lL") ^ 2) + (R("09") ^ 1 * (P(".") * R("09") ^ 1) ^ -1 + P(".") * R("09") ^ 1) * (S("eE") * P("-") ^ -1 * R("09") ^ 1) ^ -1,
-   Symbols = P"\\"+"%"+"."+"/"+"-",
+   Symbols = S"%./-\\",
 
    End = P"end",
    Type = P"media"+"context"+"area"+"region"+"macro",
@@ -64,16 +64,13 @@ grammar = {
 
    MacroCall = V"Spc"^0*pT.makeMacroCall(C(V"Id") * V"Arguments"),
    Arguments = P"("*  Ct(( (V"FieldArguments"^-1 * (',' * V"FieldArguments")^0)) ) * P')',
-   FieldArguments = V"Spc"^0*P'"'*C(V"PropertyValue")*P'"'*V"Spc"^0,
+   FieldArguments = V"Spc"^0*P'"'*C((V"Letter"+V"Digit"+V"Symbols"+S"[]")^0)*P'"'*V"Spc"^0,
    -- TODO: Can accept more things other than Id
 
-   START = ((V"Spc"^0* Ct((V"Port"+V"Macro"+V"PresentationElement"+pT.makeLink(V"Link")+V"MacroCall")^0) * V"Spc"^0)* V"EOS")
-   /function(str)
-      if _DEBUG_PARSE_TABLE then
-         print("PARSE:",str)
-         print("Parse Tree:", inspect.inspect(str))
-      end
-   end,
+   Template = V"Spc"^0*pT.makeTemplate(V"For"*V"Spc"^1*V"MacroCall"^0*V"Spc"^0* C(V"End")),
+   For = (P"for" *V"Spc"^1* C(V"Lower"^1) *V"Spc"^0* P"="* V"Spc"^0*C(V"Digit"^1)*V"Spc"^0*P","*V"Spc"^0* P"#"*C(V"Lower"^1) *V"Spc"^1* P"do"),
+
+   START = ((V"Spc"^0* Ct((V"Template"+V"Port"+V"Macro"+V"PresentationElement"+pT.makeLink(V"Link")+V"MacroCall")^0) * V"Spc"^0)* V"EOS"),
 }
 
 

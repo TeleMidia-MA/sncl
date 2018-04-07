@@ -21,6 +21,7 @@ dependencies = {
    "luafilesystem",
    "ansicolors",
    "argparse",
+   "lyaml"
 }
 
 build = {

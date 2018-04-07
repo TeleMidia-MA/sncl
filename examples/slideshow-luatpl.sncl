@@ -16,8 +16,6 @@ macro mkThumb(id, class, src, left, focus, moveLeft)
 end
 for i=1, #thumb do
    mkThumb(thumb[i], i, i+1)
-   -- id, class, src e left tão no yaml
-   -- focus e moveLeft não tão
 end
 
 macro makeSelec(img, album)

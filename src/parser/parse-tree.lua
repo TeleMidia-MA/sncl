@@ -288,5 +288,20 @@ function pT.makeMacroCall(str)
    end
 end
 
+function pT.makeTemplate(str)
+   return str/function(iterator, start, class, ...)
+      local tbl = {...}
+      local element = {_type="for", iterator=iterator, start=start, class=class, sons = {} }
+      for pos, val in pairs(tbl) do
+         if val._type == "macro-call" then
+            val.father = element
+            table.insert(element.sons, val)
+         end
+      end
+      table.insert(gblTemplateTbl, element)
+      return element
+   end
+end
+
 return pT
 

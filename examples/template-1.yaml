@@ -1,0 +1,9 @@
+media1:
+  class: photo
+  src: medias/image1.jpg
+media2:
+  class: photo
+  src: medias/image2.jpg
+media3:
+  src: medias/image3
+  class: photo

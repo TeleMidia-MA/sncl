@@ -1,0 +1,10 @@
+macro makeMedia(id, class, src)
+   media id
+      class: class
+      src: src
+   end
+end
+
+for i = 1, #photo do
+   makeMedia("photo[i]")
+end
