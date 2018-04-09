@@ -53,7 +53,7 @@ grammar = {
    RepeatAction = P"and" *V"Spc"^1*V"ActionId",
 
    MacroPresentationElement = V"Spc"^0* pT.makeMacroPresentationSon(C(V"Reserved") *V"Spc"^1 * C(V"Id") *V"Spc"^1
-   *(V"MacroPresentationElement" + V"Property"+V"Spc")^0 *C(V"End")),
+   *(V"MacroPresentationElement" + V"Port"+V"Property"+V"Template"+V"Spc")^0 *C(V"End")),
    Macro = V"Spc"^0* pT.makeMacro(P"macro" *V"Spc"^1* C(V"Id") *V"Spc"^0* V"Parameters"
       *V"Spc"^1* V"MacroBody"^-1 *V"Spc"^0* C(V"End") ),
    -- Comma Separated Values:

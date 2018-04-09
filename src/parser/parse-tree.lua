@@ -182,7 +182,7 @@ end
 function pT.makeMacroPresentationSon(str)
    return str / function(_type, id, ...)
       local tb = {...}
-      local element = {_type=_type, id=id, hasEnd = false}
+      local element = {_type=_type, id=id, sons = {}, hasEnd = false}
       for pos, val in pairs(tb) do
          if type(val) == 'table' then
             -- If val is a table, then it is either a son of the element or a
@@ -196,9 +196,6 @@ function pT.makeMacroPresentationSon(str)
                end
                -- If it is not a property, it is an element that is a son
             else
-               if not element.sons then
-                  element.sons = {}
-               end
                table.insert(element.sons, val)
                val.father = element
             end
@@ -206,7 +203,6 @@ function pT.makeMacroPresentationSon(str)
             element.hasEnd = true
          end
       end
-
       return element
    end
 end

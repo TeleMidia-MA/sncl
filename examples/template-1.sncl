@@ -10,3 +10,5 @@ context c1
       makeMedia("photo[i]")
    end
 end
+
+makeContext("c1")
