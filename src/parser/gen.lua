@@ -42,7 +42,7 @@ end
 
 function genPresentation(ele, indent)
    -- Check if the refered region is decladed
-   if ele._type == "macro-call" then
+   if ele._type == "macro-call" or ele._type == "for" then
       return ""
    end
    if ele._region then

@@ -4,9 +4,9 @@ local lpeg = require"lpeg"
 local pT = require"parse-tree"
 
 function resolveMacroPresentationSon(element, macro, call)
-   local newEle = {_type = element._type, father = call.father, descriptor=element.descriptor, properties = {}, sons={}}
+   local newEle = {_type = element._type, region = element.region, father = call.father, descriptor=element.descriptor, properties = {}, sons={}}
 --, type=element.type, 
-   -- If the Id is a parameter, a new element have to be created
+   -- Se o Id é um parametro
    if utils.containValue(macro.parameters, element.id) then
       newEle.id = call.arguments[utils.getIndex(macro.parameters, element.id)]
    else
@@ -29,8 +29,14 @@ function resolveMacroPresentationSon(element, macro, call)
          end
       end
    end
+
+   -- O novo elemento vai ser filho do elemento que tem a macro
    if call.father then
-      call.father.sons[newEle.id] = newEle
+      if utils.isMacroSon(call.father) then
+         print("É filho de macro")
+      else
+         call.father.sons[newEle.id] = newEle
+      end
    end
    return newEle
 end
@@ -190,7 +196,7 @@ function resolveTemplates(input, tbl)
          for _, son in pairs(_for.sons) do -- Pra cada chamada de macro
             local macro = gblMacroTbl[son.macro]
             local parameters = macro.parameters
-            local call = {_type="macro-call", macro=macro.id, arguments = {}}
+            local call = {_type="macro-call", macro=macro.id, arguments = {}, father = _for.father}
             for pos, val in pairs(element) do
                if utils.containValue(parameters, pos) then
                   call.arguments[utils.getIndex(parameters, pos)] = element[pos]

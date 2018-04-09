@@ -5,5 +5,5 @@ media2:
   class: photo
   src: medias/image2.jpg
 media3:
-  src: medias/image3
+  src: medias/image3.png
   class: photo

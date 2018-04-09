@@ -13,7 +13,9 @@ local R, P = lpeg.R, lpeg.P
 -- TODO: Macro cant have recursion
 -- TODO: Check if the sons are valid elements
 
--- TODO: Essas tabelas n devem ser globais
+-- TODO: Essas tabelas devem ser globais?
+-- Acho que sim, por que se n o stack das funções recursivas
+-- ficam mt grande
 gblParserLine = 1
 gblPresTbl = {}
 gblLinkTbl = {}
@@ -60,17 +62,16 @@ function beginParse(input, output, padding, play)
       resolveTemplates(paddingTbl[1], gblTemplateTbl)
    end
 
-   local NCL = genNCL()
-
    if _DEBUG_SYMBOL_TABLE then
-      print("Head Table:", inspect.inspect(gblHeadTbl))
       print("Symbol Table:", inspect.inspect(gblPresTbl))
+      print("Head Table:", inspect.inspect(gblHeadTbl))
       print("Link Table:", inspect.inspect(gblLinkTbl))
       print("Macro Table:", inspect.inspect(gblMacroTbl))
       print("Macro Call Table:", inspect.inspect(gblMacroCallTbl))
       print("Template Table:", inspect.inspect(gblTemplateTbl))
    end
 
+   local NCL = genNCL()
    if gblHasError then
       utils.printErro("Error creating output file")
       return
