@@ -24,7 +24,7 @@ gblTemplateTbl = {}
 
 _DEBUG_PEG = false
 _DEBUG_PARSE_TABLE = false
-_DEBUG_SYMBOL_TABLE = false
+_DEBUG_SYMBOL_TABLE = true
 
 function beginParse(input, output, padding, play)
    local parsed = nil
@@ -63,12 +63,12 @@ function beginParse(input, output, padding, play)
    local NCL = genNCL()
 
    if _DEBUG_SYMBOL_TABLE then
-      print("Head Table:", inspect.inspect(gblHeadTbl))
-      print("Symbol Table:", inspect.inspect(gblPresTbl))
-      print("Link Table:", inspect.inspect(gblLinkTbl))
-      print("Macro Table:", inspect.inspect(gblMacroTbl))
-      print("Macro Call Table:", inspect.inspect(gblMacroCallTbl))
-      print("Template Table:", inspect.inspect(gblTemplateTbl))
+      -- print("Head Table:", inspect.inspect(gblHeadTbl))
+      -- print("Symbol Table:", inspect.inspect(gblPresTbl))
+      -- print("Link Table:", inspect.inspect(gblLinkTbl))
+      -- print("Macro Table:", inspect.inspect(gblMacroTbl))
+      -- print("Macro Call Table:", inspect.inspect(gblMacroCallTbl))
+      --print("Template Table:", inspect.inspect(gblTemplateTbl))
    end
 
    if gblHasError then

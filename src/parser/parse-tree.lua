@@ -282,7 +282,7 @@ end
 
 function pT.makeMacroCall(str)
    return str/function(mc, args, ...)
-      local tb = {_type="macro-call", macro = mc, arguments = args, ...}
+      local tb = {_type="macro-call", macro = mc, arguments = args}
       table.insert(gblMacroCallTbl, tb)
       return tb
    end

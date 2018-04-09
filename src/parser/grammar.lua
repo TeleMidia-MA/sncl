@@ -39,7 +39,7 @@ grammar = {
    Port = V"Spc"^0*pT.makePort(P"port"* V"Spc"^1 * C(V"Id") * V"Spc"^1 * C(V"Id")*(P"."*C(V"Id"))^-1),
 
    PresentationElement = V"Spc"^0* pT.makePresentationElement(C(V"Reserved") *V"Spc"^1 * C(V"Id") *V"Spc"^1
-   *(V"PresentationElement"+V"Port"+ V"Property"+pT.makeLink(V"Link")+V"MacroCall"+V"Spc")^0 *C(V"End")),
+   *(V"PresentationElement"+V"Port"+ V"Property"+pT.makeLink(V"Link")+V"MacroCall"+V"Template"+V"Spc")^0 *C(V"End")),
 
    Link = V"Spc"^0*(V"Condition" *V"Spc"^1* ((V"Property"+V"Action")-V"End")^0 *C(V"End")*V"Spc"^0),
 

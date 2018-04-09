@@ -5,6 +5,8 @@ macro makeMedia(id, class, src)
    end
 end
 
-for i = 1, #photo do
-   makeMedia("photo[i]")
+context c1
+   for i = 1, #photo do
+      makeMedia("photo[i]")
+   end
 end

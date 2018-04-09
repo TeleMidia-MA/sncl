@@ -175,22 +175,16 @@ function resolveXConnectors(tbl)
    end
 end
 
-function resolveTemplates(input, tbl)
-   for _, _for in pairs(tbl) do -- Cada 'val' é um for
-      local class = _for.class
-      local elements = {}
-      for pos, ele in pairs(input) do -- Separar os elementos que tem a classe do for
-         ele.id = pos
-         if ele.class == _for.class then
-            table.insert(elements, ele)
-         end
-      end
-      for i = _for.start, #elements do
+function resolveTemplates(input, templates)
+   for _, temp in pairs(templates) do -- Cada 'val' é um for
+      local elements = getElementsWithClass(input, temp.class)
+
+      for i = temp.start, #elements do
          local element = elements[i]
-         for _, son in pairs(_for.sons) do -- Pra cada chamada de macro
+         for _, son in pairs(temp.sons) do -- Os filhos dos templates(for) são as chamadas de macro
             local macro = gblMacroTbl[son.macro]
             local parameters = macro.parameters
-            local call = {_type="macro-call", macro=macro.id, arguments = {}}
+            local call = {_type="macro-call",father = temp.father, macro=macro.id, arguments = {}}
             for pos, val in pairs(element) do
                if utils.containValue(parameters, pos) then
                   call.arguments[utils.getIndex(parameters, pos)] = element[pos]
@@ -200,5 +194,18 @@ function resolveTemplates(input, tbl)
          end
       end
    end
+end
+
+function getElementsWithClass(elements, class)
+   local tbl = {}
+   for pos, val in pairs(elements) do
+      if not val.id then -- Quando os elementos vem do yaml, eles vem sem id, pq o id eh o index
+         val.id = pos
+      end
+      if val.class == class then
+         table.insert(tbl, val)
+      end
+   end
+   return tbl
 end
 
