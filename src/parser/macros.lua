@@ -79,9 +79,9 @@ function resolveElementProperties(ele, newEle, call)
    for name, value in pairs(ele.properties) do
       -- Se o valor da propriedade for um parametro
       if utils.containValue(ele.father.parameters, value) then
-         pT.addProperty(newEle, name, call.arguments[utils.getIndex(ele.father.parameters, value)])
+         utils.addProperty(newEle, name, call.arguments[utils.getIndex(ele.father.parameters, value)])
       else
-         pT.addProperty(newEle, name, value)
+         utils.addProperty(newEle, name, value)
       end
    end
 end

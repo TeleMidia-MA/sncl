@@ -33,7 +33,6 @@ function utils.printErro(errString, line)
    gblHasError = true
 end
 
-
 function utils.containValue(tbl, arg)
    for _, val in pairs(tbl) do
       if val == arg then
@@ -82,4 +81,36 @@ function utils.getElementsWithClass(elements, class)
    end
    return tbl
 end
+
+function utils.addProperty(element, name, value)
+   if name ~="_type" then
+      if element.properties[name] then
+         utils.printErro("Property "..name.." already declared")
+         return nil
+      else
+         --[[ If the name of the property is "rg", it is a region
+            Then the descriptor property must be added and
+            the descriptor element that links the media and the region
+            must be created --]]
+         if name == "rg" then
+            if element._region then
+               utils.printErro("Region "..value.." already declared")
+               return nil
+            end
+            element._region = value
+            element.descriptor = "__desc"..value
+            pT.makeDesc(element.descriptor, value)
+            -- It it's not a region, then just add it
+         elseif name=="src" then
+            element.src = value
+            print("Added src to ", element.id)
+         elseif name=="type" then
+            element.type = value
+         else
+            element.properties[name] = value
+         end
+      end
+   end
+end
+
 return utils
