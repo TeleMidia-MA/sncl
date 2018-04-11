@@ -63,4 +63,23 @@ function utils.isMacroSon(ele)
    return false
 end
 
+function utils.getNumberOfParents(ele, f)
+   if ele.father then
+      f =  utils.getNumberOfParents(ele.father, f+1)
+   end
+   return f
+end
+
+function utils.getElementsWithClass(elements, class)
+   local tbl = {}
+   for pos, val in pairs(elements) do
+      if not val.id then -- Quando os elementos vem do yaml, eles vem sem id, pq o id eh o index
+         val.id = pos
+      end
+      if val.class == class then
+         table.insert(tbl, val)
+      end
+   end
+   return tbl
+end
 return utils

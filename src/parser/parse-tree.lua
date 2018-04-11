@@ -64,7 +64,7 @@ end
 function pT.makePresentationElement(str)
    return str / function(_type, id, ...)
       local tb = {...}
-      local element = {_type=_type, id=id, hasEnd = false}
+      local element = {_type=_type, id=id, hasEnd = false, line = gblParserLine-1}
 
       if gblPresTbl[element.id] or gblMacroTbl[element.id] or gblHeadTbl[element.id ]then
          utils.printErro("Id "..element.id.." already declared")
@@ -278,7 +278,7 @@ end
 
 function pT.makeMacroCall(str)
    return str/function(mc, args, ...)
-      local tb = {_type="macro-call", macro = mc, arguments = args}
+      local tb = {_type="macro-call", macro = mc, arguments = args, line = gblParserLine}
       table.insert(gblMacroCallTbl, tb)
       return tb
    end
@@ -287,7 +287,7 @@ end
 function pT.makeTemplate(str)
    return str/function(iterator, start, class, ...)
       local tbl = {...}
-      local element = {_type="for", iterator=iterator, start=start, class=class, sons = {} }
+      local element = {_type="for", iterator=iterator, start=start, class=class, sons = {}, line = gblParserLine-1}
       for pos, val in pairs(tbl) do
          if val._type == "macro-call" then
             val.father = element

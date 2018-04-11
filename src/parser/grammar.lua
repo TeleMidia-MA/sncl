@@ -60,7 +60,7 @@ grammar = {
    Parameters = P"("*  Ct(Cg( Ct(V"FieldParameters"^-1 * (',' * V"FieldParameters")^0),"parameters")) * P')',
    FieldParameters = V"Spc"^0*C(V"Id")*V"Spc"^0,
    --Field = '"' * Cs(((P(1) - '"') + P'""' / '"')^0) * '"' + C((1 - S',\n)"')^0),
-   MacroBody = (V"MacroPresentationElement"+pT.makeMacroLinkSon(V"Link"))^0,
+   MacroBody = (V"MacroPresentationElement"+pT.makeMacroLinkSon(V"Link")+V"Template")^0,
 
    MacroCall = V"Spc"^0*pT.makeMacroCall(C(V"Id") * V"Arguments"),
    Arguments = P"("*  Ct(( (V"FieldArguments"^-1 * (',' * V"FieldArguments")^0)) ) * P')',
@@ -68,7 +68,7 @@ grammar = {
    -- TODO: Can accept more things other than Id
 
    Template = V"Spc"^0*pT.makeTemplate(V"For"*V"Spc"^1*V"MacroCall"^0*V"Spc"^0* C(V"End")),
-   For = (P"for" *V"Spc"^1* C(V"Lower"^1) *V"Spc"^0* P"="* V"Spc"^0*C(V"Digit"^1)*V"Spc"^0*P","*V"Spc"^0* P"#"*C(V"Lower"^1) *V"Spc"^1* P"do"),
+   For = (P"for" *V"Spc"^1* C(V"Lower"^1) *V"Spc"^0* P"="* V"Spc"^0*C(V"Digit"^1)*V"Spc"^0*P","*V"Spc"^0* P"#"*C((V"Lower"+V"Digit")^1) *V"Spc"^1* P"do"),
 
    START = ((V"Spc"^0* Ct((V"Template"+V"Port"+V"Macro"+V"PresentationElement"+pT.makeLink(V"Link")+V"MacroCall")^0) * V"Spc"^0)* V"EOS"),
 }

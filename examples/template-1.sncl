@@ -1,14 +1,17 @@
-macro makeMedia(id, class, src)
+macro makeMedia(id, src, class)
    media id
-      class: class
       src: src
+      class: class
    end
 end
 
-context c1
-   for i = 1, #photo do
-      makeMedia("photo[i]")
+macro makecontext(id, class)
+   context id
+      class: class
    end
 end
 
-makeContext("c1")
+for i = 1, #album do
+   makeContext("album[i]")
+end
+

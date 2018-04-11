@@ -7,6 +7,7 @@ require"grammar"
 require"pegdebug"
 require"gen"
 require"process"
+require"macro"
 
 local R, P = lpeg.R, lpeg.P
 
@@ -23,6 +24,7 @@ gblMacroTbl = {}
 gblMacroCallTbl = {}
 gblHeadTbl = {}
 gblTemplateTbl = {}
+gblPaddingTbl = {}
 
 _DEBUG_PEG = false
 _DEBUG_PARSE_TABLE = false
@@ -43,7 +45,7 @@ function beginParse(input, output, padding, play)
       -- TODO: Checar extensao do yaml
       -- TODO: Checar erros no yaml?
       local paddingContent = utils.readFile(padding)
-      paddingTbl = lyaml.load(paddingContent, { all = true })
+      gblPaddingTbl = lyaml.load(paddingContent, { all = true })
    end
 
    if _DEBUG_PEG then
@@ -56,19 +58,42 @@ function beginParse(input, output, padding, play)
       return -1
    end
 
-   resolveMacroCalls(gblMacroCallTbl)
+   for _, val in pairs(gblMacroCallTbl) do
+      if not val.father then
+         resolveCall(val)
+      end
+   end
    resolveXConnectors(gblLinkTbl)
+
    if padding then
-      resolveTemplates(paddingTbl[1], gblTemplateTbl)
+      local nF = 0
+      while #gblTemplateTbl > 0 do
+         for pos, loop in ipairs(gblTemplateTbl) do
+            print("loop:", pos, "l:",loop.line)
+            print("parents:", utils.getNumberOfParents(loop, 0), "nf:", nF)
+            print("isMacroSon:", utils.isMacroSon(loop))
+            if utils.getNumberOfParents(loop, 0) == nF and not utils.isMacroSon(loop) then
+               -- TODO: 
+               local elements = utils.getElementsWithClass(gblPaddingTbl[1], loop.class)
+               io.write('\tElements: ')
+               for _, ele in ipairs(elements) do
+                  io.write(ele.id)
+               end
+               io.write('\n')
+               resolveTemplate(elements, loop, pos)
+               table.remove(gblTemplateTbl, pos)
+            end
+         end
+         nF = nF+1
+      end
    end
 
    if _DEBUG_SYMBOL_TABLE then
-      print("Symbol Table:", inspect.inspect(gblPresTbl))
-      print("Head Table:", inspect.inspect(gblHeadTbl))
-      print("Link Table:", inspect.inspect(gblLinkTbl))
-      print("Macro Table:", inspect.inspect(gblMacroTbl))
-      print("Macro Call Table:", inspect.inspect(gblMacroCallTbl))
-      print("Template Table:", inspect.inspect(gblTemplateTbl))
+      -- print("Symbol Table:", inspect.inspect(gblPresTbl))
+      -- print("Head Table:", inspect.inspect(gblHeadTbl))
+      -- print("Link Table:", inspect.inspect(gblLinkTbl))
+      -- print("Macro Table:", inspect.inspect(gblMacroTbl))
+      -- print("Macro Call Table:", inspect.inspect(gblMacroCallTbl))
    end
 
    local NCL = genNCL()

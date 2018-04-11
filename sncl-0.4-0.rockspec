@@ -35,6 +35,7 @@ build = {
       ["grammar"]     = "src/parser/grammar.lua",
       ["parse-tree"]  = "src/parser/parse-tree.lua",
       ["gen"]         = "src/parser/gen.lua",
+      ["macro"] = "src/parser/macros.lua",
    },
    install = {
       bin = {

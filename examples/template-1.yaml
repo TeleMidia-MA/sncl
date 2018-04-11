@@ -1,9 +1,11 @@
-media1:
-  class: photo
-  src: medias/image1.jpg
-media2:
-  class: photo
-  src: medias/image2.jpg
-media3:
-  src: medias/image3.png
-  class: photo
+m1:
+  class: p1
+  src: medias/img1.jpg
+m2:
+  class: p2
+  src: medias/img1.jpg
+c1:
+  class: album
+  c1m1:
+    class: p2
+    src: medias/img2

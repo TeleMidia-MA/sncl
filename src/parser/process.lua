@@ -2,142 +2,147 @@ local utils = require"utils"
 local ins = require"inspect"
 local lpeg = require"lpeg"
 local pT = require"parse-tree"
+require"macro"
+--
+-- function resolveMacroPresentationSon(element, macro, call)
+--    local newEle = {_type = element._type, region = element.region, descriptor=element.descriptor, properties = {}, sons={}, father = call.father}
+--    print(ins.inspect(element))
+--
+--    -- Se o Id é um parametro
+--    if utils.containValue(macro.parameters, element.id) then
+--       newEle.id = call.arguments[utils.getIndex(macro.parameters, element.id)]
+--    else
+--       newEle.id = element.id
+--    end
+--
+--    if gblPresTbl[newEle.id] then
+--       utils.printErro("Id "..newEle.id.." already declared")
+--       return nil
+--    end
+--    gblPresTbl[newEle.id] = newEle
+--    -- if element.properties then
+--    --    for name, value in pairs(element.properties) do
+--    --       -- If a property is a parameter, create the property
+--    --       -- with the new value
+--    --       if utils.containValue(macro.parameters, value) then
+--    --          pT.addProperty(newEle, name, call.arguments[utils.getIndex(macro.parameters, value)])
+--    --       else
+--    --          pT.addProperty(newEle, name, value)
+--    --       end
+--    --    end
+--    -- end
+--
+--    for pos, val in pairs(element.sons) do
+--       if val._type == "for" then
+--          resolveTemplate(gblPaddingTbl[1], val, newEle)
+--       end
+--    end
+--
+--    -- O novo elemento vai ser filho do elemento que tem a macro
+--    if newEle.father then
+--       newEle.father.sons[newEle.id] = newEle
+--    end
+--    return newEle
+-- end
+--
+-- function resolveMacroLinkSon(son, macro, call)
+--    local newEle = {_type="link", actions={}, conditions={}}
+--
+--    for _, act in pairs(son.actions) do
+--       local newAct = {_type="action"}
+--       newAct.role = act.role
+--       if utils.containValue(macro.parameters, act.component) then
+--          newAct.component = call.arguments[utils.getIndex(macro.parameters, act.component)]
+--       else
+--          newAct.component = act.component
+--       end
+--       if act.interface then
+--          if utils.containValue(macro.parameters, act.interface) then
+--             newAct.interface = call.arguments[utils.getIndex(macro.parameters, act.interface)]
+--          else
+--             newAct.interface = act.interface
+--          end
+--       end
+--       if act.properties then
+--          newAct.properties = {}
+--          for name, value in pairs(act.properties) do
+--             -- TODO: Check if the name is a parameter?
+--             if utils.containValue(macro.parameters, value) then
+--                newAct.properties[name] = call.arguments[utils.getIndex(macro.parameters, value)]
+--             else
+--                newAct.properties[name] = value
+--             end
+--          end
+--       end
+--       table.insert(newEle.actions, newAct)
+--    end
+--
+--    for _, cond in pairs(son.conditions) do
+--       local newCond = {_type="condition"}
+--       newCond.role = cond.role
+--       if utils.containValue(macro.parameters, cond.component) then
+--          newCond.component = call.arguments[utils.getIndex(macro.parameters, cond.component)]
+--       else
+--          newCond.component = cond.component
+--       end
+--       -- TODO: BUTTONS
+--       if cond.interface then
+--          if utils.containValue(macro.parameters, cond.interface) then
+--             newCond.interface = call.arguments[utils.getIndex(macro.parameters, cond.interface)]
+--          else
+--             newCond.interface = cond.interface
+--          end
+--          if lpeg.match(Buttons, newCond.interface) then
+--             newCond.properties = {__keyValue=newCond.interface}
+--             newCond.interface = nil
+--          end
+--       end
+--       table.insert(newEle.conditions, newCond)
+--    end
+--
+--    if son.properties then
+--       newEle.properties = {}
+--       for name, value in pairs(son.properties) do
+--          -- TODO: Check if the name is a parameter?
+--          if utils.containValue(macro.parameters, value) then
+--             newEle.properties[name] = call.arguments[utils.getIndex(macro.parameters, value)]
+--          else
+--             newEle.properties[name] = value
+--          end
+--       end
+--    end
+--    table.insert(gblLinkTbl, newEle)
+-- end
+--
+-- -- function resolveMacro(macro, call)
+-- --    print("Resolving macro of ", macro.id)
+-- --    for _, son in pairs(macro.sons) do
+-- --       if son._type == "link" then
+-- --          resolveMacroLinkSon(son, macro, call)
+-- --       else
+-- --          resolveMacroPresentationSon(son, macro, call)
+-- --       end
+-- --    end
+-- end
 
-function resolveMacroPresentationSon(element, macro, call)
-   local newEle = {_type = element._type, region = element.region, father = call.father, descriptor=element.descriptor, properties = {}, sons={}}
---, type=element.type, 
-   -- Se o Id é um parametro
-   if utils.containValue(macro.parameters, element.id) then
-      newEle.id = call.arguments[utils.getIndex(macro.parameters, element.id)]
-   else
-      newEle.id = element.id
-   end
-
-   if gblPresTbl[newEle.id] then
-      utils.printErro("Id "..newEle.id.." already declared")
-      return nil
-   end
-   gblPresTbl[newEle.id] = newEle
-   if element.properties then
-      for name, value in pairs(element.properties) do
-         -- If a property is a parameter, create the property
-         -- with the new value
-         if utils.containValue(macro.parameters, value) then
-            pT.addProperty(newEle, name, call.arguments[utils.getIndex(macro.parameters, value)])
-         else
-            pT.addProperty(newEle, name, value)
-         end
-      end
-   end
-
-   -- O novo elemento vai ser filho do elemento que tem a macro
-   if call.father then
-      if utils.isMacroSon(call.father) then
-         print("É filho de macro")
-      else
-         call.father.sons[newEle.id] = newEle
-      end
-   end
-   return newEle
-end
-
-function resolveMacroLinkSon(son, macro, call)
-   local newEle = {_type="link", actions={}, conditions={}}
-
-   for _, act in pairs(son.actions) do
-      local newAct = {_type="action"}
-      newAct.role = act.role
-      if utils.containValue(macro.parameters, act.component) then
-         newAct.component = call.arguments[utils.getIndex(macro.parameters, act.component)]
-      else
-         newAct.component = act.component
-      end
-      if act.interface then
-         if utils.containValue(macro.parameters, act.interface) then
-            newAct.interface = call.arguments[utils.getIndex(macro.parameters, act.interface)]
-         else
-            newAct.interface = act.interface
-         end
-      end
-      if act.properties then
-         newAct.properties = {}
-         for name, value in pairs(act.properties) do
-            -- TODO: Check if the name is a parameter?
-            if utils.containValue(macro.parameters, value) then
-               newAct.properties[name] = call.arguments[utils.getIndex(macro.parameters, value)]
-            else
-               newAct.properties[name] = value
-            end
-         end
-      end
-      table.insert(newEle.actions, newAct)
-   end
-
-   for _, cond in pairs(son.conditions) do
-      local newCond = {_type="condition"}
-      newCond.role = cond.role
-      if utils.containValue(macro.parameters, cond.component) then
-         newCond.component = call.arguments[utils.getIndex(macro.parameters, cond.component)]
-      else
-         newCond.component = cond.component
-      end
-      -- TODO: BUTTONS
-      if cond.interface then
-         if utils.containValue(macro.parameters, cond.interface) then
-            newCond.interface = call.arguments[utils.getIndex(macro.parameters, cond.interface)]
-         else
-            newCond.interface = cond.interface
-         end
-         if lpeg.match(Buttons, newCond.interface) then
-            newCond.properties = {__keyValue=newCond.interface}
-            newCond.interface = nil
-         end
-      end
-      table.insert(newEle.conditions, newCond)
-   end
-
-   if son.properties then
-      newEle.properties = {}
-      for name, value in pairs(son.properties) do
-         -- TODO: Check if the name is a parameter?
-         if utils.containValue(macro.parameters, value) then
-            newEle.properties[name] = call.arguments[utils.getIndex(macro.parameters, value)]
-         else
-            newEle.properties[name] = value
-         end
-      end
-   end
-   table.insert(gblLinkTbl, newEle)
-end
-
-function resolveMacro(macro, call)
-   for _, son in pairs(macro.sons) do
-      if son._type == "link" then
-         resolveMacroLinkSon(son, macro, call)
-      else
-         resolveMacroPresentationSon(son, macro, call)
-      end
-   end
-end
-
-function resolveMacroCalls(tbl)
-   for _, call in pairs(tbl) do
-      if call.father then
-      else
-         local macro = gblMacroTbl[call.macro]
-         if not macro then
-            utils.printErro("Macro "..call.macro.." not declared")
-            return nil
-         end
-         -- TODO: Nao tem que checar se o pai é um for, e sim se o argumento é um indice
-         if #macro.parameters ~= #call.arguments and call.father._type ~= "for" then
-            utils.printErro("Wrong number of arguments on call "..macro.id)
-            return nil
-         end
-         resolveMacro(macro, call)
-      end
-   end
-end
+-- function resolveMacroCalls(tbl)
+--    for _, call in pairs(tbl) do
+--       if call.father then
+--       else
+--          local macro = gblMacroTbl[call.macro]
+--          if not macro then
+--             utils.printErro("Macro "..call.macro.." not declared")
+--             return nil
+--          end
+--          -- TODO: Nao tem que checar se o pai é um for, e sim se o argumento é um indice
+--          if #macro.parameters ~= #call.arguments and call.father._type ~= "for" then
+--             utils.printErro("Wrong number of arguments on call "..macro.id)
+--             return nil
+--          end
+--          resolveMacro(macro, call)
+--       end
+--    end
+-- end
 
 function resolveXConnectorBinds(xconn, bind)
    if xconn[bind._type][bind.role] then
@@ -181,38 +186,67 @@ function resolveXConnectors(tbl)
    end
 end
 
-function resolveTemplates(input, templates)
-   for _, temp in pairs(templates) do -- Cada 'val' é um for
-      local elements = getElementsWithClass(input, temp.class)
+-- function resolveTemplate(padding, loop, pos)
+--    local start = loop.start
+--    local elements = getElementsWithClass(padding, loop.class)
+--    for i = start, #elements do
+--       local element = elements[i]
+--       for _, son in pairs(loop.sons) do
+--          if son._type == "macro-call" then
+--             local macro = gblMacroTbl[son.macro]
+--             local parameters = macro.parameters
+--             local call = {_type="macro-call", macro=macro.id, arguments = {}, father = loop.father}
+--             -- Pegar as propriedades do objeto yaml, e transforma-los em argumentos da chamada
+--             for pos, val in pairs(element) do 
+--                if type(val) == "table" then -- Se for uma table, é um elemento
+--                else
+--                   if utils.containValue(parameters, pos) then
+--                      call.arguments[utils.getIndex(parameters, pos)] = element[pos]
+--                   end
+--                end
+--             end
+--             resolveCall(call)
+--          end
+--       end
+--    end
+--    table.remove(gblTemplateTbl, pos)
+-- end
 
-      for i = temp.start, #elements do
-         local element = elements[i]
-         for _, son in pairs(temp.sons) do -- Os filhos dos templates(for) são as chamadas de macro
-            local macro = gblMacroTbl[son.macro]
+function makeElementsLoop(lp, els)
+   local s = lp.start
+end
+
+function resolveTemplate(eles, loop, pos)
+   local s = loop.start
+   for i = s, #eles do
+      for _, son in pairs(loop.sons) do
+         if son._type == "macro-call" then
+            local macro = gblMacroTbl[son.macro] --TODO: checar se macro existe
+            if not macro then
+               io.write("ERRO: macro ", son.macro, " n declarada.", son.line, '\n')
+               table.remove(gblTemplateTbl, pos)
+               return
+            end
             local parameters = macro.parameters
-            --local call = {_type="macro-call",father = temp.father, macro=macro.id, arguments = {}}
-            local call = {_type="macro-call", macro=macro.id, arguments = {}, father = _for.father}
-            for pos, val in pairs(element) do
-               if utils.containValue(parameters, pos) then
-                  call.arguments[utils.getIndex(parameters, pos)] = element[pos]
+            local call = {
+               _type = "macro-call",
+               macro = macro.id,
+               arguments = {},
+               father = loop.father,
+               line = son.line
+            }
+            for pos, val in pairs(eles[i]) do 
+               if type(val) == "table" then -- Se for uma table, é um elemento
+               else
+                  if utils.containValue(parameters, pos) then
+                     call.arguments[utils.getIndex(parameters, pos)] = eles[i][pos]
+                  end
                end
             end
-            resolveMacro(macro, call)
+            resolveCall(call)
          end
       end
    end
 end
 
-function getElementsWithClass(elements, class)
-   local tbl = {}
-   for pos, val in pairs(elements) do
-      if not val.id then -- Quando os elementos vem do yaml, eles vem sem id, pq o id eh o index
-         val.id = pos
-      end
-      if val.class == class then
-         table.insert(tbl, val)
-      end
-   end
-   return tbl
-end
 

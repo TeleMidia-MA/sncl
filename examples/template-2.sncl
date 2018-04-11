@@ -1,0 +1,16 @@
+macro makeMedia(id, src, class)
+   media id
+      src: src
+      class: class
+   end
+end
+
+for i = 1, #p1 do
+   makeMedia("p1[i]")
+end
+
+context context1
+   for i = 1, #p2 do
+      makeMedia("p2[i]")
+   end
+end
