@@ -88,10 +88,8 @@ function utils.addProperty(element, name, value)
          utils.printErro("Property "..name.." already declared")
          return nil
       else
-         --[[ If the name of the property is "rg", it is a region
-            Then the descriptor property must be added and
-            the descriptor element that links the media and the region
-            must be created --]]
+         -- Se for rg, entao é uma regiao
+         -- nesse caso, o descritor tem q ser criado
          if name == "rg" then
             if element._region then
                utils.printErro("Region "..value.." already declared")
@@ -99,11 +97,10 @@ function utils.addProperty(element, name, value)
             end
             element._region = value
             element.descriptor = "__desc"..value
-            pT.makeDesc(element.descriptor, value)
+            utils.makeDesc(element.descriptor, value)
             -- It it's not a region, then just add it
          elseif name=="src" then
             element.src = value
-            print("Added src to ", element.id)
          elseif name=="type" then
             element.type = value
          else

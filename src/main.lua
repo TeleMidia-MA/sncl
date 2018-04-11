@@ -60,33 +60,34 @@ function beginParse(input, output, padding, play)
 
    for _, val in pairs(gblMacroCallTbl) do
       if not val.father then
-         resolveCall(val)
+         local stack = {}
+         resolveCall(val, stack)
       end
    end
    resolveXConnectors(gblLinkTbl)
 
-   if padding then
-      local nF = 0
-      while #gblTemplateTbl > 0 do
-         for pos, loop in ipairs(gblTemplateTbl) do
-            print("loop:", pos, "l:",loop.line)
-            print("parents:", utils.getNumberOfParents(loop, 0), "nf:", nF)
-            print("isMacroSon:", utils.isMacroSon(loop))
-            if utils.getNumberOfParents(loop, 0) == nF and not utils.isMacroSon(loop) then
-               -- TODO: 
-               local elements = utils.getElementsWithClass(gblPaddingTbl[1], loop.class)
-               io.write('\tElements: ')
-               for _, ele in ipairs(elements) do
-                  io.write(ele.id)
-               end
-               io.write('\n')
-               resolveTemplate(elements, loop, pos)
-               table.remove(gblTemplateTbl, pos)
-            end
-         end
-         nF = nF+1
-      end
-   end
+   -- if padding then
+   --    local nF = 0
+   --    while #gblTemplateTbl > 0 do
+   --       for pos, loop in ipairs(gblTemplateTbl) do
+   --          print("loop:", pos, "l:",loop.line)
+   --          print("parents:", utils.getNumberOfParents(loop, 0), "nf:", nF)
+   --          print("isMacroSon:", utils.isMacroSon(loop))
+   --          if utils.getNumberOfParents(loop, 0) == nF and not utils.isMacroSon(loop) then
+   --             -- TODO: 
+   --             local elements = utils.getElementsWithClass(gblPaddingTbl[1], loop.class)
+   --             io.write('\tElements: ')
+   --             for _, ele in ipairs(elements) do
+   --                io.write(ele.id)
+   --             end
+   --             io.write('\n')
+   --             resolveTemplate(elements, loop, pos)
+   --             table.remove(gblTemplateTbl, pos)
+   --          end
+   --       end
+   --       nF = nF+1
+   --    end
+   -- end
 
    if _DEBUG_SYMBOL_TABLE then
       -- print("Symbol Table:", inspect.inspect(gblPresTbl))

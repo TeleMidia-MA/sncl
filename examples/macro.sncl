@@ -4,6 +4,19 @@ macro makeMedia(id, src)
    end
 end
 
-makeMedia("m1", "source")
+makeMedia("m1", "src1")
+
+context c1
+   makeMedia("c1m1", "src2")
+end
+
+macro makeContext(id, mId, mSrc)
+   context id
+      makeMedia(mId, mSrc)
+      makeMedia("c2m2", "src4")
+   end
+end
+
+makeContext("c2", "c2m1", "src3")
 
 

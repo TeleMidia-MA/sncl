@@ -29,38 +29,35 @@ end
 function pT.makePresentationElement(str, isMacroSon)
    return str / function(_type, id, ...)
       local tb = {...}
-      print("tb:", ins.inspect(tb))
       local element = {
-         _type=_type, id=id, hasEnd = false, line = gblParserLine-1
+         _type=_type, id=id, hasEnd = false, line = gblParserLine-1,
+         properties = {},
+         sons = {},
       }
 
-      if gblPresTbl[element.id] or gblMacroTbl[element.id] or gblHeadTbl[element.id ]then
+      if gblPresTbl[element.id] or gblMacroTbl[element.id] or gblHeadTbl[element.id]then
          utils.printErro("Id "..element.id.." already declared")
          return nil
       end
 
       if element._type == "region" then
          gblHeadTbl[element.id] = element
-      else
+      elseif not isMacroSon then
          gblPresTbl[element.id] = element
       end
 
+      -- Se for uma tabela, ou é uma propriedade ou é um elemento filho
       for pos, val in pairs(tb) do
          if type(val) == 'table' then
-            -- If val is a table, then it is either a son of the element or a
-            -- property of the element
             if val._type == 'property' then
-               if not element.properties then
-                  element.properties = {}
+                  for name, value in pairs(val) do
+                  if isMacroSon then
+                     element.properties[name] = value
+                  else
+                     utils.addProperty(element, name, value)
+                  end
                end
-               for name, value in pairs(val) do
-                  utils.addProperty(element, name, value)
-               end
-               -- If it is not a property, it is an element that is a son
             else
-               if not element.sons then
-                  element.sons = {}
-               end
                table.insert(element.sons, val)
                val.father = element
             end
@@ -69,7 +66,6 @@ function pT.makePresentationElement(str, isMacroSon)
          end
       end
 
-      print("ele:", ins.inspect(element))
       return element
    end
 end

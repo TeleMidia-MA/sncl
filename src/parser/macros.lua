@@ -2,13 +2,20 @@ local ins = require"inspect"
 local utils = require"utils"
 local pT = require("parse-tree")
 
-function resolveCall(call)
+-- stack -> call stack
+function resolveCall(call, stack)
+   print("\nResolving call on line", call.line)
+   print("Arguments:", ins.inspect(call.arguments))
+   print(ins.inspect(stack))
    local macro = gblMacroTbl[call.macro]
+   local abv = stack[#stack]
 
+   -- Se a macro chamada n existe
    if not macro then 
-      print("MACRO CHAMADA N EXISTE")
-      return nil 
-   end -- Se a macro chamada n existe
+      print("ERRO: MACRO CHAMADA N EXISTE")
+      return nil
+   end
+
    -- Se tem o mesmo numero de parametros e argumentos
    -- Mas se for um for, n vai ter
    if #macro.parameters ~= #call.arguments then
@@ -23,19 +30,38 @@ function resolveCall(call)
       end
    end
 
-   for _, son in pairs(macro.sons) do
-      if son._type == "link" then
-      elseif son._type == "for" then
+   -- Se tiver aspas, é pq o argumento ta sendo passado
+   -- Se n, é pq o argumento é um parametro da macro em q a call ta dentro
+   for p, val in pairs(call.arguments) do
+      if val:match("\"*\"") then
+         call.arguments[p] = val:gsub("\"", "")
+         -- TODO: Remover aspas
       else
-         if call.father and call.father._type == "for" then
+         if abv then
+            -- Checar se a macro realmente tem o argumento como parametro
+            if utils.containValue(gblMacroTbl[abv.macro].parameters, val) then
+               print(abv.arguments[utils.getIndex(gblMacroTbl[abv.macro].parameters, val)])
+               call.arguments[p] = abv.arguments[utils.getIndex(gblMacroTbl[abv.macro].parameters, val)]
+               -- Se tiver, substituir o argumento da call pelo o que foi passado pra macro
+            else
+               io.write("ERRO: Argumento ", val, " invalido, n é parametro: ", call.line, "\n")
+            end
          else
-            resolvePresentationMacro(son, call)
+            io.write("ERRO: Argumento invalido, n ha macro: ", call.line,"\n")
          end
       end
    end
+
+   table.insert(stack, call)
+   for _, son in pairs(macro.sons) do
+      if son._type == "context" or son._type == "media" then
+         resolvePresentationMacro(son, call, stack)
+      end
+   end
+   table.remove(stack)
 end
 
-function resolvePresentationMacro(ele, call)
+function resolvePresentationMacro(ele, call, stack)
    local newEle = {
       id = ele.id, 
       _type = ele._type,
@@ -57,8 +83,6 @@ function resolvePresentationMacro(ele, call)
       resolveElementProperties(ele, newEle, call)
    end
 
-   newEle.sons = ele.sons
-
    gblPresTbl[newEle.id] = newEle
 
    if call.father then
@@ -72,6 +96,11 @@ function resolvePresentationMacro(ele, call)
       end
    end
 
+   for _, son in pairs(ele.sons) do
+      if son._type == "macro-call" then
+         resolveCall(son, stack)
+      end
+   end
    --return newEle
 end
 
