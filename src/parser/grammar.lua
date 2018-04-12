@@ -18,12 +18,12 @@ grammar = {
          gbl.parserLine = gbl.parserLine+1
       end
    end,
-   Digit = R"09",
-   Lower = R"az",
-   Upper = R"AZ",
-   Letter = V"Lower" + V"Upper",
-   Alnum = R("az", "AZ", "09", "__"),
-   Num = P("0x") * R("09", "af", "AF") ^ 1 * (S("uU") ^ -1 * S("lL") ^ 2) ^ -1 + R("09") ^ 1 * (S("uU") ^ -1 * S("lL") ^ 2) + (R("09") ^ 1 * (P(".") * R("09") ^ 1) ^ -1 + P(".") * R("09") ^ 1) * (S("eE") * P("-") ^ -1 * R("09") ^ 1) ^ -1,
+   Digit = R'09',
+   Lower = R'az',
+   Upper = R'AZ',
+   Letter = V'Lower' + V'Upper',
+   Alnum = R('az', 'AZ', '09', '__'),
+   Num = P('0x') * R('09', 'af', 'AF') ^ 1 * (S('uU') ^ -1 * S('lL') ^ 2) ^ -1 + R("09") ^ 1 * (S("uU") ^ -1 * S("lL") ^ 2) + (R("09") ^ 1 * (P(".") * R("09") ^ 1) ^ -1 + P(".") * R("09") ^ 1) * (S("eE") * P("-") ^ -1 * R("09") ^ 1) ^ -1,
    Symbols = S"%./-\\",
 
    End = P"end",
