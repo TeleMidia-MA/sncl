@@ -15,10 +15,11 @@ local parsingTable = {
             interface = iface,
             line = gbl.parserLine
          }
-         if gbl.presentationTbl[id] then
-            utils.printErr("Id "..id.." already declared")
+
+         if utils.isIdUsed(element.id) then
             return nil
          end
+
          gbl.presentationTbl[id] = element
          return element
       end
@@ -26,7 +27,11 @@ local parsingTable = {
 
    parseProperty = function(str)
       return str / function(name, value)
-         return {_type="property", [name]=value, }
+         return {
+            _type = "property",
+            [name] = value,
+            line = gbl.parseLine
+         }
       end
    end,
 
@@ -34,15 +39,15 @@ local parsingTable = {
       return str / function(_type, id, ...)
          local tb = {...}
          local element = {
-            _type=_type, id=id, 
+            _type = _type,
+            id = id,
             properties = {},
             sons = {},
             hasEnd = false,
-            line = gbl.parserLine-1
+            line = gbl.parserLine
          }
 
-         if gbl.presentationTbl[element.id] or gbl.macroTbl[element.id] or gbl.headTbl[element.id]then
-            utils.printErro("Id "..element.id.." already declared")
+         if utils.isIdUsed(element.id) then
             return nil
          end
 
@@ -57,6 +62,7 @@ local parsingTable = {
             if type(val) == 'table' then
                if val._type == 'property' then
                   for name, value in pairs(val) do
+                     -- TODO: dont add "line"
                      if isMacroSon then
                         element.properties[name] = value
                      else
@@ -82,8 +88,8 @@ local parsingTable = {
          local element = {
             role = rl,
             component = cp,
-            interface=iface,
-            line=gbl.parserLine
+            interface = iface,
+            line = gbl.parserLine
          }
          return element
       end
@@ -165,18 +171,24 @@ local parsingTable = {
       end
    end,
 
+   -- TODO: Propriedades de uma macro devem ser propriedades
+   -- do elemento em q a macro foi chamada
    parseMacro = function(str)
       return str / function(id, ...)
          local tbl = {...}
          local element = {
-            id = id, _type="macro", sons={}, hasEnd = false,
+            _type="macro",
+            id = id,
+            properties = {},
+            sons = {},
+            hasEnd = false,
             line = gbl.parserLine
          }
 
-         if (gbl.presentationTbl[element.id] or gbl.macroTbl[element.id]) then
-            utils.printErro("Id "..element.id.." alreadt declared")
+         if utils.isIdUsed(element.id) then
             return nil
          end
+
          gbl.macroTbl[element.id] = element
 
          for _, val in pairs(tbl) do
@@ -236,5 +248,5 @@ local parsingTable = {
       end
    end
 }
-return parsingTable
 
+return parsingTable
