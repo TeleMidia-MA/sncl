@@ -144,47 +144,7 @@ require"macro"
 --    end
 -- end
 
-function resolveXConnectorBinds(xconn, bind)
-   if xconn[bind._type][bind.role] then
-      xconn[bind._type][bind.role] = xconn[bind._type][bind.role]+1
-   else
-      xconn[bind._type][bind.role] = 1
-   end
-   if xconn.id:find(bind.role:gsub("^%l",string.upper)) then
-      xconn.id = xconn.id.."N"
-   else
-      xconn.id = xconn.id..bind.role:gsub("^%l",string.upper)
-   end
-   if bind.properties then
-      for name, _ in pairs(bind.properties) do
-         table.insert(xconn.properties, name)
-      end
-   end
-end
 
-function resolveXConnectors(tbl)
-   for _, link in pairs(tbl) do
-      local newConn = {_type="xconnector", id="__", condition = {}, action = {}, properties={}}
-
-      for _, cond in pairs(link.conditions) do
-         resolveXConnectorBinds(newConn, cond)
-      end
-      for _, act in pairs(link.actions) do
-         resolveXConnectorBinds(newConn, act)
-      end
-      if link.properties then
-         for name, _ in pairs(link.properties) do
-            table.insert(newConn.properties, name)
-         end
-      end
-      -- TODO: Has to do all above to check if another equal
-      -- connect is already created, wasting time. How to fix?
-      link.xconnector = newConn.id
-      if not gblHeadTbl[newConn.id] then
-         gblHeadTbl[newConn.id] = newConn
-      end
-   end
-end
 
 -- function resolveTemplate(padding, loop, pos)
 --    local start = loop.start
@@ -216,37 +176,6 @@ function makeElementsLoop(lp, els)
    local s = lp.start
 end
 
-function resolveTemplate(eles, loop, pos)
-   local s = loop.start
-   for i = s, #eles do
-      for _, son in pairs(loop.sons) do
-         if son._type == "macro-call" then
-            local macro = gblMacroTbl[son.macro] --TODO: checar se macro existe
-            if not macro then
-               io.write("ERRO: macro ", son.macro, " n declarada.", son.line, '\n')
-               table.remove(gblTemplateTbl, pos)
-               return
-            end
-            local parameters = macro.parameters
-            local call = {
-               _type = "macro-call",
-               macro = macro.id,
-               arguments = {},
-               father = loop.father,
-               line = son.line
-            }
-            for pos, val in pairs(eles[i]) do 
-               if type(val) == "table" then -- Se for uma table, é um elemento
-               else
-                  if utils.containValue(parameters, pos) then
-                     call.arguments[utils.getIndex(parameters, pos)] = eles[i][pos]
-                  end
-               end
-            end
-            resolveCall(call)
-         end
-      end
-   end
-end
+
 
 

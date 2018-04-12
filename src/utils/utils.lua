@@ -1,5 +1,16 @@
 local utils= {}
 local colors = require("ansicolors")
+local lpeg = require"lpeg"
+
+local R, P = lpeg.R, lpeg.P
+
+function utils.lpegMatch(grammar, input)
+   if _DEBUG_PEG then
+      parsed = lpeg.match(require("pegdebug").trace(grammar), snclInput)
+   else
+      parsed = lpeg.match(grammar, snclInput)
+   end
+end
 
 function utils.readFile(file)
    file = io.open(file, 'r')
@@ -109,5 +120,31 @@ function utils.addProperty(element, name, value)
       end
    end
 end
+
+utils.globals = {
+   presentationTable = {},
+   linkTbl = {},
+   macroTbl = {},
+   macroCallTbl = {},
+   headTbl = {},
+   templateTbl = {},
+   paddingTbl = {},
+   inputFile = nil,
+   hasError = false,
+
+   _DEBUG_PEG = false,
+   _DEBUG_PARSE_TABLE = false,
+   _DEBUG_SYMBOL_TABLE = false,
+
+   parserLine = 0,
+}
+
+utils.checks = {
+   buttons = R"09"+R"AZ"+P"*"+P"#"+P"MENU"+P"INFO"+P"GUIDE"+P"CURSOR_DOWN"
+      +P"CURSOR_LEFT"+P"CURSOR_RIGHT"+P"CURSOR_UP"+P"CHANNEL_DOWN"+P"CHANNEL_UP"
+      +P"VOLUME_DOWN"+P"VOLUME_UP"+P"ENTER"+P"RED"+P"GREEN"+P"YELLOW"+P"BLUE"
+      +P"BLACK"+P"EXIT"+P"POWER"+P"REWIND"+P"STOP"+P"EJECT"+P"PLAY"+P"RECORD"+P"PAUSE",
+   types = P"context"+P"media"+P"area"+P"region"+P"macro"
+}
 
 return utils
