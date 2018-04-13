@@ -1,0 +1,17 @@
+macro makeMedia(id, src, class)
+   media id
+      src: src
+      class: class
+   end
+end
+
+macro makecontext(id, class)
+   context id
+      class: class
+   end
+end
+
+for i = 1, #album do
+   makeContext("album[i]")
+end
+

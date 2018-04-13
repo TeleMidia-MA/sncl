@@ -1,76 +1,64 @@
-local lpeg = require"lpeg"
-local utils = require"utils"
-local inspect = require"inspect"
-require"grammar"
-require"pegdebug"
-require"gen"
-require"process"
+local utils = require'utils'
+local gbl = require('globals')
+local inspect = require('inspect')
+local lyaml = require('lyaml')
+local ins = require('inspect')
+local pp = require('pre_process')
+local gen = require('gen')
 
-local R, P = lpeg.R, lpeg.P
+require'pegdebug'
+require'gen'
+require'pre_process'
+require'macro'
+require'grammar'
 
--- TODO: Macro cant have recursion
--- TODO: Check if the sons are valid elements
+function beginParse(input, output, padding, play)
+   gbl.inputFile = input
 
-gblParserLine = 1
-gblPresTbl = {}
-gblLinkTbl = {}
-gblMacroTbl = {}
-gblMacroCallTbl = {}
-gblHeadTbl = {}
-
-_DEBUG_PEG = false
-_DEBUG_PARSE_TABLE = false
-_DEBUG_SYMBOL_TABLE = false
-
-function beginParse(input, output, play)
-   local parsed = nil
-   gblInputFile = input
-   local snclInput = utils.readFile(input)
+   local snclInput = utils:readFile(input)
    if not snclInput then
-      utils.printErro("Error reading input file")
+      utils:printErro('Error reading input file')
       return
    end
 
-   if _DEBUG_PEG then
-      lpeg.match(require("pegdebug").trace(grammar), snclInput)
-   else
-      parsed = lpeg.match(grammar, snclInput)
-   end
-   if not parsed then
-      utils.printErro("Error parsing document")
-      return
-   end
+   -- Templates: not yet implemented
+   -- if padding then
+   --    -- TODO: Check yaml file extension
+   --    -- TODO: Check errors in yaml
+   --    local paddingContent = utils.readFile(padding)
+   --    sT.padding = lyaml.load(paddingContent, { all = true })
+   -- end
 
-   resolveMacroCalls(gblMacroCallTbl)
-   resolveXConnectors(gblLinkTbl)
-   local NCL = genNCL()
+   local symbolTable = utils.lpegMatch(grammar, snclInput)
 
-   if _DEBUG_SYMBOL_TABLE then
-      print("Head Table:", inspect.inspect(gblHeadTbl))
-      print("Symbol Table:", inspect.inspect(gblPresTbl))
-      print("Link Table:", inspect.inspect(gblLinkTbl))
-      print("Macro Table:", inspect.inspect(gblMacroTbl))
-      print("Macro Call Table:", inspect.inspect(gblMacroCallTbl))
+   if not symbolTable then
+      utils:printErro('Error parsing document', gbl.parserLine)
+      return -1
    end
+   --pp.pre_process()
 
-   if gblHasError or not parsed then
-      utils.printErro("Error creating output file")
+   if gbl._DEBUG_SYMBOL_TABLE then
+      print("Symbol Table:", inspect.inspect(symbolTable))
+   end
+   --
+   local NCL = gen:genNCL(symbolTable)
+
+   if gbl.hasError then
+      utils:printErro('Error in sncl file')
       return
    end
    if outputFile then
-      utils.writeFile(outputFile, NCL)
+      utils:writeFile(outputFile, NCL)
    else
       outputFile = input:sub(1, input:len()-4)
-      outputFile = outputFile.."ncl"
-      utils.writeFile(outputFile, NCL)
+      outputFile = outputFile..'ncl'
+      utils:writeFile(outputFile, NCL)
    end
    if play then
-      os.execute("ginga "..outputFile)
+      os.execute('ginga '..outputFile)
    end
 end
 
-Buttons = R"09"+R"AZ"+P"*"+P"#"+P"MENU"+P"INFO"+P"GUIDE"+P"CURSOR_DOWN"
-   +P"CURSOR_LEFT"+P"CURSOR_RIGHT"+P"CURSOR_UP"+P"CHANNEL_DOWN"+P"CHANNEL_UP"
-   +P"VOLUME_DOWN"+P"VOLUME_UP"+P"ENTER"+P"RED"+P"GREEN"+P"YELLOW"+P"BLUE"
-   +P"BLACK"+P"EXIT"+P"POWER"+P"REWIND"+P"STOP"+P"EJECT"+P"PLAY"+P"RECORD"+P"PAUSE"
+-- TODO: Onde botar? N devem ser globais
+
 

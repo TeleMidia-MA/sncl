@@ -1,0 +1,8 @@
+-- Mesma coisa, mas fica td na mesma linha
+context1{
+   c1Media1{src:medias/image1.jpg, class:photo}
+   c1Media2{src:medias/image2.jpg, class:photo}
+   c1Media3{src:medias/image3.jpg, class:photo}
+   class:album
+}
+thumb1{src:medias/image1.jpg, class:thumb, left:0%}

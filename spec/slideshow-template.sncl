@@ -1,0 +1,24 @@
+for i=1, #album do
+   addAlbum(album[i])
+end
+
+macro addAlbum(id, class)
+   context id
+      addPhoto(photo)
+      addLink(photo, photo) -- Como explicitar relacao?
+   end
+end
+
+macro addPhoto(id, src, class)
+   media id
+      src: src
+      class: class
+      rg: rg1
+   end
+end
+
+macro addLink(m1, m2)
+   onEnd m1 do
+      start m2 end
+   end
+end

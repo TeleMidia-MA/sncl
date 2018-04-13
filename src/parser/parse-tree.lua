@@ -1,269 +1,260 @@
-local ins = require"inspect"
-local utils = require"utils"
-local lpeg = require"lpeg"
-local parseTree = {}
+local ins = require('inspect')
+local utils = require('utils')
+local gbl = require('globals')
+local rS = require('resolve')
 
-local R, P = lpeg.R, lpeg.P
+local parsingTable = {
+   parsePort = function(str, sT)
+      return str / function(id, comp, iface)
+         local element = {
+            _type = 'port', 
+            id = id,
+            component = comp,
+            interface = iface,
+            line = gbl.parserLine
+         }
 
-function parseTree.makeProperty(str)
-   return str / function(name, value)
-      return {_type="property",[name]=value}
-   end
-end
-
-function parseTree.addDesc(id, region)
-   gblHeadTbl[id] = {
-      _type="descriptor",
-      region=region,
-      id = id
-   }
-end
-
-function parseTree.addProperties(element, properties)
-   for name, val in pairs(properties) do
-      if name ~="_type" then
-         if element.properties[name] then
-            utils.printErro("Property "..name.." already declared")
+         if utils.isIdUsed(element.id, sT) then
             return nil
-         else
-            --[[ If the name of the property is "rg", it is a region
-            Then the descriptor property must be added and
-            the descriptor element that links the media and the region
-            must be created --]]
-            if name == "rg" then
-               if element._region then
-                  utils.printErro("Region "..val.." already declared")
-                  return nil
-               end
-               element._region = val
-               element.properties.descriptor = "__desc"..val
-               parseTree.addDesc(element.properties.descriptor, val)
-            -- It it's not a region, then just add it
-            else
-               element.properties[name] = val
-            end
          end
+
+         sT.presentation[id] = element
+         return element
       end
-   end
-end
+   end,
 
-function parseTree.makePresentationElement(str)
-   return str / function(_type, id, ...)
-      local tb = {...}
-      local element = {_type=_type, id=id, hasEnd = false}
-
-      if gblPresTbl[element.id] or gblMacroTbl[element.id] or gblHeadTbl[element.id ]then
-         utils.printErro("Id "..element.id.." already declared")
-         return nil
+   parseProperty = function(str)
+      return str / function(name, value)
+         return {
+            _type = 'property',
+            [name] = value,
+            line = gbl.parseLine
+         }
       end
+   end,
 
-      if element._type == "region" then
-         gblHeadTbl[element.id] = element
-      else
-         gblPresTbl[element.id] = element
-      end
+   parsePresentationElement = function(str, sT, isMacroSon)
+      return str / function(_type, id, ...)
+         local tbl = {...}
+         local element = {
+            _type = _type,
+            id = id,
+            properties = {},
+            sons = {},
+            hasEnd = false,
+            line = gbl.parserLine
+         }
 
-      for pos, val in pairs(tb) do
-         if type(val) == 'table' then
-            -- If val is a table, then it is either a son of the element or a
-            -- property of the element
-            if val._type == 'property' then
-               if not element.properties then
-                  element.properties = {}
-               end
-               parseTree.addProperties(element, val)
-               -- If it is not a property, it is an element that is a son
-            else
-               if not element.sons then
-                  element.sons = {}
-               end
-               table.insert(element.sons, val)
-               val.father = element
-            end
-         elseif val == "end" then
-            element.hasEnd = true
+         if utils.isIdUsed(element.id, sT) then
+            return nil
          end
-      end
 
-      return element
-   end
-end
-
--- Make the each condition and action
-function parseTree.makeRelationship(str)
-   return str/ function(rl, cp, iFace, ...)
-      local element = {role = rl, component = cp, interface=iFace,...}
-      return element
-   end
-end
--- Join the conditions and actions that are linked by "and"
-function parseTree.makeBind(str, _type)
-   return str/function(...)
-      local tb = {...}
-      local element = {_type = _type, hasEnd = false}
-      for pos, val in pairs(tb) do
-         if type(val) == "table" then
-            if val._type == "property" then
-               if not element.properties then
-                  element.properties = {}
-               end
-               parseTree.addProperties(element, val)
-            else
-               element.role = val.role
-               element.component = val.component
-               if val.interface then
-                  if lpeg.match(Buttons, val.interface) and _type=="condition" then
-                     element.properties = {__keyValue=val.interface}
-                  else
-                     element.interface = val.interface
-                  end
-               end
-            end
-         elseif val == "end" then
-            element.hasEnd = true
+         if element._type == 'region' then
+            sT.head[element.id] = element
+         elseif not isMacroSon then
+            sT.presentation[element.id] = element
          end
-      end
-      return element
-   end
-end
 
-function parseTree.makeLink(str)
-   return str/function(...)
-      local tb = {...}
-      local element = {_type="link", hasEnd = false}
-      for pos, val in pairs(tb) do
-         if type(val) == "table" then
-            if val._type == "action" then
-               if not element.actions then
-                  element.actions = {}
-               end
-               table.insert(element.actions, val)
-            elseif val._type == "condition" then
-               if not element.conditions then
-                  element.conditions = {}
-               end
-               table.insert(element.conditions, val)
-            else
-               if not element.properties then
-                  element.properties = {}
-               end
-               parseTree.addProperties(element, val)
-            end
-         elseif val == "end" then
-            element.hasEnd = true
-         end
-      end
-      table.insert(gblLinkTbl, element)
-      return element
-   end
-end
-
-function parseTree.makeMacroPresentationSon(str)
-   return str / function(_type, id, ...)
-      local tb = {...}
-      local element = {_type=_type, id=id, hasEnd = false}
-      for pos, val in pairs(tb) do
-         if type(val) == 'table' then
-            -- If val is a table, then it is either a son of the element or a
-            -- property of the element
-            if val._type == 'property' then
-               if not element.properties then
-                  element.properties = {}
-               end
-               parseTree.addProperties(element, val)
-               -- If it is not a property, it is an element that is a son
-            else
-               if not element.sons then
-                  element.sons = {}
-               end
-               table.insert(element.sons, val)
-               val.father = element
-            end
-         elseif val == "end" then
-            element.hasEnd = true
-         end
-      end
-
-      return element
-   end
-end
-
-function parseTree.makeMacroLinkSon(str)
-   return str/function(...)
-      local tb = {...}
-      local element = {_type="link", hasEnd = false}
-      for pos, val in pairs(tb) do
-         if type(val) == "table" then
-            if val._type == "action" then
-               if not element.actions then
-                  element.actions = {}
-               end
-               table.insert(element.actions, val)
-            elseif val._type == "condition" then
-               if not element.conditions then
-                  element.conditions = {}
-               end
-               table.insert(element.conditions, val)
-            else
-               if not element.properties then
-                  element.properties = {}
-               end
-               for name, value in pairs(val) do
-                  if name ~= "_type" then
-                     if element.properties[name] then
-                        utils.printErro("Property "..name.." already declared")
-                        return nil
+         -- Se for uma tabela, ou é uma propriedade ou é um elemento filho
+         for pos, val in pairs(tbl) do
+            if type(val) == 'table' then
+               if val._type == 'property' then
+                  for name, value in pairs(val) do
+                     -- TODO: dont add "line"
+                     if isMacroSon then
+                        element.properties[name] = value
+                     else
+                        if name == 'rg' then
+                           if element.region then
+                              utils:printErro(string.format('Region %s already declared', element.region))
+                              return nil
+                           end
+                           element.region = value
+                           element.descriptor = rS.makeDesc(value, sT)
+                       else
+                           utils.addProperty(element, name, value)
+                        end
                      end
-                     element.properties[name] = value
+                  end
+               else
+                  table.insert(element.sons, val)
+                  val.father = element
+               end
+            elseif val == 'end' then
+               element.hasEnd = true
+            end
+         end
+
+         return element
+      end
+   end,
+
+   -- parse the each condition and action
+   parseRelationship = function(str)
+      return str / function(rl, cp, iface, ...)
+         local element = {
+            role = rl,
+            component = cp,
+            interface = iface,
+            line = gbl.parserLine
+         }
+         return element
+      end
+   end,
+
+   -- Join the conditions and actions that are linked by "and"
+   parseBind = function(str, _type)
+      return str / function(...)
+         local tbl = {...}
+         local element = {
+            _type = _type,
+            line = gbl.parserLine,
+            hasEnd = false
+         }
+
+         for pos, val in pairs(tbl) do
+            if type(val) == 'table' then
+               if val._type == 'property' then
+                  if not element.properties then
+                     element.properties = {}
+                  end
+                  for name, value in pairs(val) do
+                     utils.addProperty(element, name, value)
+                  end
+               else
+                  element.role = val.role
+                  element.component = val.component
+                  if val.interface then
+                     if lpeg.match(Buttons, val.interface) and _type == "condition" then
+                        element.properties = {__keyValue=val.interface}
+                     else
+                        element.interface = val.interface
+                     end
                   end
                end
+            elseif val == 'end' then
+               element.hasEnd = true
             end
-         elseif val == "end" then
-            element.hasEnd = true
          end
+
+         return element
       end
-      return element
-   end
-end
+   end,
 
-function parseTree.makeMacro(str)
-   return str/function(id, ...)
-      local tb = {...}
-      local element = {id = id, _type="macro", sons={}, hasEnd = false}
-
-      if (gblPresTbl[element.id] or gblMacroTbl[element.id]) then
-         utils.printErro("Id "..element.id.." alreadt declared")
-         return nil
-      end
-      gblMacroTbl[element.id] = element
-
-      for _, val in pairs(tb) do
-         if type(val) == 'table' then
-            if val.parameters then -- If val is the parameter table 
-               element.parameters = val.parameters
-            else -- If val is the sons
-               if not element.sons then
-                  element.sons = {}
+   parseLink = function(str, sT)
+      return str / function(...)
+         local tbl = {...}
+         local element = {
+            _type = 'link',
+            line = gbl.parserLine,
+            hasEnd = false
+         }
+         for pos, val in pairs(tbl) do
+            if type(val) == 'table' then
+               if val._type == 'action' then
+                  if not element.actions then
+                     element.actions = {}
+                  end
+                  table.insert(element.actions, val)
+               elseif val._type == 'condition' then
+                  if not element.conditions then
+                     element.conditions = {}
+                  end
+                  table.insert(element.conditions, val)
+               else
+                  if not element.properties then
+                     element.properties = {}
+                  end
+                  for name, value in pairs(val) do
+                     utils.addProperty(element, name, value)
+                  end
                end
-               table.insert(element.sons, val)
-               val.father = element
+            elseif val == 'end' then
+               element.hasEnd = true
             end
-         elseif val == "end" then
-            element.hasEnd = true
          end
+         table.insert(sT.link, element)
+         element.xconnector = rS:makeXConn(element, sT)
+         return element
       end
+   end,
 
-      return element
+   -- TODO: Propriedades de uma macro devem ser propriedades
+   -- do elemento em q a macro foi chamada
+   parseMacro = function(str, sT)
+      return str / function(id, ...)
+         local tbl = {...}
+         local element = {
+            _type = 'macro',
+            id = id,
+            properties = {},
+            sons = {},
+            hasEnd = false,
+            line = gbl.parserLine
+         }
+
+         if utils.isIdUsed(element.id, sT) then
+            return nil
+         end
+
+         sT.macro[element.id] = element
+
+         for _, val in pairs(tbl) do
+            if type(val) == 'table' then
+               if val.parameters then -- If val is the parameter table 
+                  element.parameters = val.parameters
+               else -- If val is the sons
+                  if not element.sons then
+                     element.sons = {}
+                  end
+                  table.insert(element.sons, val)
+                  val.father = element
+               end
+            elseif val == 'end' then
+               element.hasEnd = true
+            end
+         end
+
+         return element
+      end
+   end,
+
+   parseMacroCall = function(str, sT)
+      return str / function(mc, args, ...)
+         local element = {
+            _type = 'macro-call',
+            macro = mc,
+            arguments = args,
+            line = gbl.parserLine
+         }
+         table.insert(sT.macroCall, element)
+         return element
+      end
+   end,
+
+   parseTemplate = function(str, sT)
+      return str / function(iterator, start, class, ...)
+         local tbl = {...}
+         local element = {
+            _type = 'for',
+            iterator = iterator,
+            start = start,
+            class = class,
+            sons = {},
+            line = gbl.parserLine-1
+         }
+
+         for _, val in pairs(tbl) do
+            if val._type == 'macro-call' then
+               val.father = element
+               table.insert(element.sons, val)
+            end
+         end
+
+         table.insert(sT.template, element)
+         return element
+      end
    end
-end
+}
 
-function parseTree.makeMacroCall(str)
-   return str/function(mc, args, ...)
-      local tb = {_type="macro-call", macro = mc, arguments = args, ...}
-      table.insert(gblMacroCallTbl, tb)
-      return tb
-   end
-end
-
-return parseTree
-
+return parsingTable

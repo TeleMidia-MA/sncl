@@ -11,6 +11,7 @@ local parser = argparse() {
 
 parser:argument("input", "sNCL Input File"):args(1)
 parser:option("-o --output", "Set the output NCL file")
+parser:option("-t --template", "Set the template file")
 parser:flag("-p --play", "Play the file in ginga")
 
 local args = parser:parse()
@@ -18,4 +19,4 @@ local args = parser:parse()
 -- (args.input) Arquivo de entrada
 -- (args.output) Arquivo de saida
 -- (args.play) -- Se é pra tocar no ginga ou não
-beginParse(args.input, args.output, args.play)
+beginParse(args.input, args.output, args.template, args.play)

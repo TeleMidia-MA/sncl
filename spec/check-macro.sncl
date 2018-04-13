@@ -1,0 +1,11 @@
+region rg1
+end
+macro macro1 (mId, src, rg, asdasd)
+   media mId
+      src: src
+      type: asdasd
+      rg: rg
+   end
+end
+
+macro1("m2", "media/image1.jpg", "rg1", "image/jpg")

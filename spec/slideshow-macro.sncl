@@ -1,0 +1,79 @@
+port pBody1 mAlbum1
+port pBody2 mAlbum2
+port pBody3 mAlbum3
+
+region rgThumbnail
+   width: 25%
+   height: 25%
+end
+
+macro makeThumb(id, src, left, fI, mL)
+   media id
+      src: src
+      left: left
+      rg: rgThumbnail
+      focusBorderColor: yellow
+      selBorderColor: blue
+      focusIndex: fI
+      moveLeft: mL
+   end
+end
+
+makeThumb("mAlbum1", "medias/image1.jpg", "0%", "1", "3")
+makeThumb("mAlbum2", "medias/image2.jpg", "30%", "2", "1")
+makeThumb("mAlbum3", "medias/image3.jpg", "60%", "3", "2")
+
+macro makePhoto(mId, mSrc)
+   media mId
+      src: mSrc
+      explicitDur: 2
+   end
+end
+
+context album1
+   port pAlbum1 a1f1
+   makePhoto("a1f1", "medias/image1.jpg")
+   makePhoto("a1f2", "medias/image2.jpg")
+   makePhoto("a1f3", "medias/image3.jpg")
+   onEnd a1f1 do
+      start a1f2 end
+   end
+   onEnd a1f2 do
+      start a1f3 end
+   end
+end
+
+context album2
+   port pAlbum2 a2f1
+   makePhoto("a2f1", "medias/image1.jpg")
+   makePhoto("a2f2", "medias/image2.jpg")
+   makePhoto("a2f3", "medias/image3.jpg")
+   onEnd a2f1 do
+      start a2f2 end
+   end
+   onEnd a2f2 do
+      start a2f3 end
+   end
+end
+
+context album3
+   port pAlbum3 a3f1
+   makePhoto("a3f1", "medias/image1.jpg")
+   makePhoto("a3f2", "medias/image2.jpg")
+   makePhoto("a3f3", "medias/image3.jpg")
+   onEnd a3f1 do
+      start a3f2 end
+   end
+   onEnd a3f2 do
+      start a3f3 end
+   end
+end
+macro makeSelection(image, album)
+   onSelection image do
+      start album end
+   end
+end
+
+makeSelection(mAlbum1, album1)
+makeSelection(mAlbum2, album2)
+makeSelection(mAlbum3, album3)
