@@ -4,10 +4,18 @@ local gbl = require('globals')
 local rS = require('resolve')
 
 local parsingTable = {
+
+   --- Generate a better formated table for the Port element
+   -- Receives what the lpeg returns when it parses the port,
+   -- then creates a better formated table
+   -- then inserts it in the symbol table
+   -- @param str The return of lpeg
+   -- @param sT The symbol table
+   -- @return The generated table
    parsePort = function(str, sT)
       return str / function(id, comp, iface)
          local element = {
-            _type = 'port', 
+            _type = 'port',
             id = id,
             component = comp,
             interface = iface,
@@ -23,6 +31,9 @@ local parsingTable = {
       end
    end,
 
+   --- Generate a better formated table for the Property element
+   -- @param str The return of lpeg
+   -- @return The generated table
    parseProperty = function(str)
       return str / function(name, value)
          return {
@@ -33,6 +44,16 @@ local parsingTable = {
       end
    end,
 
+   --- Generate a better formated table for the presentation elements
+   -- The inicial table has an 'end' value, indicating that it has an end,
+   -- and other tables as sons, those can be a property of
+   -- the element, or another element, that is nested inside it.
+   -- Then this table is processed to generated a better formated table, that is
+   -- inserted in the symbol table
+   -- @param str The return of lpeg
+   -- @param sT The symbol table
+   -- @param isMacroSon A boolean, indicating if the sncl element is inside of a macro
+   -- @return The generated table
    parsePresentationElement = function(str, sT, isMacroSon)
       return str / function(_type, id, ...)
          local tbl = {...}
@@ -51,11 +72,11 @@ local parsingTable = {
 
          if element._type == 'region' then
             sT.head[element.id] = element
+         --[[ If the element is a son of a macro, then it must not be inserted in the symbol table ]]
          elseif not isMacroSon then
             sT.presentation[element.id] = element
          end
 
-         -- Se for uma tabela, ou é uma propriedade ou é um elemento filho
          for pos, val in pairs(tbl) do
             if type(val) == 'table' then
                if val._type == 'property' then
@@ -89,7 +110,9 @@ local parsingTable = {
       end
    end,
 
-   -- parse the each condition and action
+   --- Parse the each condition and action
+   -- @param str The return of lpeg
+   -- @return The generated table
    parseRelationship = function(str)
       return str / function(rl, cp, iface, ...)
          local element = {
@@ -102,7 +125,10 @@ local parsingTable = {
       end
    end,
 
-   -- Join the conditions and actions that are linked by "and"
+   --- Join the conditions and actions that are linked by "and"
+   -- @param str The return of lpeg
+   -- @param _type The type of the bind, can be an action or a condition
+   -- @return The generated table
    parseBind = function(str, _type)
       return str / function(...)
          local tbl = {...}
@@ -126,7 +152,9 @@ local parsingTable = {
                   element.component = val.component
                   if val.interface then
                      if lpeg.match(Buttons, val.interface) and _type == "condition" then
-                        element.properties = {__keyValue=val.interface}
+                        element.properties = {
+                           __keyValue = val.interface
+                        }
                      else
                         element.interface = val.interface
                      end
@@ -141,6 +169,10 @@ local parsingTable = {
       end
    end,
 
+   --- Generate a better formated table for the Link element
+   -- @param str
+   -- @param sT
+   -- @return
    parseLink = function(str, sT)
       return str / function(...)
          local tbl = {...}
@@ -174,13 +206,18 @@ local parsingTable = {
             end
          end
          table.insert(sT.link, element)
-         element.xconnector = rS:makeXConn(element, sT)
+         element.xconnector = rS:makeConn(element, sT)
          return element
       end
    end,
 
    -- TODO: Propriedades de uma macro devem ser propriedades
    -- do elemento em q a macro foi chamada
+
+   --- Generates a better formated table for the Macro element
+   -- @param str
+   -- @param sT
+   -- @return
    parseMacro = function(str, sT)
       return str / function(id, ...)
          local tbl = {...}
@@ -219,6 +256,10 @@ local parsingTable = {
       end
    end,
 
+   --- Generate a better formated table for the Macro Call element
+   -- @param str
+   -- @param sT
+   -- @return
    parseMacroCall = function(str, sT)
       return str / function(mc, args, ...)
          local element = {
@@ -232,6 +273,10 @@ local parsingTable = {
       end
    end,
 
+   --- Generate a better formated table for the Template element
+   -- @param str
+   -- @param sT
+   -- @return
    parseTemplate = function(str, sT)
       return str / function(iterator, start, class, ...)
          local tbl = {...}

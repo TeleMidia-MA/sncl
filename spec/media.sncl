@@ -1,18 +1,7 @@
-media media1
-   left: 50%
-   rg: r2
+macro makeMedia(id, src)
+   media id
+      src: src
+   end
 end
 
-media media2
-   rg: r2
-   right: 20%
-end
-
-region r2
-   right: 20%
-end
-
-onBegin media1 do
-   delay: 20s
-   start media2 end
-end
+makeMedia("m1", "source")

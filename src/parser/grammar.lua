@@ -8,7 +8,7 @@ local gbl = require('globals')
 local V, P, R, S = lpeg.V, lpeg.P, lpeg.R, lpeg.S
 local C, Ct, Cg, Cs = lpeg.C, lpeg.Ct, lpeg.Cg, lpeg.Cs
 
-local sT = { -- Symbol Table
+local sT = { --[[ Symbol Table ]]
    presentation = {},
    head = {},
    link = {},
@@ -62,8 +62,8 @@ grammar = {
    RepeatAction = P'and' *V'Spc'^1*V'ActionId',
 
    MacroPresentationElement = V'Spc'^0* pT.parsePresentationElement(C(V'Reserved') *V'Spc'^1 * C(V'Id') *V'Spc'^1
-   *(V'MacroPresentationElement'+V'Port'+V'Property'+V'Link'+V'Template'+V'MacroCall'+V'Spc')^0 *C(V'End'), true),
-   MacroLink = (V'Spc'^0*pT.parseLink((V'Condition' *V'Spc'^1* ((V'Property'+V'Action')-V'End')^0 *C(V'End')*V'Spc'^0), true)),
+   *(V'MacroPresentationElement'+V'Port'+V'Property'+V'Link'+V'Template'+V'MacroCall'+V'Spc')^0 *C(V'End'), sT, true),
+   MacroLink = (V'Spc'^0*pT.parseLink((V'Condition' *V'Spc'^1* ((V'Property'+V'Action')-V'End')^0 *C(V'End')*V'Spc'^0), sT, true)),
    Macro = V'Spc'^0* pT.parseMacro(P'macro' *V'Spc'^1* C(V'Id') *V'Spc'^0* V'Parameters'
       *V'Spc'^1* V'MacroBody'^-1 *V'Spc'^0* C(V'End'), sT),
    Parameters = P'('*  Ct(Cg( Ct(V'FieldParameters'^-1 * (',' * V'FieldParameters')^0),'parameters')) * P')',
@@ -84,7 +84,7 @@ grammar = {
 
    START = ((V'Spc'^0* Ct((V'Template'+V'Port'+V'Macro'+V'PresentationElement'+V'Link'+V'MacroCall')^0) * V'Spc'^0)* V'EOS')
    /function()
-      return sT 
+      return sT
    end,
 }
 

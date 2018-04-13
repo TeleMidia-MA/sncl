@@ -1,6 +1,10 @@
 local resolve = {
 }
 
+---
+-- @param region
+-- @param sT
+-- @return
 function resolve.makeDesc(region, sT)
    local newDesc = {
       _type = "descriptor",
@@ -11,7 +15,10 @@ function resolve.makeDesc(region, sT)
    return newDesc.id
 end
 
-function resolve.makeXConnBind(xconn, bind)
+---
+-- @param xconn
+-- @param bin
+function resolve.makeConnBind(xconn, bind)
    if xconn[bind._type][bind.role] then
       xconn[bind._type][bind.role] = xconn[bind._type][bind.role]+1
    else
@@ -29,7 +36,11 @@ function resolve.makeXConnBind(xconn, bind)
    end
 end
 
-function resolve:makeXConn(link, sT)
+--- Makes a the connector element table from a link table
+-- @param link
+-- @param sT
+-- @return
+function resolve:makeConn(link, sT)
    local newConn = {
       _type = 'xconnector',
       id = '',
@@ -39,10 +50,10 @@ function resolve:makeXConn(link, sT)
    }
 
    for _, cond in pairs(link.conditions) do
-      self.makeXConnBind(newConn, cond)
+      self.makeConnBind(newConn, cond)
    end
    for _, act in pairs(link.actions) do
-      self.makeXConnBind(newConn, act)
+      self.makeConnBind(newConn, act)
    end
    if link.properties then
       for name, _ in pairs(link.properties) do
