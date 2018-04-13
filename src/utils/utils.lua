@@ -6,9 +6,9 @@ local R, P = lpeg.R, lpeg.P
 
 local utils = {
    lpegMatch = function(grammar, input)
-      local sT = nil
+      local sT
       if gbl._DEBUG_PEG then
-         sT = lpeg.match(require('pegdebug').trace(grammar), snclInput)
+         sT = lpeg.match(require('pegdebug').trace(grammar), input)
       else
          sT = lpeg.match(grammar, input)
       end
@@ -33,24 +33,6 @@ local utils = {
       return nil
    end,
 
-   isMacroSon = function(ele)
-      if ele._type == 'macro' then
-         return true
-      else
-         if ele.father then
-            return utils.isMacroSon(ele.father)
-         end
-      end
-      return false
-   end,
-
-   getNumberOfParents = function(ele, nFathers)
-      if ele.father then
-         nFathers = utils.getNumberOfParents(ele.father, f+1)
-      end
-      return nFathers
-   end,
-
    getElementsWithClass = function(elements, class)
       local tbl = {}
       for pos, val in pairs(elements) do
@@ -66,32 +48,7 @@ local utils = {
       return tbl
    end,
 
-   addProperty = function(element, name, value)
-      if name ~= '_type' then
-         if element.properties[name] then
-            utils.printErro(string.format('Property %s already declared'))
-            return nil
-         else
-            -- Se for rg, entao é uma regiao
-            -- nesse caso, o descritor tem q ser criado
-            if name == 'src' then
-               element.src = value
-            elseif name == 'type' then
-               element.type = value
-            else
-               element.properties[name] = value
-            end
-         end
-      end
-   end,
 
-   isIdUsed = function(id, sT)
-      if sT.presentation[id] or sT.macro[id] or sT.head[id]then
-         utils.printErro(string.format('Id %s already declared', id))
-         return true
-      end
-      return false
-   end,
 
    checks = {
       buttons = R'09'+R'AZ'+P'*'+P'#'+P'MENU'+P'INFO'+P'GUIDE'+P'CURSOR_DOWN'
@@ -101,9 +58,56 @@ local utils = {
       types = P'context'+P'media'+P'area'+P'region'+P'macro'
    },
 }
+function utils:addProperty(element, name, value)
+   if name ~= '_type' then
+      if element.properties[name] then
+         self.printErro(string.format('Property %s already declared'))
+         return nil
+      else
+         --[[ Check if value has "", if it does not, then
+            add it]]
+         if not value:match('"[%a%d%/%%]*"') then
+            value = string.format('"%s"', value)
+         end
+         if name == 'src' then
+            element.src = value
+         elseif name == 'type' then
+            element.type = value
+         else
+            element.properties[name] = value
+         end
+      end
+   end
+end
+
+function utils:isIdUsed(id, sT)
+   if sT.presentation[id] or sT.macro[id] or sT.head[id] then
+      self.printErro(string.format('Id %s already declared', id))
+      return true
+   end
+   return false
+end
+
+function utils:isMacroSon(ele)
+   if ele._type == 'macro' then
+      return true
+   else
+      if ele.father then
+         return self:isMacroSon(ele.father)
+      end
+   end
+   return false
+end
+
+function utils:getNumberOfParents(ele, nFathers)
+   if ele.father then
+      nFathers = self:getNumberOfParents(ele.father, nFathers+1)
+   end
+   return nFathers
+end
 
 function utils:printErro(errString, line)
-   local line = line or gbl.parserLine
+   line = line or gbl.parserLine
    local file = gbl.inputFile or ''
    io.write(colors('%{bright}'..file..':'..line..': %{red}erro:%{reset} '..errString..'\n'))
    self.hasError = true

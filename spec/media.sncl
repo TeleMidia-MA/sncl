@@ -1,7 +1,26 @@
-macro makeMedia(id, src)
+port pBody m1
+macro makeMedia(id, src, lft)
    media id
       src: src
+      left: lft
    end
 end
 
-makeMedia("m1", "source")
+macro makeContext(id, mId, mSrc, mLft)
+   context id
+      port pc1 c1m1
+      makeMedia(mId, mSrc, mLft)
+      media c1m2
+         src: "text/html"
+      end
+   end
+end
+
+makeMedia("m1", "text/html", "50")
+
+makeContext("c1", "c1m1","text/html", "50%")
+
+media m3
+   src: "text/html"
+   left: 50%
+end

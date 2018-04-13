@@ -1,19 +1,20 @@
 local resolve = {
+   ---
+   -- @param region
+   -- @param sT
+   -- @return
+   makeDesc = function(region, sT)
+      local newDesc = {
+         _type = "descriptor",
+         region = region,
+         id = '__desc'..region
+      }
+      sT.head[newDesc.id] = newDesc
+      return newDesc.id
+   end
 }
 
----
--- @param region
--- @param sT
--- @return
-function resolve.makeDesc(region, sT)
-   local newDesc = {
-      _type = "descriptor",
-      region = region,
-      id = '__desc'..region
-   }
-   sT.head[newDesc.id] = newDesc
-   return newDesc.id
-end
+
 
 ---
 -- @param xconn

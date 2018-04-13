@@ -1,8 +1,8 @@
 local utils = require'utils'
 local gbl = require('globals')
-local inspect = require('inspect')
-local lyaml = require('lyaml')
 local ins = require('inspect')
+--local lyaml = require('lyaml')
+--local ins = require('inspect')
 local pp = require('pre_process')
 local gen = require('gen')
 
@@ -15,7 +15,7 @@ require'grammar'
 --- The main function of the compiler
 -- @param args the arguments of the command line
 function beginParse(args)
-   gbl.inputFile = input
+   gbl.inputFile = args.input
 
    local snclInput = utils:readFile(args.input)
    if not snclInput then
@@ -23,13 +23,15 @@ function beginParse(args)
       return
    end
 
-   -- Templates: not yet implemented
-   -- if padding then
-   --    -- TODO: Check yaml file extension
-   --    -- TODO: Check errors in yaml
-   --    local paddingContent = utils.readFile(padding)
-   --    sT.padding = lyaml.load(paddingContent, { all = true })
-   -- end
+   --[[
+   Templates: not yet implemented
+   if padding then
+      -- TODO: Check yaml file extension
+      -- TODO: Check errors in yaml
+      local paddingContent = utils.readFile(padding)
+      sT.padding = lyaml.load(paddingContent, { all = true })
+   end
+   ]]
 
    local symbolTable = utils.lpegMatch(grammar, snclInput)
 
@@ -40,7 +42,7 @@ function beginParse(args)
    pp.pre_process(symbolTable)
 
    if args.show_symbol then
-      print("Symbol Table:", inspect.inspect(symbolTable))
+      print("Symbol Table:", ins.inspect(symbolTable))
    end
    --
    local NCL = gen:genNCL(symbolTable)
@@ -58,7 +60,7 @@ function beginParse(args)
       outputFile = outputFile..'ncl'
       utils:writeFile(outputFile, NCL)
    end
-   if play then
+   if args.play then
       os.execute('ginga '..outputFile)
    end
 end

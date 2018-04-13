@@ -1,7 +1,8 @@
-local ins = require('inspect')
+-- local ins = require('inspect')
 local utils = require('utils')
 local gbl = require('globals')
 local rS = require('resolve')
+local lpeg = require('lpeg')
 
 local parsingTable = {
 
@@ -12,7 +13,7 @@ local parsingTable = {
    -- @param str The return of lpeg
    -- @param sT The symbol table
    -- @return The generated table
-   parsePort = function(str, sT)
+   makePort = function(str, sT)
       return str / function(id, comp, iface)
          local element = {
             _type = 'port',
@@ -22,7 +23,7 @@ local parsingTable = {
             line = gbl.parserLine
          }
 
-         if utils.isIdUsed(element.id, sT) then
+         if utils:isIdUsed(element.id, sT) then
             return nil
          end
 
@@ -34,7 +35,7 @@ local parsingTable = {
    --- Generate a better formated table for the Property element
    -- @param str The return of lpeg
    -- @return The generated table
-   parseProperty = function(str)
+   makeProperty = function(str)
       return str / function(name, value)
          return {
             _type = 'property',
@@ -54,7 +55,7 @@ local parsingTable = {
    -- @param sT The symbol table
    -- @param isMacroSon A boolean, indicating if the sncl element is inside of a macro
    -- @return The generated table
-   parsePresentationElement = function(str, sT, isMacroSon)
+   makePresentationElement = function(str, sT, isMacroSon)
       return str / function(_type, id, ...)
          local tbl = {...}
          local element = {
@@ -66,7 +67,7 @@ local parsingTable = {
             line = gbl.parserLine
          }
 
-         if utils.isIdUsed(element.id, sT) then
+         if utils:isIdUsed(element.id, sT) then
             return nil
          end
 
@@ -77,7 +78,7 @@ local parsingTable = {
             sT.presentation[element.id] = element
          end
 
-         for pos, val in pairs(tbl) do
+         for _, val in pairs(tbl) do
             if type(val) == 'table' then
                if val._type == 'property' then
                   for name, value in pairs(val) do
@@ -87,13 +88,13 @@ local parsingTable = {
                      else
                         if name == 'rg' then
                            if element.region then
-                              utils:printErro(string.format('Region %s already declared', element.region))
+                              utils:printErro(string.format('Region %s already declared', element.region), element.line)
                               return nil
                            end
                            element.region = value
                            element.descriptor = rS.makeDesc(value, sT)
                        else
-                           utils.addProperty(element, name, value)
+                           utils:addProperty(element, name, value)
                         end
                      end
                   end
@@ -113,8 +114,8 @@ local parsingTable = {
    --- Parse the each condition and action
    -- @param str The return of lpeg
    -- @return The generated table
-   parseRelationship = function(str)
-      return str / function(rl, cp, iface, ...)
+   makeRelationship = function(str)
+      return str / function(rl, cp, iface)
          local element = {
             role = rl,
             component = cp,
@@ -129,7 +130,7 @@ local parsingTable = {
    -- @param str The return of lpeg
    -- @param _type The type of the bind, can be an action or a condition
    -- @return The generated table
-   parseBind = function(str, _type)
+   makeBind = function(str, _type)
       return str / function(...)
          local tbl = {...}
          local element = {
@@ -138,20 +139,20 @@ local parsingTable = {
             hasEnd = false
          }
 
-         for pos, val in pairs(tbl) do
+         for _, val in pairs(tbl) do
             if type(val) == 'table' then
                if val._type == 'property' then
                   if not element.properties then
                      element.properties = {}
                   end
                   for name, value in pairs(val) do
-                     utils.addProperty(element, name, value)
+                     utils:addProperty(element, name, value)
                   end
                else
                   element.role = val.role
                   element.component = val.component
                   if val.interface then
-                     if lpeg.match(Buttons, val.interface) and _type == "condition" then
+                     if lpeg.match(utils.checks.buttons, val.interface) and val._type == 'condition' then
                         element.properties = {
                            __keyValue = val.interface
                         }
@@ -173,7 +174,7 @@ local parsingTable = {
    -- @param str
    -- @param sT
    -- @return
-   parseLink = function(str, sT)
+   makeLink = function(str, sT)
       return str / function(...)
          local tbl = {...}
          local element = {
@@ -181,7 +182,7 @@ local parsingTable = {
             line = gbl.parserLine,
             hasEnd = false
          }
-         for pos, val in pairs(tbl) do
+         for _, val in pairs(tbl) do
             if type(val) == 'table' then
                if val._type == 'action' then
                   if not element.actions then
@@ -198,7 +199,7 @@ local parsingTable = {
                      element.properties = {}
                   end
                   for name, value in pairs(val) do
-                     utils.addProperty(element, name, value)
+                     utils:addProperty(element, name, value)
                   end
                end
             elseif val == 'end' then
@@ -218,7 +219,7 @@ local parsingTable = {
    -- @param str
    -- @param sT
    -- @return
-   parseMacro = function(str, sT)
+   makeMacro = function(str, sT)
       return str / function(id, ...)
          local tbl = {...}
          local element = {
@@ -226,11 +227,12 @@ local parsingTable = {
             id = id,
             properties = {},
             sons = {},
+            parameters = {},
             hasEnd = false,
             line = gbl.parserLine
          }
 
-         if utils.isIdUsed(element.id, sT) then
+         if utils:isIdUsed(element.id, sT) then
             return nil
          end
 
@@ -238,7 +240,7 @@ local parsingTable = {
 
          for _, val in pairs(tbl) do
             if type(val) == 'table' then
-               if val.parameters then -- If val is the parameter table 
+               if val.parameters then -- If val is the parameter table
                   element.parameters = val.parameters
                else -- If val is the sons
                   if not element.sons then
@@ -260,8 +262,8 @@ local parsingTable = {
    -- @param str
    -- @param sT
    -- @return
-   parseMacroCall = function(str, sT)
-      return str / function(mc, args, ...)
+   makeMacroCall = function(str, sT)
+      return str / function(mc, args)
          local element = {
             _type = 'macro-call',
             macro = mc,
@@ -277,7 +279,7 @@ local parsingTable = {
    -- @param str
    -- @param sT
    -- @return
-   parseTemplate = function(str, sT)
+   makeTemplate = function(str, sT)
       return str / function(iterator, start, class, ...)
          local tbl = {...}
          local element = {

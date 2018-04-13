@@ -1,4 +1,4 @@
-local ins = require"inspect"
+--local ins = require"inspect"
 local utils = require"utils"
 
 local gen = {
@@ -27,9 +27,9 @@ end
 --- Generates the NCL code of all the <simpleAction> elements of a <causalConnector>
 -- @param acts
 -- @param indent
--- @param props
+-- @param props Properties of the action
 -- @return
-function gen.genActions(acts, indent, props)
+function gen.genActions(acts, indent)
    local NCL = ''
    for pos, val in pairs(acts) do
       NCL = NCL..string.format('%s   <simpleAction role="%s"', indent, pos)
@@ -124,7 +124,8 @@ function gen:genHeadNCL(indent, sT)
          descBase = descBase..self.genDesc(val, indent.."   ")
       end
    end
-   return string.format('%s%s</connectorBase>\n%s%s</regionBase>\n%s%s</descriptorBase>', connBase, indent, regionBase, indent, descBase, indent)
+   return string.format('%s%s</connectorBase>\n%s%s</regionBase>\n%s%s</descriptorBase>'
+      , connBase, indent, regionBase, indent, descBase, indent)
 end
 
 --- Generates the NCL code of the <bind> of a <link>
@@ -160,7 +161,7 @@ end
 -- @param sT
 -- @return
 function gen:genLink(ele, indent, sT)
-   NCL = string.format('%s<link xconnector="%s" >', indent, ele.xconnector)
+   local NCL = string.format('%s<link xconnector="%s" >', indent, ele.xconnector)
 
    for _, act in pairs(ele.actions) do
       NCL = NCL..self.genBind(act,indent..'   ', sT)
@@ -204,18 +205,18 @@ function gen:genPresentation(ele, indent, sT)
       NCL = NCL..string.format(' interface="%s"', ele.interface)
    end
    if ele.src then
-      NCL = NCL..string.format(' src="%s"', ele.src)
+      NCL = NCL..string.format(' src=%s', ele.src)
    end
    if ele.descriptor then
-      NCL = NCL..string.format(' descriptor="%s"', ele.descriptor)
+      NCL = NCL..string.format(' descriptor=%s', ele.descriptor)
    end
    if ele.type then
-      NCL = NCL..string.format(' type="%s"', ele.type)
+      NCL = NCL..string.format(' type=%s', ele.type)
    end
    NCL = NCL..'>'
    if ele.properties then
       for name, value in pairs(ele.properties) do
-         NCL = NCL..string.format('%s   <property name="%s" value="%s" />', indent, name, value)
+         NCL = NCL..string.format('%s   <property name="%s" value=%s />', indent, name, value)
       end
    end
    -- TODO: Check if the son type is valid
