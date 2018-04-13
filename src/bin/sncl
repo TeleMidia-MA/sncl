@@ -20,7 +20,4 @@ parser:flag("-s --show_symbol", "Print the generated symbol table")
 
 local args = parser:parse()
 
--- (args.input) Arquivo de entrada
--- (args.output) Arquivo de saida
--- (args.play) -- Se é pra tocar no ginga ou não
 beginParse(args)

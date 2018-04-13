@@ -4,6 +4,11 @@ local utils = require"utils"
 local gen = {
 }
 
+--- Generates the NCL code of all the <simpleCondition> elements of a <causalConnector>
+-- @param conds The conditions of the link
+-- @param indent The indentation level
+-- @param props The properties of the condition
+-- @return
 function gen.genConditions(conds, indent, props)
    local NCL = ''
    for pos, val in pairs(conds) do
@@ -19,6 +24,11 @@ function gen.genConditions(conds, indent, props)
    return NCL
 end
 
+--- Generates the NCL code of all the <simpleAction> elements of a <causalConnector>
+-- @param acts
+-- @param indent
+-- @param props
+-- @return
 function gen.genActions(acts, indent, props)
    local NCL = ''
    for pos, val in pairs(acts) do
@@ -34,6 +44,10 @@ function gen.genActions(acts, indent, props)
    return NCL
 end
 
+--- Generates the NCL code of one <causalConnector> element
+-- @param xconn
+-- @param indent
+-- @return
 function gen:genXConnector(xconn, indent)
    local NCL = string.format('%s<causalConnector id="%s" >', indent, xconn.id)
 
@@ -68,6 +82,10 @@ function gen:genXConnector(xconn, indent)
    return NCL
 end
 
+--- Generates the NCL code of one <region> element
+-- @param ele
+-- @param indent
+-- @return
 function gen.genRegion(ele, indent)
    local NCL = string.format('%s <region id="%s"', indent, ele.id)
    if ele.properties then
@@ -79,11 +97,19 @@ function gen.genRegion(ele, indent)
    return NCL
 end
 
+--- Generates the NCL code of one <descriptor> element
+-- @param ele
+-- @param indent
+-- @return
 function gen.genDesc(ele, indent)
    local NCL = string.format('%s<descriptor id="%s" region="%s" />', indent, ele.id, ele.region)
    return NCL
 end
 
+--- Generates the NCL code of the <head> element
+-- @param indent
+-- @param sT
+-- @return
 function gen:genHeadNCL(indent, sT)
    local connBase = '\n      <connectorBase>'
    local regionBase = '      <regionBase>'
@@ -101,6 +127,11 @@ function gen:genHeadNCL(indent, sT)
    return string.format('%s%s</connectorBase>\n%s%s</regionBase>\n%s%s</descriptorBase>', connBase, indent, regionBase, indent, descBase, indent)
 end
 
+--- Generates the NCL code of the <bind> of a <link>
+-- @param ele
+-- @param indent
+-- @param sT
+-- @return
 function gen.genBind(ele, indent, sT)
    local NCL = ""
 
@@ -123,6 +154,11 @@ function gen.genBind(ele, indent, sT)
    return NCL
 end
 
+--- Generates the NCL code of one <link> element
+-- @param ele
+-- @param indent
+-- @param sT
+-- @return
 function gen:genLink(ele, indent, sT)
    NCL = string.format('%s<link xconnector="%s" >', indent, ele.xconnector)
 
@@ -142,6 +178,12 @@ function gen:genLink(ele, indent, sT)
    return NCL
 end
 
+--- Generates the NCL code of one presentation element
+-- Elements: <media> <context> <area>
+-- @param ele
+-- @param indent
+-- @param sT
+-- @return
 function gen:genPresentation(ele, indent, sT)
    -- Check if the refered region is decladed
    if ele._type == 'macro-call' or ele._type == 'for' then
@@ -191,6 +233,10 @@ function gen:genPresentation(ele, indent, sT)
    return NCL
 end
 
+--- Generates the NCL code of the <body> element
+-- @param indent
+-- @param sT
+-- @return
 function gen:genBodyNCL(indent, sT)
    local NCL = ''
 
@@ -209,6 +255,9 @@ function gen:genBodyNCL(indent, sT)
    return NCL
 end
 
+--- Generates the NCL code of the whole document
+-- @param sT
+-- @return
 function gen:genNCL(sT)
    local indent = '\n   '
    local NCL = [[<?xml version="1.0" encoding="ISO-8859-1"?>

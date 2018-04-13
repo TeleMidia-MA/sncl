@@ -1,55 +1,61 @@
 local ins = require"inspect"
 local utils = require"utils"
 local pT = require("parse-tree")
-local gbl = utils.globals
 
 local resolveMacros = {
-   -- stack -> call stack
-   resolveCall = function(call, stack)
-      print("\nResolving call on line", call.line)
-      print("Arguments:", ins.inspect(call.arguments))
-      print(ins.inspect(stack))
-      local macro = gbl.macroTbl[call.macro]
+   --- Resolve the call, generating an element
+   -- @param call The call element itself
+   -- @param stack The stack of calls
+   -- @param sT The symbol table
+   resolveCall = function(call, stack, sT)
+      local macro = sT.macro[call.macro]
       local abv = stack[#stack]
 
-      -- Se a macro chamada n existe
+      --[[ If the called macro is not declared ]]
       if not macro then 
-         print("ERRO: MACRO CHAMADA N EXISTE")
+         utils:printErro("Macro ", call.macro, "not declared", call.line)
          return nil
       end
 
-      -- Se tem o mesmo numero de parametros e argumentos
-      -- Mas se for um for, n vai ter
+      --[[ Check if the call has the same number of arguments as
+      specified in the called macro --]]
       if #macro.parameters ~= #call.arguments then
          if call.father then
+            --[[ But if the call is inside a template, then the element in the
+            padding document must have the same number of properties as the number
+            of arguments of the macro --]]
             if call.father._type ~= "for" then 
-               print("ERRO: N ERRADO DE ARGS1", call.line)
+               utils:printErro("Wrong number of arguments", call.line)
                return nil
             end
          else
-            print("ERRO: N ERRADO DE ARGS2", call.line)
+            utils:printErro("Wrong number of arguments", call.line)
             return nil
          end
       end
 
-      -- Se tiver aspas, é pq o argumento ta sendo passado
-      -- Se n, é pq o argumento é um parametro da macro em q a call ta dentro
+      --[[If the argument has "", then it is being by the call
+      else, then the call is inside a macro, and the argument of the call is
+      a parameter of the macro]]
       for p, val in pairs(call.arguments) do
          if val:match("\"*\"") then
             call.arguments[p] = val:gsub("\"", "")
             -- TODO: Remover aspas
          else
             if abv then
-               -- Checar se a macro realmente tem o argumento como parametro
-               if utils.containValue(gbl.macroTbl[abv.macro].parameters, val) then
-                  print(abv.arguments[utils.getIndex(gbl.macroTbl[abv.macro].parameters, val)])
-                  call.arguments[p] = abv.arguments[utils.getIndex(gbl.macroTbl[abv.macro].parameters, val)]
-                  -- Se tiver, substituir o argumento da call pelo o que foi passado pra macro
+               --[[ Check if the macro really has the argument as a parameter
+               If it does, then the call must pass the value of the argument is what is
+               being passed to the macro that the call is inside]]
+               if utils.containValue(sT.macro[abv.macro].parameters, val) then
+                  print(abv.arguments[utils.getIndex(sT.macro[abv.macro].parameters, val)])
+                  call.arguments[p] = abv.arguments[utils.getIndex(sT.macro[abv.macro].parameters, val)]
                else
-                  io.write("ERRO: Argumento ", val, " invalido, n é parametro: ", call.line, "\n")
+                  utils:printErro("Argument",val,"is not a parameter of a macro", call.line)
+                  return nil
                end
             else
-               io.write("ERRO: Argumento invalido, n ha macro: ", call.line,"\n")
+               utils:printErro("Argument",val,"invalid", call.line)
+               return nil
             end
          end
       end
@@ -57,13 +63,20 @@ local resolveMacros = {
       table.insert(stack, call)
       for _, son in pairs(macro.sons) do
          if son._type == "context" or son._type == "media" then
-            resolvePresentationMacro(son, call, stack)
+            resolvePresentationMacro(son, call, stack, sT)
          end
       end
       table.remove(stack)
    end,
 
-   resolvePresentationMacro = function(ele, call, stack)
+   --- Generate the elements of the macro that are presentation ones
+   -- Receives the presentation element that is inside the macro
+   -- and the call, and then makes the generates presentation
+   -- @param ele The element that is inside the macro
+   -- @param call The call to the macro
+   -- @param stack The stack of calls
+   -- @param sT The symbol table
+   resolvePresentationMacro = function(ele, call, stack, sT)
       local newEle = {
          id = ele.id, 
          _type = ele._type,
@@ -71,11 +84,11 @@ local resolveMacros = {
       }
       local parameters = ele.father.parameters
 
-      -- Se o Id é uma propriedade
+      --[[ If the id is a property ]]
       if utils.containValue(parameters, ele.id) then
          local newId = call.arguments[utils.getIndex(parameters, ele.id)]
-         if gbl.presentationTbl[newId] then
-            print("ERRO: ID ", newId, " EXISTE")
+         if sT.presentation[newId] then
+            utils:printErro("Id", newId,"already declared", call.line)
             return nil
          end
          newEle.id = newId
@@ -85,7 +98,7 @@ local resolveMacros = {
          resolveElementProperties(ele, newEle, call)
       end
 
-      gbl.presentationTbl[newEle.id] = newEle
+      sT.presentation[newEle.id] = newEle
 
       if call.father then
          if call.father._type == "for" then
@@ -106,9 +119,16 @@ local resolveMacros = {
       --return newEle
    end,
 
+   --- Resolve the properties of an element that is being generated by a macro
+   -- Check if the property is a parameter, if it is then the value of the
+   -- property is the value that is being passed by the call. If it is not, then
+   -- the value is the value that is in the macro
+   -- @param ele The macro-son element
+   -- @param newEle The element that is being generated
+   -- @param call The call
    resolveElementProperties = function(ele, newEle, call)
       for name, value in pairs(ele.properties) do
-         -- Se o valor da propriedade for um parametro
+         --[[ If the property is a parameter ]]
          if utils.containValue(ele.father.parameters, value) then
             utils.addProperty(newEle, name, call.arguments[utils.getIndex(ele.father.parameters, value)])
          else

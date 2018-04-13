@@ -1,16 +1,17 @@
-local utils = require('utils')
-local gbl = require('globals')
+local macro = require"macro"
 
 local pre_process = {
 
-   pre_process = function()
-      for _, val in pairs(gbl.macroCallTbl) do
+   --- Process macro calls and templates
+   -- @param sT symbol table
+   pre_process = function(sT)
+      for _, val in pairs(sT.macroCall) do
          if not val.father then
             local stack = {}
-            resolveCall(val, stack)
+            macro.resolveCall(val, stack, sT)
          end
       end
-      -- resolveTemplates
+      -- resolveTemplates()
    end,
 }
 
