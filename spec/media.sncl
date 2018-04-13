@@ -1,8 +1,18 @@
 media media1
    left: 50%
-   rg: rg2
+   rg: r2
+end
+
+media media2
+   rg: r2
+   right: 20%
 end
 
 region r2
    right: 20%
+end
+
+onBegin media1 do
+   delay: 20s
+   start media2 end
 end

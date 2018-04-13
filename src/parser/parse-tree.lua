@@ -7,7 +7,7 @@ local parsingTable = {
    parsePort = function(str, sT)
       return str / function(id, comp, iface)
          local element = {
-            _type = "port", 
+            _type = 'port', 
             id = id,
             component = comp,
             interface = iface,
@@ -26,7 +26,7 @@ local parsingTable = {
    parseProperty = function(str)
       return str / function(name, value)
          return {
-            _type = "property",
+            _type = 'property',
             [name] = value,
             line = gbl.parseLine
          }
@@ -49,7 +49,7 @@ local parsingTable = {
             return nil
          end
 
-         if element._type == "region" then
+         if element._type == 'region' then
             sT.head[element.id] = element
          elseif not isMacroSon then
             sT.presentation[element.id] = element
@@ -66,12 +66,12 @@ local parsingTable = {
                      else
                         if name == 'rg' then
                            if element.region then
-                              utils.printErro(string.format("Region %s already declared", element.region))
+                              utils:printErro(string.format('Region %s already declared', element.region))
+                              return nil
                            end
                            element.region = value
-                           element.descriptor = '__desc'..value
-                           rS.makeDesc(element.descriptor, value, sT)
-                        else
+                           element.descriptor = rS.makeDesc(value, sT)
+                       else
                            utils.addProperty(element, name, value)
                         end
                      end
@@ -80,7 +80,7 @@ local parsingTable = {
                   table.insert(element.sons, val)
                   val.father = element
                end
-            elseif val == "end" then
+            elseif val == 'end' then
                element.hasEnd = true
             end
          end
@@ -113,8 +113,8 @@ local parsingTable = {
          }
 
          for pos, val in pairs(tbl) do
-            if type(val) == "table" then
-               if val._type == "property" then
+            if type(val) == 'table' then
+               if val._type == 'property' then
                   if not element.properties then
                      element.properties = {}
                   end
@@ -125,14 +125,14 @@ local parsingTable = {
                   element.role = val.role
                   element.component = val.component
                   if val.interface then
-                     if lpeg.match(Buttons, val.interface) and _type=="condition" then
+                     if lpeg.match(Buttons, val.interface) and _type == "condition" then
                         element.properties = {__keyValue=val.interface}
                      else
                         element.interface = val.interface
                      end
                   end
                end
-            elseif val == "end" then
+            elseif val == 'end' then
                element.hasEnd = true
             end
          end
@@ -141,22 +141,22 @@ local parsingTable = {
       end
    end,
 
-   parseLink = function(str)
+   parseLink = function(str, sT)
       return str / function(...)
          local tbl = {...}
          local element = {
-            _type="link",
+            _type = 'link',
             line = gbl.parserLine,
             hasEnd = false
          }
          for pos, val in pairs(tbl) do
-            if type(val) == "table" then
-               if val._type == "action" then
+            if type(val) == 'table' then
+               if val._type == 'action' then
                   if not element.actions then
                      element.actions = {}
                   end
                   table.insert(element.actions, val)
-               elseif val._type == "condition" then
+               elseif val._type == 'condition' then
                   if not element.conditions then
                      element.conditions = {}
                   end
@@ -169,11 +169,12 @@ local parsingTable = {
                      utils.addProperty(element, name, value)
                   end
                end
-            elseif val == "end" then
+            elseif val == 'end' then
                element.hasEnd = true
             end
          end
          table.insert(sT.link, element)
+         element.xconnector = rS:makeXConn(element, sT)
          return element
       end
    end,
@@ -184,7 +185,7 @@ local parsingTable = {
       return str / function(id, ...)
          local tbl = {...}
          local element = {
-            _type="macro",
+            _type = 'macro',
             id = id,
             properties = {},
             sons = {},
@@ -209,7 +210,7 @@ local parsingTable = {
                   table.insert(element.sons, val)
                   val.father = element
                end
-            elseif val == "end" then
+            elseif val == 'end' then
                element.hasEnd = true
             end
          end
@@ -221,7 +222,7 @@ local parsingTable = {
    parseMacroCall = function(str, sT)
       return str / function(mc, args, ...)
          local element = {
-            _type = "macro-call",
+            _type = 'macro-call',
             macro = mc,
             arguments = args,
             line = gbl.parserLine
@@ -235,7 +236,7 @@ local parsingTable = {
       return str / function(iterator, start, class, ...)
          local tbl = {...}
          local element = {
-            _type = "for",
+            _type = 'for',
             iterator = iterator,
             start = start,
             class = class,
@@ -244,7 +245,7 @@ local parsingTable = {
          }
 
          for _, val in pairs(tbl) do
-            if val._type == "macro-call" then
+            if val._type == 'macro-call' then
                val.father = element
                table.insert(element.sons, val)
             end
