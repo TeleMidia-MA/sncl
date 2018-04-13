@@ -1,12 +1,10 @@
-local ins = require"inspect"
-local utils = require"utils"
-local lpeg = require"lpeg"
-local gbl = utils.globals
-
-local R, P = lpeg.R, lpeg.P
+local ins = require('inspect')
+local utils = require('utils')
+local gbl = require('globals')
+local rS = require('resolve')
 
 local parsingTable = {
-   parsePort = function(str)
+   parsePort = function(str, sT)
       return str / function(id, comp, iface)
          local element = {
             _type = "port", 
@@ -16,11 +14,11 @@ local parsingTable = {
             line = gbl.parserLine
          }
 
-         if utils.isIdUsed(element.id) then
+         if utils.isIdUsed(element.id, sT) then
             return nil
          end
 
-         gbl.presentationTbl[id] = element
+         sT.presentation[id] = element
          return element
       end
    end,
@@ -35,9 +33,9 @@ local parsingTable = {
       end
    end,
 
-   parsePresentationElement = function(str, isMacroSon)
+   parsePresentationElement = function(str, sT, isMacroSon)
       return str / function(_type, id, ...)
-         local tb = {...}
+         local tbl = {...}
          local element = {
             _type = _type,
             id = id,
@@ -47,18 +45,18 @@ local parsingTable = {
             line = gbl.parserLine
          }
 
-         if utils.isIdUsed(element.id) then
+         if utils.isIdUsed(element.id, sT) then
             return nil
          end
 
          if element._type == "region" then
-            gbl.headTbl[element.id] = element
+            sT.head[element.id] = element
          elseif not isMacroSon then
-            gbl.presentationTbl[element.id] = element
+            sT.presentation[element.id] = element
          end
 
          -- Se for uma tabela, ou é uma propriedade ou é um elemento filho
-         for pos, val in pairs(tb) do
+         for pos, val in pairs(tbl) do
             if type(val) == 'table' then
                if val._type == 'property' then
                   for name, value in pairs(val) do
@@ -66,7 +64,16 @@ local parsingTable = {
                      if isMacroSon then
                         element.properties[name] = value
                      else
-                        utils.addProperty(element, name, value)
+                        if name == 'rg' then
+                           if element.region then
+                              utils.printErro(string.format("Region %s already declared", element.region))
+                           end
+                           element.region = value
+                           element.descriptor = '__desc'..value
+                           rS.makeDesc(element.descriptor, value, sT)
+                        else
+                           utils.addProperty(element, name, value)
+                        end
                      end
                   end
                else
@@ -98,14 +105,14 @@ local parsingTable = {
    -- Join the conditions and actions that are linked by "and"
    parseBind = function(str, _type)
       return str / function(...)
-         local tb = {...}
+         local tbl = {...}
          local element = {
             _type = _type,
             line = gbl.parserLine,
             hasEnd = false
          }
 
-         for pos, val in pairs(tb) do
+         for pos, val in pairs(tbl) do
             if type(val) == "table" then
                if val._type == "property" then
                   if not element.properties then
@@ -136,13 +143,13 @@ local parsingTable = {
 
    parseLink = function(str)
       return str / function(...)
-         local tb = {...}
+         local tbl = {...}
          local element = {
             _type="link",
             line = gbl.parserLine,
             hasEnd = false
          }
-         for pos, val in pairs(tb) do
+         for pos, val in pairs(tbl) do
             if type(val) == "table" then
                if val._type == "action" then
                   if not element.actions then
@@ -166,14 +173,14 @@ local parsingTable = {
                element.hasEnd = true
             end
          end
-         table.insert(gbl.linkTbl, element)
+         table.insert(sT.link, element)
          return element
       end
    end,
 
    -- TODO: Propriedades de uma macro devem ser propriedades
    -- do elemento em q a macro foi chamada
-   parseMacro = function(str)
+   parseMacro = function(str, sT)
       return str / function(id, ...)
          local tbl = {...}
          local element = {
@@ -185,11 +192,11 @@ local parsingTable = {
             line = gbl.parserLine
          }
 
-         if utils.isIdUsed(element.id) then
+         if utils.isIdUsed(element.id, sT) then
             return nil
          end
 
-         gbl.macroTbl[element.id] = element
+         sT.macro[element.id] = element
 
          for _, val in pairs(tbl) do
             if type(val) == 'table' then
@@ -211,7 +218,7 @@ local parsingTable = {
       end
    end,
 
-   parseMacroCall = function(str)
+   parseMacroCall = function(str, sT)
       return str / function(mc, args, ...)
          local element = {
             _type = "macro-call",
@@ -219,12 +226,12 @@ local parsingTable = {
             arguments = args,
             line = gbl.parserLine
          }
-         table.insert(gblMacroCallTbl, element)
+         table.insert(sT.macroCall, element)
          return element
       end
    end,
 
-   parseTemplate = function(str)
+   parseTemplate = function(str, sT)
       return str / function(iterator, start, class, ...)
          local tbl = {...}
          local element = {
@@ -243,7 +250,7 @@ local parsingTable = {
             end
          end
 
-         table.insert(gbl.templateTbl, element)
+         table.insert(sT.template, element)
          return element
       end
    end

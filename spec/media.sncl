@@ -1,0 +1,8 @@
+media media1
+   left: 50%
+   rg: rg2
+end
+
+region r2
+   right: 20%
+end

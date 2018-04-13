@@ -1,12 +1,109 @@
 local ins = require"inspect"
 local utils = require"utils"
-local gbl = utils.globals
 
 local gen = {
-   genBind = function(ele, indent)
+
+   genConditions = function(conds, indent, props)
+      local NCL = ''
+      for pos, val in pairs(conds) do
+         NCL = NCL..string.format('<simpleCondition role="%s"', pos)
+         if val > 1 then
+            NCL = NCL..(' max="unbounded" qualifier="and"')
+         end
+         if utils.containValue(props, '__keyValue') and pos == 'onSelection' then
+            NCL = NCL..' key="$__keyValue"'
+         end
+         NCL = NCL..string.format('>%s</simpleCondition>', indent)
+      end
+      return NCL
+   end,
+
+   genActions = function(acts, indent, props)
+      local NCL = ''
+      for pos, val in pairs(acts) do
+         NCL = NCL..string.format('<simpleAction role="pos"', pos)
+         if val > 1 then
+            NCL = NCL..' max="unbounded" qualifier="par"'
+         end
+         if pos == 'set' then
+            NCL = NCL..' value="$setValue"'
+         end
+         NCL = NCL..string.format('>%s</simpleAction>', indent)
+      end
+      return NCL
+   end,
+
+   genXConnector = function(xconn, indent)
+      local NCL = string.format('%s<causalConnector id="%s" >', indent, xconn.id)
+
+      local nConds = 0
+      for _, _ in pairs(xconn.condition) do
+         nConds = nConds + 1
+      end
+      if nConds > 1 then
+         NCL = NCL..string.format('%s   <compoundCondition operator="and" >', indent)
+         NCL = NCL..genConditions(xconn.condition, indent..'      ', xconn.properties)
+         NCL = NCL..string.format('%s   </compoundCondition>', indent)
+      else
+         NCL = NCL..genConditions(xconn.condition, indent..'   ', xconn.properties)
+      end
+
+      local nActs = 0
+      for _, _ in pairs(xconn.action) do
+         nActs = nActs + 1
+      end
+      if nActs > 1 then
+         NCL = NCL..string.format('%s   <compoundAction operator="par" >', indent)
+         NCL = NCL..genActions(xconn.action, indent.."      ")
+         NCL = NCL..string.format('%s   </compoundAction>', indent)
+      else
+         NCL = NCL..genActions(xconn.action, indent.."   ")
+      end
+      for _, value in pairs(xconn.properties) do
+         NCL = NCL..string.format('%s   <connectorParam name="%s" />', indent, value)
+      end
+      NCL = NCL..string.format('%s</causalConnector>', indent)
+
+      return NCL
+   end,
+
+   genRegion = function(ele, indent)
+      local NCL = string.format('%s <region id="%s"', indent, ele.id)
+      if ele.properties then
+         for name, value in pairs(ele.properties) do
+            NCL = string.format(' %s="%s"', name, value)
+         end
+      end
+      NCL = NCL..'/>'
+      return NCL
+   end,
+
+   genDesc = function(ele, indent)
+      local NCL = string.format('%s<descriptor id="%s" region="%s" />', indent, ele.id, ele.region)
+      return NCL
+   end,
+
+   genHeadNCL = function(indent, sT)
+      local connBase = '\n      <connectorBase>'
+      local regionBase = '      <regionBase>'
+      local descBase = '      <descriptorBase>'
+
+      for _, val in pairs(sT.head) do
+         if val._type == "xconnector"then
+            connBase = connBase..genXConnector(val,indent.."   ")
+         elseif val._type == "region" then
+            regionBase = regionBase..genRegion(val, indent.."   ")
+         elseif val._type == "descriptor" then
+            descBase = descBase..genDesc(val, indent.."   ")
+         end
+      end
+      return string.format('%s%s</connectorBase>\n%s%s</regionBase>\n%s%s</descriptorBase>', connBase, indent, regionBase, indent, descBase, indent)
+   end,
+
+   genBind = function(ele, indent, sT)
       local NCL = ""
 
-      if not gbl.presentationTbl[ele.component] then
+      if not sT.presentation[ele.component] then
          utils.printErro(string.format('No element %s declared', ele.component))
          return ""
       end
@@ -44,14 +141,14 @@ local gen = {
       return NCL
    end,
 
-   genPresentation = function(ele, indent)
+   genPresentation = function(ele, indent, sT)
       -- Check if the refered region is decladed
       if ele._type == 'macro-call' or ele._type == 'for' then
          return ''
       end
-      if ele._region then
-         if not gbl.headTbl[ele._region] then
-            utils.printErro(string.format('Region %s not declares', ele.region))
+      if ele.region then
+         if not sT.head[ele.region] then
+            utils.printErro(string.format('Region %s not declared', ele.region))
             return ''
          end
       end
@@ -82,9 +179,9 @@ local gen = {
       if ele.sons then
          for _, son in pairs(ele.sons) do
             if son._type == 'link' then
-               NCL = NCL..genLink(son, indent..'   ')
+               NCL = NCL..genLink(son, indent..'   ', sT)
             else
-               NCL = NCL..genPresentation(son, indent..'   ')
+               NCL = NCL..genPresentation(son, indent..'   ', sT)
             end
          end
       end
@@ -93,130 +190,33 @@ local gen = {
       return NCL
    end,
 
-   genConditions = function(conds, indent, props)
-      local NCL = ''
-      for pos, val in pairs(conds) do
-         NCL = NCL..string.format('<simpleCondition role="%s"', pos)
-         if val > 1 then
-            NCL = NCL..(' max="unbounded" qualifier="and"')
-         end
-         if utils.containValue(props, '__keyValue') and pos=='onSelection' then
-            NCL = NCL..' key="$__keyValue"'
-         end
-         NCL = NCL..string.format('>%s</simpleCondition>', indent)
-      end
-      return NCL
-   end,
-
-   genActions = function(acts, indent, props)
-      local NCL = ''
-      for pos, val in pairs(acts) do
-         NCL = NCL..string.format('<simpleAction role="pos"', pos)
-         if val > 1 then
-            NCL = NCL..' max="unbounded" qualifier="par"'
-         end
-         if pos == 'set' then
-            NCL = NCL..' value="$setValue"'
-         end
-         NCL = NCL..string.format('>%s</simpleAction>', indent)
-      end
-      return NCL
-   end,
-
-   genXConnector = function(xconn, indent)
-      local NCL = string.format('%s<causalConnector id="%s" >', indent, xconn.id)
-
-      local nConds = 0
-      for _, _ in pairs(xconn.condition) do
-         nConds = nConds+1
-      end
-      if nConds > 1 then
-         NCL = NCL..string.format('%s   <compoundCondition operator="and" >', indent)
-         NCL = NCL..genConditions(xconn.condition, indent..'      ', xconn.properties)
-         NCL = NCL..string.format('%s   </compoundCondition>', indent)
-      else
-         NCL = NCL..genConditions(xconn.condition, indent..'   ', xconn.properties)
-      end
-
-      local nActs = 0
-      for _, _ in pairs(xconn.action) do
-         nActs = nActs+1
-      end
-      if nActs > 1 then
-         NCL = NCL..string.format('%s   <compoundAction operator="par" >', indent)
-         NCL = NCL..genActions(xconn.action, indent.."      ")
-         NCL = NCL..string.format('%s   </compoundAction>', indent)
-      else
-         NCL = NCL..genActions(xconn.action, indent.."   ")
-      end
-      for _, value in pairs(xconn.properties) do
-         NCL = NCL..string.format('%s   <connectorParam name="%s" />', indent, value)
-      end
-      NCL = NCL..string.format('%s</causalConnector>', indent)
-
-      return NCL
-   end,
-
-   genRegion = function(ele, indent)
-      local NCL = string.format('%s <region id="%s"', indent, ele.id)
-      if ele.properties then
-         for name, value in pairs(ele.properties) do
-            NCL = string.format(' %s="%s"', name, value)
-         end
-      end
-      NCL = NCL..'/>'
-      return NCL
-   end,
-
-   genDesc = function(ele, indent)
-      local NCL = string.format('%s<descriptor id="%s" region="%s" />', indent, ele.id, ele.region)
-      return NCL
-   end,
-
-   genHeadNCL = function(indent)
-      local connBase = '\n      <connectorBase>'
-      local regionBase = '      <regionBase>'
-      local descBase = '      <descriptorBase>'
-
-      for _, val in pairs(gbl.headTbl) do
-         if val._type == "xconnector"then
-            connBase = connBase..genXConnector(val,indent.."   ")
-         elseif val._type == "region" then
-            regionBase = regionBase..genRegion(val, indent.."   ")
-         elseif val._type == "descriptor" then
-            descBase = descBase..genDesc(val, indent.."   ")
-         end
-      end
-      return string.format('%s%s</connectorBase>\n%s%s</regionBase>\n%s%s</descriptorBase>', connBase, indent, regionBase, indent, descBase, indent)
-   end,
-
-   genBodyNCL = function(indent)
+   genBodyNCL = function(indent, sT)
       local NCL = ''
 
-      for _, ele in pairs(gbl.presentationTbl) do
+      for _, ele in pairs(sT.presentation) do
          if ele._type and not ele.father then
-            NCL = NCL..genPresentation(ele, indent)
+            NCL = NCL..genPresentation(ele, indent, sT)
          end
       end
 
-      for _, ele in pairs(gbl.linkTbl) do
+      for _, ele in pairs(sT.link) do
          if not ele.father then
-            NCL = NCL..genLink(ele, indent)
+            NCL = NCL..genLink(ele, indent, sT)
          end
       end
 
       return NCL
    end,
 
-   genNCL = function()
+   genNCL = function(sT)
       local indent = '\n   '
       local NCL = [[<?xml version="1.0" encoding="ISO-8859-1"?>
 <ncl id="main" xmlns="http://www.ncl.org.br/NCL3.0/EDTVProfile">]]
       NCL = NCL..indent..'<head>'
-      NCL = NCL..genHeadNCL(indent..'   ')
+      NCL = NCL..genHeadNCL(indent..'   ', sT)
       NCL = NCL..indent..'</head>'
       NCL = NCL..indent..'<body>'
-      NCL = NCL..genBodyNCL(indent..'   ')
+      NCL = NCL..genBodyNCL(indent..'   ', sT)
       NCL = NCL..indent..'</body>\n</ncl>'
       return NCL
    end,

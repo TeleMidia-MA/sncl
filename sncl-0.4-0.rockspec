@@ -35,9 +35,11 @@ build = {
       ["grammar"]     = "src/parser/grammar.lua",
       ["parse-tree"]  = "src/parser/parse-tree.lua",
       ["gen"]         = "src/parser/gen.lua",
-      ["macros"] = "src/parser/macros.lua",
-      ["templates"] = "src/parser/templates.lua",
+      ["macro"] = "src/parser/macros.lua",
+      ["template"] = "src/parser/templates.lua",
       ["pre_process"] = "src/parser/pre-process.lua",
+      ["resolve"] = "src/parser/resolve.lua",
+      ["globals"] = "src/utils/globals.lua"
    },
    install = {
       bin = {
