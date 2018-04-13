@@ -12,10 +12,10 @@ require'pre_process'
 require'macro'
 require'grammar'
 
-function beginParse(input, output, padding, play)
+function beginParse(args)
    gbl.inputFile = input
 
-   local snclInput = utils:readFile(input)
+   local snclInput = utils:readFile(args.input)
    if not snclInput then
       utils:printErro('Error reading input file')
       return
@@ -37,7 +37,7 @@ function beginParse(input, output, padding, play)
    end
    --pp.pre_process()
 
-   if gbl._DEBUG_SYMBOL_TABLE then
+   if args.show_symbol then
       print("Symbol Table:", inspect.inspect(symbolTable))
    end
    --
@@ -47,10 +47,12 @@ function beginParse(input, output, padding, play)
       utils:printErro('Error in sncl file')
       return
    end
-   if outputFile then
-      utils:writeFile(outputFile, NCL)
+   local outputFile = nil
+   if args.output then
+      utils:writeFile(args.output, NCL)
+      outputFile = args.output
    else
-      outputFile = input:sub(1, input:len()-4)
+      outputFile = args.input:sub(1, args.input:len()-4)
       outputFile = outputFile..'ncl'
       utils:writeFile(outputFile, NCL)
    end
