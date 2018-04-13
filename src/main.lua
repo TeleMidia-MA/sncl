@@ -12,6 +12,8 @@ require'pre_process'
 require'macro'
 require'grammar'
 
+--- The main function of the compiler
+-- @param args the arguments of the command line
 function beginParse(args)
    gbl.inputFile = input
 
@@ -29,25 +31,24 @@ function beginParse(args)
    --    sT.padding = lyaml.load(paddingContent, { all = true })
    -- end
 
-   local symbolTable = utils.lpegMatch(grammar, snclInput) --[[  ]]
+   local symbolTable = utils.lpegMatch(grammar, snclInput)
+
    if not symbolTable then
       utils:printErro('Error parsing document', gbl.parserLine)
       return -1
    end
-
-   pp.pre_process(symbolTable) --[[ Process the macro calls and the templates ]]
+   pp.pre_process(symbolTable)
 
    if args.show_symbol then
       print("Symbol Table:", inspect.inspect(symbolTable))
    end
    --
-   local NCL = gen:genNCL(symbolTable) --[[ Receives a lua table, and generate the NCL ]]
+   local NCL = gen:genNCL(symbolTable)
 
    if gbl.hasError then
       utils:printErro('Error in sncl file')
       return
    end
-
    local outputFile = nil
    if args.output then
       utils:writeFile(args.output, NCL)
@@ -60,7 +61,6 @@ function beginParse(args)
    if play then
       os.execute('ginga '..outputFile)
    end
-
 end
 
 -- TODO: Onde botar? N devem ser globais
