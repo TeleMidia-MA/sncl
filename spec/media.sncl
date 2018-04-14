@@ -10,6 +10,7 @@ end
 macro makeContext(id, mId, mSrc, mLft)
    context id
       makeMedia(mId, mSrc, mLft)
+      port pC1 c1m1
       media c1m2
          src: "text/html"
       end
@@ -29,9 +30,9 @@ media m3
 end
 
 onBegin m3 do
-   start c1m1 end
+   start c1 end
 end
 
 onEnd m3 do
-   start c1m1 end
+   start c1 end
 end

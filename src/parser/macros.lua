@@ -43,6 +43,9 @@ function resolveMacros:presentation(ele, call, stack, sT)
    }
 
    local parameters = sT.macro[call.macro].parameters
+   if ele._type == 'port' then
+      newEle.component = self.getArgument(call.arguments, parameters, ele.component)
+   end
 
    local newId = self.getArgument(call.arguments, parameters, ele.id)
    --[[ Check is an element with the same Id is already declared ]]
@@ -157,11 +160,15 @@ function resolveMacros:link(ele, call, sT)
    local macro = sT.macro[call.macro]
 
    for _, action in pairs(ele.actions) do
-      table.insert(newEle.actions, self:bind(action, call, sT))
+      local newAction = self:bind(action, call, sT)
+      newAction.father = newEle
+      table.insert(newEle.actions, newAction)
    end
 
    for _, condition in pairs(ele.conditions) do
-      table.insert(newEle.conditions, self:bind(condition, call, sT))
+      local newCond = self:bind(condition, call, sT)
+      newCond.father = newEle
+      table.insert(newEle.conditions, newCond)
    end
 
    for name, value in pairs(ele.properties) do

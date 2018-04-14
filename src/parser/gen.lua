@@ -1,4 +1,4 @@
---local ins = require"inspect"
+local ins = require"inspect"
 local utils = require"utils"
 
 local gen = {
@@ -135,6 +135,21 @@ end
 -- @return
 function gen.genBind(ele, indent, sT)
    local NCL = ""
+
+   --[[ If the link(ele.father) has a father, then the component must
+   be a son of the father of the link. Else, then the component must
+   not have a father either]]
+   if ele.father.father then
+      if not ele.father.father.sons[ele.component] then
+         utils.printErro(string.format('Component %s not in scope', ele.component), ele.line)
+         return NCL
+      end
+   else
+      if sT.presentation[ele.component].father then
+         utils.printErro(string.format('Component %s not in scope', ele.component), ele.line)
+         return NCL
+      end
+   end
 
    if not sT.presentation[ele.component] then
       utils.printErro(string.format('No element %s declared', ele.component))

@@ -47,7 +47,7 @@ grammar = {
    Property = pT.makeProperty( (C(V'Id') *V'Spc'^0* P':' *V'Spc'^0*
       C(P'"'*V'PropertyValue'*P'"' + V'PropertyValue') * V'Spc'^0)),
 
-   Port = V'Spc'^0*pT.makePort(P'port'* V'Spc'^1 * C(V'Id') * V'Spc'^1 * C(V'Id')*(P'.'*C(V'Id'))^-1, sT),
+   Port = V'Spc'^0*pT.makePort(P'port'* V'Spc'^1 * C(V'Id') * V'Spc'^1 * C(V'Id')*(P'.'*C(V'Id'))^-1, sT, false),
 
    PresentationElement = V'Spc'^0* pT.makePresentationElement(C(V'Reserved') *V'Spc'^1 * C(V'Id') *V'Spc'^1
    *(V'PresentationElement'+V'Port'+V'Property'+V'Link'+V'MacroCall'+V'Template'+V'Spc')^0 *C(V'End'), sT, false),
@@ -62,8 +62,9 @@ grammar = {
    ActionId = pT.makeRelationship(C(V'Reserved') *V'Spc'^1* (C(V'Id')*(P'.'*C(V'Id'))^-1)),
    RepeatAction = P'and' *V'Spc'^1*V'ActionId',
 
+   MacroPort = V'Spc'^0*pT.makePort(P'port'* V'Spc'^1 * C(V'Id') * V'Spc'^1 * C(V'Id')*(P'.'*C(V'Id'))^-1, sT, true),
    MacroPresentationElement = V'Spc'^0* pT.makePresentationElement(C(V'Reserved') *V'Spc'^1 * C(V'Id') *V'Spc'^1
-   *(V'MacroPresentationElement'+V'Port'+V'Property'+V'MacroLink'+V'Template'+V'MacroCall'+V'Spc')^0 *C(V'End'), sT, true),
+   *(V'MacroPresentationElement'+V'MacroPort'+V'Property'+V'MacroLink'+V'Template'+V'MacroCall'+V'Spc')^0 *C(V'End'), sT, true),
    MacroLink = (V'Spc'^0*
       pT.makeLink((V'Condition' *V'Spc'^1* ((V'Property'+V'Action')-V'End')^0 *C(V'End')*V'Spc'^0), sT, true)),
    Macro = V'Spc'^0* pT.makeMacro(P'macro' *V'Spc'^1* C(V'Id') *V'Spc'^0* V'Parameters'

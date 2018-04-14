@@ -13,7 +13,7 @@ local parsingTable = {
    -- @param str The return of lpeg
    -- @param sT The symbol table
    -- @return The generated table
-   makePort = function(str, sT)
+   makePort = function(str, sT, isMacroSon)
       return str / function(id, comp, iface)
          local element = {
             _type = 'port',
@@ -27,7 +27,9 @@ local parsingTable = {
             return nil
          end
 
-         sT.presentation[id] = element
+         if not isMacroSon then
+            sT.presentation[id] = element
+         end
          return element
       end
    end,
@@ -185,10 +187,9 @@ local parsingTable = {
             if type(val) == 'table' then
                if val._type == 'action' then
                   table.insert(element.actions, val)
+                  val.father = element
                elseif val._type == 'condition' then
-                  if not element.conditions then
-                     element.conditions = {}
-                  end
+                  val.father = element
                   table.insert(element.conditions, val)
                else
                   for name, value in pairs(val) do
