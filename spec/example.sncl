@@ -1,0 +1,11 @@
+media media1
+   type: "text/html"
+end
+media media2
+   type: "text/html"
+end
+onBegin media1 do
+   start media2 
+      delay: 20s
+   end
+end

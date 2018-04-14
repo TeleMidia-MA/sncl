@@ -1,9 +1,41 @@
-forEach thumb do
-   assert
-      #thumb > 1
-      thumb.src
-      thumb.class
+macro makePhoto(id, src)
+   media id
+      src: src
    end
-
-   makeMedia(thumb, thumb.next)
 end
+
+macro onEndStart(m1, m2)
+   onEnd m1 do
+      start m2 end
+   end
+end
+
+macro makeAlbum(id)
+   context id
+      assert #photo > 1
+----------------------------------
+      for i = 1, #photo do
+         assert photo.src
+         makePhoto(photo[i])
+         onEndStart(photo[i].id, photo[i+1].id)
+      end
+      forEach photo do
+         assert photo.src
+         makePhoto(photo)
+         onEndStart(photo.id, photo.next.id) -- Como fazer loop?
+      end
+---------------------------------
+   end
+end
+
+assert #album > 1
+
+--------------------------------
+for i = 1, #album do
+   makeAlbum(album[i])
+end
+
+forEach album do
+   makeAlbum(album)
+end
+----------------------------------
