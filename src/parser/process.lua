@@ -51,18 +51,8 @@ require"macro"
 --    for _, act in pairs(son.actions) do
 --       local newAct = {_type="action"}
 --       newAct.role = act.role
---       if utils.containValue(macro.parameters, act.component) then
---          newAct.component = call.arguments[utils.getIndex(macro.parameters, act.component)]
---       else
---          newAct.component = act.component
---       end
---       if act.interface then
---          if utils.containValue(macro.parameters, act.interface) then
---             newAct.interface = call.arguments[utils.getIndex(macro.parameters, act.interface)]
---          else
---             newAct.interface = act.interface
---          end
---       end
+
+
 --       if act.properties then
 --          newAct.properties = {}
 --          for name, value in pairs(act.properties) do
@@ -80,11 +70,7 @@ require"macro"
 --    for _, cond in pairs(son.conditions) do
 --       local newCond = {_type="condition"}
 --       newCond.role = cond.role
---       if utils.containValue(macro.parameters, cond.component) then
---          newCond.component = call.arguments[utils.getIndex(macro.parameters, cond.component)]
---       else
---          newCond.component = cond.component
---       end
+
 --       -- TODO: BUTTONS
 --       if cond.interface then
 --          if utils.containValue(macro.parameters, cond.interface) then

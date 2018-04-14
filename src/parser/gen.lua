@@ -137,7 +137,7 @@ function gen.genBind(ele, indent, sT)
    local NCL = ""
 
    if not sT.presentation[ele.component] then
-      utils:printErro(string.format('No element %s declared', ele.component))
+      utils.printErro(string.format('No element %s declared', ele.component))
       return ""
    end
    NCL = NCL..string.format('%s<bind role="%s" component="%s"', indent, ele.role, ele.component)
@@ -192,7 +192,7 @@ function gen:genPresentation(ele, indent, sT)
    end
    if ele.region then
       if not sT.head[ele.region] then
-         utils:printErro(string.format('Region %s not declared', ele.region))
+         utils.printErro(string.format('Region %s not declared', ele.region))
          return ''
       end
    end
@@ -243,7 +243,11 @@ function gen:genBodyNCL(indent, sT)
 
    for _, ele in pairs(sT.presentation) do
       if ele._type and not ele.father then
-         NCL = NCL..self:genPresentation(ele, indent, sT)
+         if ele._type == 'link' then
+            NCL = NCL..self:genLink(ele, indent, sT)
+         else
+            NCL = NCL..self:genPresentation(ele, indent, sT)
+         end
       end
    end
 

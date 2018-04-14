@@ -1,0 +1,9 @@
+forEach thumb do
+   assert
+      #thumb > 1
+      thumb.src
+      thumb.class
+   end
+
+   makeMedia(thumb, thumb.next)
+end

@@ -1,4 +1,4 @@
--- local ins = require('inspect')
+--local ins = require('inspect')
 local utils = require('utils')
 local gbl = require('globals')
 local rS = require('resolve')
@@ -88,7 +88,7 @@ local parsingTable = {
                      else
                         if name == 'rg' then
                            if element.region then
-                              utils:printErro(string.format('Region %s already declared', element.region), element.line)
+                              utils.printErro(string.format('Region %s already declared', element.region), element.line)
                               return nil
                            end
                            element.region = value
@@ -135,6 +135,7 @@ local parsingTable = {
          local tbl = {...}
          local element = {
             _type = _type,
+            properties = {},
             line = gbl.parserLine,
             hasEnd = false
          }
@@ -142,9 +143,6 @@ local parsingTable = {
          for _, val in pairs(tbl) do
             if type(val) == 'table' then
                if val._type == 'property' then
-                  if not element.properties then
-                     element.properties = {}
-                  end
                   for name, value in pairs(val) do
                      utils:addProperty(element, name, value)
                   end
@@ -153,9 +151,7 @@ local parsingTable = {
                   element.component = val.component
                   if val.interface then
                      if lpeg.match(utils.checks.buttons, val.interface) and val._type == 'condition' then
-                        element.properties = {
-                           __keyValue = val.interface
-                        }
+                        element.properties.__keyValue = val.interface
                      else
                         element.interface = val.interface
                      end
@@ -174,20 +170,20 @@ local parsingTable = {
    -- @param str
    -- @param sT
    -- @return
-   makeLink = function(str, sT)
+   makeLink = function(str, sT, isMacroSon)
       return str / function(...)
          local tbl = {...}
          local element = {
             _type = 'link',
+            conditions = {},
+            actions = {},
+            properties = {},
             line = gbl.parserLine,
             hasEnd = false
          }
          for _, val in pairs(tbl) do
             if type(val) == 'table' then
                if val._type == 'action' then
-                  if not element.actions then
-                     element.actions = {}
-                  end
                   table.insert(element.actions, val)
                elseif val._type == 'condition' then
                   if not element.conditions then
@@ -195,9 +191,6 @@ local parsingTable = {
                   end
                   table.insert(element.conditions, val)
                else
-                  if not element.properties then
-                     element.properties = {}
-                  end
                   for name, value in pairs(val) do
                      utils:addProperty(element, name, value)
                   end
@@ -206,7 +199,10 @@ local parsingTable = {
                element.hasEnd = true
             end
          end
-         table.insert(sT.link, element)
+
+         if not isMacroSon then
+            table.insert(sT.presentation, element)
+         end
          element.xconnector = rS:makeConn(element, sT)
          return element
       end
@@ -243,9 +239,6 @@ local parsingTable = {
                if val.parameters then -- If val is the parameter table
                   element.parameters = val.parameters
                else -- If val is the sons
-                  if not element.sons then
-                     element.sons = {}
-                  end
                   table.insert(element.sons, val)
                   val.father = element
                end

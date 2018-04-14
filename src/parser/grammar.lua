@@ -63,7 +63,7 @@ grammar = {
    RepeatAction = P'and' *V'Spc'^1*V'ActionId',
 
    MacroPresentationElement = V'Spc'^0* pT.makePresentationElement(C(V'Reserved') *V'Spc'^1 * C(V'Id') *V'Spc'^1
-   *(V'MacroPresentationElement'+V'Port'+V'Property'+V'Link'+V'Template'+V'MacroCall'+V'Spc')^0 *C(V'End'), sT, true),
+   *(V'MacroPresentationElement'+V'Port'+V'Property'+V'MacroLink'+V'Template'+V'MacroCall'+V'Spc')^0 *C(V'End'), sT, true),
    MacroLink = (V'Spc'^0*
       pT.makeLink((V'Condition' *V'Spc'^1* ((V'Property'+V'Action')-V'End')^0 *C(V'End')*V'Spc'^0), sT, true)),
    Macro = V'Spc'^0* pT.makeMacro(P'macro' *V'Spc'^1* C(V'Id') *V'Spc'^0* V'Parameters'

@@ -1,5 +1,6 @@
 local utils = require("utils")
 local ins = require('inspect')
+local lpeg = require('lpeg')
 
 local resolveMacros = {
 
@@ -10,7 +11,7 @@ local resolveMacros = {
    -- @param ele The macro-son element
    -- @param newEle The element that is being generated
    -- @param call The call
-   resolveElementProperties = function(ele, newEle, call, sT)
+   elementProperties = function(ele, newEle, call, sT)
       for name, value in pairs(ele.properties) do
          --[[ If the property is a parameter ]]
          local parameters = sT.macro[call.macro].parameters
@@ -32,29 +33,28 @@ local resolveMacros = {
 -- @param call The call to the macro
 -- @param stack The stack of calls
 -- @param sT The symbol table
-function resolveMacros:resolvePresentation(ele, call, stack, sT)
+function resolveMacros:presentation(ele, call, stack, sT)
    local newEle = {
       id = ele.id,
       _type = ele._type,
       properties = {},
       sons = {},
+      line = call.line
    }
+
    local parameters = sT.macro[call.macro].parameters
 
-   --[[ If the id is a property ]]
-   if utils.containValue(parameters, ele.id) then
-      local newId = call.arguments[utils.getIndex(parameters, ele.id)]
-      if sT.presentation[newId] then
-         utils:printErro(string.format('Id %s already declared.', newId), call.line)
-         return nil
-      end
-      newId = newId:gsub('"', '')
-      newEle.id = newId
+   local newId = self.getArgument(call.arguments, parameters, ele.id)
+   --[[ Check is an element with the same Id is already declared ]]
+   if sT.presentation[newId] then
+      utils.printErro(string.format('Id %s already declared.', newId), call.line)
+      return nil
    end
-
+   newId = newId:gsub('"', '') -- Remove "", because the argument has ""
+   newEle.id = newId
 
    if ele.properties then
-      self.resolveElementProperties(ele, newEle, call, sT)
+      self.elementProperties(ele, newEle, call, sT)
    end
 
    sT.presentation[newEle.id] = newEle
@@ -62,18 +62,26 @@ function resolveMacros:resolvePresentation(ele, call, stack, sT)
    if ele.sons then
       for _, son in pairs(ele.sons) do
          if son._type == 'link' then
+            local newLink = self:link(son, call, sT)
+            if newLink then
+               table.insert(newEle.sons, newLink)
+               newLink.father = newEle
+            end
          elseif son._type == 'macro-call' then
-            self:resolveCall(son, stack, sT)
+            self:aux(son, stack, sT)
          else
-            local newSon = self:resolvePresentation(son, call, stack, sT)
-            newEle.sons[newSon.id] = newSon
-            newSon.father = newEle
+            local newSon = self:presentation(son, call, stack, sT)
+            if newSon then
+               newEle.sons[newSon.id] = newSon
+               newSon.father = newEle
+            end
          end
       end
    end
 
    if call.father then
       if call.father._type == 'for' then
+         -- If the call is inside a for, then the father of the element is the father of the for
          newEle.father = call.father.father
       else
          newEle.father = call.father
@@ -86,17 +94,122 @@ function resolveMacros:resolvePresentation(ele, call, stack, sT)
    return newEle
 end
 
+--- Checks if a value inside a macro is a parameter of the macro.
+-- This function checks if a value inside a macro is a parameter of a macro.
+-- If it is, then the value is actually the argument of the call that corresponds
+-- to the parameter.
+-- Else, then the value is the value itself
+-- @param arguments
+-- @param parameters
+-- @param argument
+function resolveMacros.getArgument(arguments, parameters, value)
+   if utils.containValue(parameters, value) then
+      return arguments[utils.getIndex(parameters, value)]
+   end
+   return value
+end
+
+--- Generates a <bind> element of a <link> element
+-- @param bind
+-- @param call
+-- @param sT
+function resolveMacros:bind(bind, call, sT)
+   local newBind = {
+      _type = bind._type,
+      role = bind.role,
+      component = bind.component,
+      interface = bind.interface,
+      properties = {},
+      line = call.line
+   }
+   local macro = sT.macro[call.macro]
+
+   newBind.component = self.getArgument(call.arguments, macro.parameters, bind.component)
+   newBind.interface = self.getArgument(call.arguments, macro.parameters, bind.interface)
+   if newBind.interface then
+      if lpeg.match(utils.checks.buttons, newBind.interface) then
+         newBind.properties.__keyValue = newBind.interface
+         newBind.interface = nil
+      end
+   end
+
+   for name, value in pairs(bind.properties) do
+      newBind.properties[name] = self.getAgument(macro.parameters, value)
+   end
+
+   return newBind
+end
+
+--- Generates a <link> element
+-- @param ele
+-- @param call
+-- @param sT
+function resolveMacros:link(ele, call, sT)
+   local newEle = {
+      _type = ele._type,
+      xconnector = ele.xconnector,
+      properties = {},
+      actions = {},
+      conditions = {},
+      line = call.line
+   }
+
+   local macro = sT.macro[call.macro]
+
+   for _, action in pairs(ele.actions) do
+      table.insert(newEle.actions, self:bind(action, call, sT))
+   end
+
+   for _, condition in pairs(ele.conditions) do
+      table.insert(newEle.conditions, self:bind(condition, call, sT))
+   end
+
+   for name, value in pairs(ele.properties) do
+      newEle.properties[name] = self.getArgument(call.arguments, macro.parameters, value)
+   end
+
+   return newEle
+end
+
+--- An auxiliary function, necessary because a macro can have calls
+-- inside of it, so a stack of calls is necessary. This function is called
+-- everytime a call is processed, so all the generated elements that it
+-- returns can be inserted inside of the macro, or the call.
+-- @param call
+-- @param stack
+-- @param sT
+function resolveMacros:aux(call, stack, sT)
+   local newEles = {}
+
+   local macro = sT.macro[call.macro]
+   table.insert(stack, call)
+   for _, son in pairs(macro.sons) do
+      if son._type == 'link' then
+         local newLink = self:link(son, call, sT)
+         table.insert(newLink)
+         -- resolveLinkMacro
+      else
+         local newPres = self:presentation(son, call, stack, sT)
+         newEles[newPres.id] = newPres
+      end
+      -- TODO: The son can also be a property, or a macro-call
+   end
+   table.remove(stack)
+
+   return newEles
+end
+
 --- Resolve the call, generating an element
 -- @param call The call element itself
 -- @param stack The stack of calls
 -- @param sT The symbol table
-function resolveMacros:resolveCall(call, stack, sT)
+function resolveMacros:call(call, stack, sT)
    local macro = sT.macro[call.macro]
    local abv = stack[#stack]
 
    --[[ If the called macro is not declared ]]
    if not macro then
-      utils:printErro(string.format("Macro %s not declared.", call.macro), call.line)
+      utils.printErro(string.format("Macro %s not declared.", call.macro), call.line)
       return nil
    end
 
@@ -108,11 +221,11 @@ function resolveMacros:resolveCall(call, stack, sT)
             the padding document must have the same number of properties as
             the number of arguments of the macro --]]
          if call.father._type ~= 'for' then
-            utils:printErro('Wrong number of arguments.', call.line)
+            utils.printErro('Wrong number of arguments.', call.line)
             return nil
          end
       else
-         utils:printErro('Wrong number of arguments.', call.line)
+         utils.printErro('Wrong number of arguments.', call.line)
          return nil
       end
    end
@@ -132,26 +245,18 @@ function resolveMacros:resolveCall(call, stack, sT)
                local index = utils.getIndex(sT.macro[abv.macro].parameters, val)
                call.arguments[p] = abv.arguments[index]
             else
-               utils:printErro(string.format('Argument %s is not a parameter of a macro.',
+               utils.printErro(string.format('Argument %s is not a parameter of a macro.',
                   val), call.line)
                return nil
             end
          else
-            utils:printErro(string.format('Argument %s invalid.', val), call.line)
+            utils.printErro(string.format('Argument %s invalid.', val), call.line)
             return nil
          end
       end
    end
+   self:aux(call, stack, sT)
 
-   table.insert(stack, call)
-   for _, son in pairs(macro.sons) do
-      if son._type == 'link' then
-         -- resolveLinkMacro
-      else
-         self:resolvePresentation(son, call, stack, sT)
-      end
-   end
-   table.remove(stack)
 end
 
 return resolveMacros

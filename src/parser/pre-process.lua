@@ -9,7 +9,7 @@ local pre_process = {
       for _, val in pairs(sT.macroCall) do
          if not utils:isMacroSon(val) then
             local stack = {}
-            macro:resolveCall(val, stack, sT)
+            macro:call(val, stack, sT)
          end
       end
       -- resolveTemplates()

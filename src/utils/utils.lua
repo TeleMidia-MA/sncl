@@ -48,7 +48,12 @@ local utils = {
       return tbl
    end,
 
-
+   printErro = function(errString, line)
+      line = line or gbl.parserLine
+      local file = gbl.inputFile or ''
+      io.write(colors('%{bright}'..file..':'..line..': %{red}erro:%{reset} '..errString..'\n'))
+      gbl.hasError = true
+   end,
 
    checks = {
       buttons = R'09'+R'AZ'+P'*'+P'#'+P'MENU'+P'INFO'+P'GUIDE'+P'CURSOR_DOWN'
@@ -106,22 +111,17 @@ function utils:getNumberOfParents(ele, nFathers)
    return nFathers
 end
 
-function utils:printErro(errString, line)
-   line = line or gbl.parserLine
-   local file = gbl.inputFile or ''
-   io.write(colors('%{bright}'..file..':'..line..': %{red}erro:%{reset} '..errString..'\n'))
-   self.hasError = true
-end
+
 
 function utils:readFile(file)
    file = io.open(file, 'r')
    if not file then
-      self:printErro('Error opening input file')
+      self.printErro('Error opening input file')
       return nil
    end
    local fileContent = file:read('*a')
    if not fileContent then
-      self:printErro('Error reading input')
+      self.printErro('Error reading input')
       return nil
    end
    return fileContent
@@ -130,11 +130,12 @@ end
 function utils:writeFile(file, content)
    file = io.open(file, "w")
    if not file then
-      self:printErro('Error creating output file')
+      self.printErro('Error creating output file')
       return nil
    end
    io.output(file)
    io.write(content)
    io.close(file)
 end
+
 return utils

@@ -1,8 +1,8 @@
 m1:
-  class: p1
+  class: thumb
   src: medias/img1.jpg
 m2:
-  class: p2
+  class: thumb
   src: medias/img1.jpg
 c1:
   class: album

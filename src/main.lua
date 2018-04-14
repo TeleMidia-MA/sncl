@@ -19,7 +19,7 @@ function beginParse(args)
 
    local snclInput = utils:readFile(args.input)
    if not snclInput then
-      utils:printErro('Error reading input file')
+      utils.printErro('Error reading input file')
       return
    end
 
@@ -36,7 +36,7 @@ function beginParse(args)
    local symbolTable = utils.lpegMatch(grammar, snclInput)
 
    if not symbolTable then
-      utils:printErro('Error parsing document', gbl.parserLine)
+      utils.printErro('Error parsing document', gbl.parserLine)
       return -1
    end
    pp.pre_process(symbolTable)
@@ -48,7 +48,7 @@ function beginParse(args)
    local NCL = gen:genNCL(symbolTable)
 
    if gbl.hasError then
-      utils:printErro('Error in sncl file')
+      utils.printErro('Error in sncl file')
       return
    end
    local outputFile = nil
