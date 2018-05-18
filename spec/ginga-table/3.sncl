@@ -1,0 +1,18 @@
+port pBody m2
+
+media m1
+end
+
+media m2
+end
+
+context c1
+   port pC2 m3
+   media c1m1
+   end
+   media c1m2
+   end
+   onBegin c1m1 do
+      start c1m2 end
+   end
+end

@@ -135,12 +135,18 @@ end
 -- @return
 function gen.genBind(ele, indent, sT)
    local NCL = ""
+   local link = ele.father
 
-   --[[ If the link(ele.father) has a father, then the component must
-   be a son of the father of the link. Else, then the component must
-   not have a father either]]
-   if ele.father.father then
-      if not ele.father.father.sons[ele.component] then
+   local hasComp = false
+   -- If the link is inside of a context
+   if link.father then
+      -- If the father of the link has a children that is the component of the Link
+      for pos, val in pairs(link.father.sons) do
+         if ele.component == val.id then
+            hasComp = true
+         end
+      end
+      if not hasComp then
          utils.printErro(string.format('Component %s not in scope', ele.component), ele.line)
          return NCL
       end
