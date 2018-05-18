@@ -1,0 +1,8 @@
+port pBody 
+media time
+end
+
+media m1
+   src: "samples/gnu.png"
+   explicitDur: 2s
+end

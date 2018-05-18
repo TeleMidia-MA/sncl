@@ -2,9 +2,9 @@ local utils = require'utils'
 local gbl = require('globals')
 local ins = require('inspect')
 --local lyaml = require('lyaml')
---local ins = require('inspect')
 local pp = require('pre_process')
 local gen = require('gen')
+local gen_lua = require('gen_lua')
 
 require'pegdebug'
 require'gen'
@@ -33,24 +33,27 @@ function beginParse(args)
    end
    ]]
 
+   -- Parse the sncl table, generate an equivalent Lua table
    local symbolTable = utils.lpegMatch(grammar, snclInput)
-
    if not symbolTable then
       utils.printErro('Error parsing document', gbl.parserLine)
       return -1
    end
+   -- Resolve macros and templates
    pp.pre_process(symbolTable)
+   genLua(symbolTable)
 
    if args.show_symbol then
       print("Symbol Table:", ins.inspect(symbolTable))
    end
-   --
-   local NCL = gen:genNCL(symbolTable)
 
+   -- Generate the NCL from the Lua table
+   local NCL = gen:genNCL(symbolTable)
    if gbl.hasError then
       utils.printErro('Error in sncl file')
       return
    end
+
    local outputFile = nil
    if args.output then
       utils:writeFile(args.output, NCL)
@@ -64,7 +67,3 @@ function beginParse(args)
       os.execute('ginga '..outputFile)
    end
 end
-
--- TODO: Onde botar? N devem ser globais
-
-

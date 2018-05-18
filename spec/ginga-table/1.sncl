@@ -1,0 +1,19 @@
+port pBody m1
+
+media m1
+   src: "samples/clock.ogv"
+   area a1
+   end
+end
+
+media m2
+   src: "samples/gnu.png"
+end
+
+onBegin m1.a1 do
+   stop m1 end
+   start m2
+      delay: 0s
+      duration: 0s
+   end
+end
