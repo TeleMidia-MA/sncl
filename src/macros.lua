@@ -38,7 +38,7 @@ function resolveMacros:presentation(ele, call, stack, sT)
       id = ele.id,
       _type = ele._type,
       properties = {},
-      sons = {},
+      children = {},
       line = call.line
    }
 
@@ -62,12 +62,12 @@ function resolveMacros:presentation(ele, call, stack, sT)
 
    sT.presentation[newEle.id] = newEle
 
-   if ele.sons then
-      for _, son in pairs(ele.sons) do
+   if ele.children then
+      for _, son in pairs(ele.children) do
          if son._type == 'link' then
             local newLink = self:link(son, call, sT)
             if newLink then
-               table.insert(newEle.sons, newLink)
+               table.insert(newEle.children, newLink)
                newLink.father = newEle
             end
          elseif son._type == 'macro-call' then
@@ -75,7 +75,7 @@ function resolveMacros:presentation(ele, call, stack, sT)
          else
             local newSon = self:presentation(son, call, stack, sT)
             if newSon then
-               newEle.sons[newSon.id] = newSon
+               newEle.children[newSon.id] = newSon
                newSon.father = newEle
             end
          end
@@ -90,7 +90,7 @@ function resolveMacros:presentation(ele, call, stack, sT)
          newEle.father = call.father
       end
       if newEle.father then
-         newEle.father.sons[newEle.id] = newEle
+         newEle.father.children[newEle.id] = newEle
       end
    end
 
@@ -190,7 +190,7 @@ function resolveMacros:aux(call, stack, sT)
 
    local macro = sT.macro[call.macro]
    table.insert(stack, call)
-   for _, son in pairs(macro.sons) do
+   for _, son in pairs(macro.children) do
       if son._type == 'link' then
          local newLink = self:link(son, call, sT)
          table.insert(newLink)

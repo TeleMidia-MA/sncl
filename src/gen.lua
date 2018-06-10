@@ -141,7 +141,7 @@ function gen.genBind(ele, indent, sT)
    -- If the link is inside of a context
    if link.father then
       -- If the father of the link has a children that is the component of the Link
-      for pos, val in pairs(link.father.sons) do
+      for pos, val in pairs(link.father.children) do
          if ele.component == val.id then
             hasComp = true
          end
@@ -241,8 +241,8 @@ function gen:genPresentation(ele, indent, sT)
       end
    end
    -- TODO: Check if the son type is valid
-   if ele.sons then
-      for _, son in pairs(ele.sons) do
+   if ele.children then
+      for _, son in pairs(ele.children) do
          if son._type == 'link' then
             NCL = NCL..self:genLink(son, indent..'   ', sT)
          else

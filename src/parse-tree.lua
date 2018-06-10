@@ -1,4 +1,4 @@
---local ins = require('inspect')
+local ins = require('inspect')
 local utils = require('utils')
 local gbl = require('globals')
 local rS = require('resolve')
@@ -49,7 +49,7 @@ local parsingTable = {
 
    --- Generate a better formated table for the presentation elements
    -- The inicial table has an 'end' value, indicating that it has an end,
-   -- and other tables as sons, those can be a property of
+   -- and other tables as children, those can be a property of
    -- the element, or another element, that is nested inside it.
    -- Then this table is processed to generated a better formated table, that is
    -- inserted in the symbol table
@@ -64,11 +64,10 @@ local parsingTable = {
             _type = _type,
             id = id,
             properties = {},
-            sons = {},
+            children = {},
             hasEnd = false,
             line = gbl.parserLine
          }
-
          if utils:isIdUsed(element.id, sT) then
             return nil
          end
@@ -101,7 +100,7 @@ local parsingTable = {
                      end
                   end
                else
-                  table.insert(element.sons, val)
+                  table.insert(element.children, val)
                   val.father = element
                end
             elseif val == 'end' then
@@ -223,7 +222,7 @@ local parsingTable = {
             _type = 'macro',
             id = id,
             properties = {},
-            sons = {},
+            children = {},
             parameters = {},
             hasEnd = false,
             line = gbl.parserLine
@@ -239,8 +238,8 @@ local parsingTable = {
             if type(val) == 'table' then
                if val.parameters then -- If val is the parameter table
                   element.parameters = val.parameters
-               else -- If val is the sons
-                  table.insert(element.sons, val)
+               else -- If val is the children
+                  table.insert(element.children, val)
                   val.father = element
                end
             elseif val == 'end' then
@@ -281,14 +280,14 @@ local parsingTable = {
             iterator = iterator,
             start = start,
             class = class,
-            sons = {},
+            children = {},
             line = gbl.parserLine-1
          }
 
          for _, val in pairs(tbl) do
             if val._type == 'macro-call' then
                val.father = element
-               table.insert(element.sons, val)
+               table.insert(element.children, val)
             end
          end
 

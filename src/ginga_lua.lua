@@ -2,20 +2,23 @@ local ins = require('inspect')
 
 function genPort(port)
    local newPort = port.component.."@"
+
    if port.interface then
       newPort = newPort..port.interface
    else
       newPort = newPort.."lambda"
    end
+
    return newPort
 end
 
 function genMedia(media)
    local newMedia = {media._type, media.id, {}, {}}
+
    for name, value in pairs(media.properties) do
       newMedia[3][name] = value
    end
-   for _, area in pairs(media.sons) do
+   for _, area in pairs(media.children) do
       local newArea = {area.id}
       table.insert(newMedia[4], newArea)
    end
@@ -28,7 +31,7 @@ function genContext(context)
    --print(ins.inspect(context))
    -- Ports, Children and Links
    local newContext = {context._type, context.id, {}, {}, {}}
-   for _, son in pairs(context.sons) do
+   for _, son in pairs(context.children) do
 
       if son._type == 'port' then
          table.insert(newContext[3], genPort(son))
@@ -70,30 +73,26 @@ function genLua(snclTable)
       'context',
       'ncl',
       {}, -- Ports
-      {}, -- Media, Context, Lule
+      {}, -- Media, Context, ule
       {{}, {}}, -- Link
    }
 
    for _, element in pairs(snclTable.presentation) do
-      if element._type == 'port' then
-         if not element.father then
+      if not element.father then
+         if element._type == 'port' then
             table.insert(ncl[3], genPort(element))
-         end
 
-      elseif element._type == 'media' then
-         if not element.father then
+         elseif element._type == 'media' then
             table.insert(ncl[4], genMedia(element))
-         end
 
-      elseif element._type == 'context' then
-         if not element.father then
+         elseif element._type == 'context' then
             table.insert(ncl[4], genContext(element))
+
+         elseif element._type == 'link' then
+            table.insert(ncl[5], genLink(element))
          end
-
-      elseif element._type == 'link' then
-
-         table.insert(ncl[5], genLink(element))
       end
    end
-   --print(ins.inspect(ncl))
+   print(ins.inspect(ncl))
 end
+
