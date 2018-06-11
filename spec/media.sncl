@@ -1,0 +1,7 @@
+macro makeMedia(id, src)
+   media id
+      src: src
+   end
+end
+
+makeMedia("m1", "source")

@@ -1,216 +1,305 @@
-local ins = require"inspect"
-local utils = require"utils"
-local lpeg = require"lpeg"
-local pT = {}
+local ins = require('inspect')
+local utils = require('utils')
+local gbl = require('globals')
+local rS = require('resolve')
 
-local R, P = lpeg.R, lpeg.P
+local parsingTable = {
 
-function pT.makePort(str)
-   return str / function(id, comp, iface)
-      local element = {
-         _type="port", id=id, component=comp, interface = iface, line=gblParserLine-1
-      }
-      if gblPresTbl[id] then
-         utils.printErr("Id "..id.." already declared")
-         return nil
+   --- Generate a better formated table for the Port element
+   -- Receives what the lpeg returns when it parses the port,
+   -- then creates a better formated table
+   -- then inserts it in the symbol table
+   -- @param str The return of lpeg
+   -- @param sT The symbol table
+   -- @return The generated table
+   parsePort = function(str, sT)
+      return str / function(id, comp, iface)
+         local element = {
+            _type = 'port',
+            id = id,
+            component = comp,
+            interface = iface,
+            line = gbl.parserLine
+         }
+
+         if utils.isIdUsed(element.id, sT) then
+            return nil
+         end
+
+         sT.presentation[id] = element
+         return element
       end
-      gblPresTbl[id] = element
-      return element
-   end
-end
+   end,
 
-function pT.makeProperty(str)
-   return str / function(name, value)
-      return {_type="property",[name]=value, }
-   end
-end
-
-
-function pT.makePresentationElement(str, isMacroSon)
-   return str / function(_type, id, ...)
-      local tb = {...}
-      local element = {
-         _type=_type, id=id, hasEnd = false, line = gblParserLine-1,
-         properties = {},
-         sons = {},
-      }
-
-      if gblPresTbl[element.id] or gblMacroTbl[element.id] or gblHeadTbl[element.id]then
-         utils.printErro("Id "..element.id.." already declared")
-         return nil
+   --- Generate a better formated table for the Property element
+   -- @param str The return of lpeg
+   -- @return The generated table
+   parseProperty = function(str)
+      return str / function(name, value)
+         return {
+            _type = 'property',
+            [name] = value,
+            line = gbl.parseLine
+         }
       end
+   end,
 
-      if element._type == "region" then
-         gblHeadTbl[element.id] = element
-      elseif not isMacroSon then
-         gblPresTbl[element.id] = element
-      end
+   --- Generate a better formated table for the presentation elements
+   -- The inicial table has an 'end' value, indicating that it has an end,
+   -- and other tables as sons, those can be a property of
+   -- the element, or another element, that is nested inside it.
+   -- Then this table is processed to generated a better formated table, that is
+   -- inserted in the symbol table
+   -- @param str The return of lpeg
+   -- @param sT The symbol table
+   -- @param isMacroSon A boolean, indicating if the sncl element is inside of a macro
+   -- @return The generated table
+   parsePresentationElement = function(str, sT, isMacroSon)
+      return str / function(_type, id, ...)
+         local tbl = {...}
+         local element = {
+            _type = _type,
+            id = id,
+            properties = {},
+            sons = {},
+            hasEnd = false,
+            line = gbl.parserLine
+         }
 
-      -- Se for uma tabela, ou é uma propriedade ou é um elemento filho
-      for pos, val in pairs(tb) do
-         if type(val) == 'table' then
-            if val._type == 'property' then
+         if utils.isIdUsed(element.id, sT) then
+            return nil
+         end
+
+         if element._type == 'region' then
+            sT.head[element.id] = element
+         --[[ If the element is a son of a macro, then it must not be inserted in the symbol table ]]
+         elseif not isMacroSon then
+            sT.presentation[element.id] = element
+         end
+
+         for pos, val in pairs(tbl) do
+            if type(val) == 'table' then
+               if val._type == 'property' then
                   for name, value in pairs(val) do
-                  if isMacroSon then
-                     element.properties[name] = value
-                  else
+                     -- TODO: dont add "line"
+                     if isMacroSon then
+                        element.properties[name] = value
+                     else
+                        if name == 'rg' then
+                           if element.region then
+                              utils:printErro(string.format('Region %s already declared', element.region))
+                              return nil
+                           end
+                           element.region = value
+                           element.descriptor = rS.makeDesc(value, sT)
+                       else
+                           utils.addProperty(element, name, value)
+                        end
+                     end
+                  end
+               else
+                  table.insert(element.sons, val)
+                  val.father = element
+               end
+            elseif val == 'end' then
+               element.hasEnd = true
+            end
+         end
+
+         return element
+      end
+   end,
+
+   --- Parse the each condition and action
+   -- @param str The return of lpeg
+   -- @return The generated table
+   parseRelationship = function(str)
+      return str / function(rl, cp, iface, ...)
+         local element = {
+            role = rl,
+            component = cp,
+            interface = iface,
+            line = gbl.parserLine
+         }
+         return element
+      end
+   end,
+
+   --- Join the conditions and actions that are linked by "and"
+   -- @param str The return of lpeg
+   -- @param _type The type of the bind, can be an action or a condition
+   -- @return The generated table
+   parseBind = function(str, _type)
+      return str / function(...)
+         local tbl = {...}
+         local element = {
+            _type = _type,
+            line = gbl.parserLine,
+            hasEnd = false
+         }
+
+         for pos, val in pairs(tbl) do
+            if type(val) == 'table' then
+               if val._type == 'property' then
+                  if not element.properties then
+                     element.properties = {}
+                  end
+                  for name, value in pairs(val) do
+                     utils.addProperty(element, name, value)
+                  end
+               else
+                  element.role = val.role
+                  element.component = val.component
+                  if val.interface then
+                     if lpeg.match(Buttons, val.interface) and _type == "condition" then
+                        element.properties = {
+                           __keyValue = val.interface
+                        }
+                     else
+                        element.interface = val.interface
+                     end
+                  end
+               end
+            elseif val == 'end' then
+               element.hasEnd = true
+            end
+         end
+
+         return element
+      end
+   end,
+
+   --- Generate a better formated table for the Link element
+   -- @param str
+   -- @param sT
+   -- @return
+   parseLink = function(str, sT)
+      return str / function(...)
+         local tbl = {...}
+         local element = {
+            _type = 'link',
+            line = gbl.parserLine,
+            hasEnd = false
+         }
+         for pos, val in pairs(tbl) do
+            if type(val) == 'table' then
+               if val._type == 'action' then
+                  if not element.actions then
+                     element.actions = {}
+                  end
+                  table.insert(element.actions, val)
+               elseif val._type == 'condition' then
+                  if not element.conditions then
+                     element.conditions = {}
+                  end
+                  table.insert(element.conditions, val)
+               else
+                  if not element.properties then
+                     element.properties = {}
+                  end
+                  for name, value in pairs(val) do
                      utils.addProperty(element, name, value)
                   end
                end
-            else
-               table.insert(element.sons, val)
-               val.father = element
+            elseif val == 'end' then
+               element.hasEnd = true
             end
-         elseif val == "end" then
-            element.hasEnd = true
          end
+         table.insert(sT.link, element)
+         element.xconnector = rS:makeConn(element, sT)
+         return element
       end
+   end,
 
-      return element
-   end
-end
+   -- TODO: Propriedades de uma macro devem ser propriedades
+   -- do elemento em q a macro foi chamada
 
--- Make the each condition and action
-function pT.makeRelationship(str)
-   return str/ function(rl, cp, iface, ...)
-      local element = {
-         role = rl, component = cp, interface=iface, line=gblParserLine
-      }
-      return element
-   end
-end
+   --- Generates a better formated table for the Macro element
+   -- @param str
+   -- @param sT
+   -- @return
+   parseMacro = function(str, sT)
+      return str / function(id, ...)
+         local tbl = {...}
+         local element = {
+            _type = 'macro',
+            id = id,
+            properties = {},
+            sons = {},
+            hasEnd = false,
+            line = gbl.parserLine
+         }
 
--- Join the conditions and actions that are linked by "and"
-function pT.makeBind(str, _type)
-   return str/function(...)
-      local tb = {...}
-      local element = {
-         _type = _type, hasEnd = false, line=gblParserLine
-      }
-      for pos, val in pairs(tb) do
-         if type(val) == "table" then
-            if val._type == "property" then
-               if not element.properties then
-                  element.properties = {}
-               end
-               for name, value in pairs(val) do
-                  utils.addProperty(element, name, value)
-               end
-            else
-               element.role = val.role
-               element.component = val.component
-               if val.interface then
-                  if lpeg.match(Buttons, val.interface) and _type=="condition" then
-                     element.properties = {__keyValue=val.interface}
-                  else
-                     element.interface = val.interface
+         if utils.isIdUsed(element.id, sT) then
+            return nil
+         end
+
+         sT.macro[element.id] = element
+
+         for _, val in pairs(tbl) do
+            if type(val) == 'table' then
+               if val.parameters then -- If val is the parameter table 
+                  element.parameters = val.parameters
+               else -- If val is the sons
+                  if not element.sons then
+                     element.sons = {}
                   end
+                  table.insert(element.sons, val)
+                  val.father = element
                end
+            elseif val == 'end' then
+               element.hasEnd = true
             end
-         elseif val == "end" then
-            element.hasEnd = true
          end
+
+         return element
       end
-      return element
-   end
-end
+   end,
 
-function pT.makeLink(str)
-   return str/function(...)
-      local tb = {...}
-      local element = {
-         _type="link", hasEnd = false,
-         line = gblParserLine
-      }
-      for pos, val in pairs(tb) do
-         if type(val) == "table" then
-            if val._type == "action" then
-               if not element.actions then
-                  element.actions = {}
-               end
-               table.insert(element.actions, val)
-            elseif val._type == "condition" then
-               if not element.conditions then
-                  element.conditions = {}
-               end
-               table.insert(element.conditions, val)
-            else
-               if not element.properties then
-                  element.properties = {}
-               end
-               for name, value in pairs(val) do
-                  utils.addProperty(element, name, value)
-               end
-            end
-         elseif val == "end" then
-            element.hasEnd = true
-         end
+   --- Generate a better formated table for the Macro Call element
+   -- @param str
+   -- @param sT
+   -- @return
+   parseMacroCall = function(str, sT)
+      return str / function(mc, args, ...)
+         local element = {
+            _type = 'macro-call',
+            macro = mc,
+            arguments = args,
+            line = gbl.parserLine
+         }
+         table.insert(sT.macroCall, element)
+         return element
       end
-      table.insert(gblLinkTbl, element)
-      return element
-   end
-end
+   end,
 
-function pT.makeMacro(str)
-   return str/function(id, ...)
-      local tb = {...}
-      local element = {
-         id = id, _type="macro", sons={}, hasEnd = false,
-         line = gblParserLine
-      }
+   --- Generate a better formated table for the Template element
+   -- @param str
+   -- @param sT
+   -- @return
+   parseTemplate = function(str, sT)
+      return str / function(iterator, start, class, ...)
+         local tbl = {...}
+         local element = {
+            _type = 'for',
+            iterator = iterator,
+            start = start,
+            class = class,
+            sons = {},
+            line = gbl.parserLine-1
+         }
 
-      if (gblPresTbl[element.id] or gblMacroTbl[element.id]) then
-         utils.printErro("Id "..element.id.." alreadt declared")
-         return nil
-      end
-      gblMacroTbl[element.id] = element
-
-      for _, val in pairs(tb) do
-         if type(val) == 'table' then
-            if val.parameters then -- If val is the parameter table 
-               element.parameters = val.parameters
-            else -- If val is the sons
-               if not element.sons then
-                  element.sons = {}
-               end
-               table.insert(element.sons, val)
+         for _, val in pairs(tbl) do
+            if val._type == 'macro-call' then
                val.father = element
+               table.insert(element.sons, val)
             end
-         elseif val == "end" then
-            element.hasEnd = true
          end
+
+         table.insert(sT.template, element)
+         return element
       end
-
-      return element
    end
-end
+}
 
-function pT.makeMacroCall(str)
-   return str/function(mc, args, ...)
-      local tb = {
-         _type="macro-call", macro = mc, arguments = args, line = gblParserLine
-      }
-      table.insert(gblMacroCallTbl, tb)
-      return tb
-   end
-end
-
-function pT.makeTemplate(str)
-   return str/function(iterator, start, class, ...)
-      local tbl = {...}
-      local element = {
-         _type="for", iterator=iterator, start=start, class=class, sons = {}, line = gblParserLine-1
-      }
-      for pos, val in pairs(tbl) do
-         if val._type == "macro-call" then
-            val.father = element
-            table.insert(element.sons, val)
-         end
-      end
-      table.insert(gblTemplateTbl, element)
-      return element
-   end
-end
-
-return pT
-
+return parsingTable
