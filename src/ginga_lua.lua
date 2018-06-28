@@ -1,4 +1,4 @@
-local ins = require('inspect')
+local ins = require('sncl.inspect')
 
 function genPort(port)
    local newPort = port.component.."@"

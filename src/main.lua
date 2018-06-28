@@ -1,26 +1,57 @@
-local utils = require'utils'
-local gbl = require('globals')
-local ins = require('inspect')
+local utils = require('sncl.utils')
+local gbl = require('sncl.globals')
+local ins = require('sncl.inspect')
+local pp = require('sncl.pre_process')
+local gen = require('sncl.gen')
+local gen_lua = require('sncl.gen_lua')
+local grammar = require('sncl.grammar')
 --local lyaml = require('lyaml')
-local pp = require('pre_process')
-local gen = require('gen')
-local gen_lua = require('gen_lua')
+require('sncl.pegdebug')
+require('sncl.macro')
 
-require'pegdebug'
-require'gen'
-require'pre_process'
-require'macro'
-require'grammar'
+local sncl = {}
+
+function sncl.genNCL(sncl)
+   local symbol_tbl = grammar.lpegMatch(grammar, sncl)
+   if not symbol_tbl then
+      utils.printErro('Error parsing document', gbl.parser_line)
+      return sncl, gbl.erros, nil
+   end
+
+   -- Resolve macros and templates
+   pp.pre_process(symbol_tbl)
+
+   -- For ltab on Ginga
+   --genLua(symbol_tbl)
+
+   -- Generate the NCL from the Lua table
+   local NCL = gen:genNCL(symbol_tbl)
+   if gbl.has_error then
+      utils.printErro('Error in sncl file')
+      return gbl.erros, nil
+   end
+
+   return NCL, symbol_tbl
+end
 
 --- The main function of the compiler
 -- @param args the arguments of the command line
 function beginParse(args)
-   gbl.inputFile = args.input
+   gbl.input_file = args.input
 
-   local snclInput = utils:readFile(args.input)
-   if not snclInput then
+   local sncl_input = utils:readFile(args.input)
+   if not sncl_input then
       utils.printErro('Error reading input file')
-      return
+      return gbl.erros
+   end
+   local NCL, symbol_tbl = sncl.genNCL(sncl_input)
+   if gbl.has_error then
+      print(gbl.erros)
+   end
+   if not NCL then return end
+
+   if args.show_symbol then
+      print("Symbol Table:", ins.inspect(symbol_tbl))
    end
 
    --[[
@@ -34,36 +65,18 @@ function beginParse(args)
    ]]
 
    -- Parse the sncl table, generate an equivalent Lua table
-   local symbolTable = utils.lpegMatch(grammar, snclInput)
-   if not symbolTable then
-      utils.printErro('Error parsing document', gbl.parserLine)
-      return -1
-   end
-   -- Resolve macros and templates
-   pp.pre_process(symbolTable)
-   genLua(symbolTable)
 
-   if args.show_symbol then
-      print("Symbol Table:", ins.inspect(symbolTable))
-   end
-
-   -- Generate the NCL from the Lua table
-   local NCL = gen:genNCL(symbolTable)
-   if gbl.hasError then
-      utils.printErro('Error in sncl file')
-      return
-   end
-
-   local outputFile = nil
+   local output_file = nil
    if args.output then
       utils:writeFile(args.output, NCL)
-      outputFile = args.output
+      output_file = args.output
    else
-      outputFile = args.input:sub(1, args.input:len()-4)
-      outputFile = outputFile..'ncl'
-      utils:writeFile(outputFile, NCL)
+      output_file = args.input:sub(1, args.input:len()-4)
+      output_file = output_file..'ncl'
+      utils:writeFile(output_file, NCL)
    end
    if args.play then
-      os.execute('ginga '..outputFile)
+      os.execute('ginga '..output_file)
    end
 end
+return sncl

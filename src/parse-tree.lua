@@ -1,8 +1,8 @@
-local ins = require('inspect')
-local utils = require('utils')
-local gbl = require('globals')
-local rS = require('resolve')
 local lpeg = require('lpeg')
+local ins = require('sncl.inspect')
+local utils = require('sncl.utils')
+local gbl = require('sncl.globals')
+local rS = require('sncl.resolve')
 
 local parsingTable = {
 

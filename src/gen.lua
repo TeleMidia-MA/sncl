@@ -1,8 +1,7 @@
-local ins = require"inspect"
-local utils = require"utils"
+local ins = require("sncl.inspect")
+local utils = require("sncl.utils")
 
-local gen = {
-}
+local gen = {}
 
 --- Generates the NCL code of all the <simpleCondition> elements of a <causalConnector>
 -- @param conds The conditions of the link
@@ -19,7 +18,7 @@ function gen.genConditions(conds, indent, props)
       if utils.containValue(props, '__keyValue') and pos == 'onSelection' then
          NCL = NCL..' key="$__keyValue"'
       end
-      NCL = NCL..string.format('>%s</simpleCondition>', indent)
+      NCL = NCL..string.format('>%s   </simpleCondition>', indent)
    end
    return NCL
 end
@@ -39,7 +38,7 @@ function gen.genActions(acts, indent)
       if pos == 'set' then
          NCL = NCL..' value="$setValue"'
       end
-      NCL = NCL..string.format('>%s</simpleAction>', indent)
+      NCL = NCL..string.format('>%s   </simpleAction>', indent)
    end
    return NCL
 end
@@ -111,21 +110,36 @@ end
 -- @param sT
 -- @return
 function gen:genHeadNCL(indent, sT)
-   local connBase = '\n      <connectorBase>'
-   local regionBase = '      <regionBase>'
-   local descBase = '      <descriptorBase>'
+   local NCL = ""
+   local has_conn, has_rg, has_desc = false, false, false
+
+   local conn_base = '<connectorBase>'
+   local rg_base = '<regionBase>'
+   local desc_base = '<descriptorBase>'
 
    for _, val in pairs(sT.head) do
       if val._type == "xconnector"then
-         connBase = connBase..self:genXConnector(val, indent.."   ")
+         has_conn = true
+         conn_base = conn_base..self:genXConnector(val, indent.."   ")
       elseif val._type == "region" then
-         regionBase = regionBase..self.genRegion(val, indent.."   ")
+         has_rg = true
+         rg_base = rg_base..self.genRegion(val, indent.."   ")
       elseif val._type == "descriptor" then
-         descBase = descBase..self.genDesc(val, indent.."   ")
+         has_desc = true
+         desc_base = desc_base..self.genDesc(val, indent.."   ")
       end
    end
-   return string.format('%s%s</connectorBase>\n%s%s</regionBase>\n%s%s</descriptorBase>'
-      , connBase, indent, regionBase, indent, descBase, indent)
+   if has_conn then
+      NCL = string.format('%s%s%s%s</connectorBase>', indent, NCL, conn_base, indent)
+   end
+   if has_rg then
+      NCL = string.format('%s%s%s%s</regionBase>', indent, NCL, rg_base, indent)
+   end
+   if has_desc then
+      NCL = string.format('%s%s%s%s</descriptorBase>', indent, NCL, descriptorBase, indent)
+   end
+
+   return NCL
 end
 
 --- Generates the NCL code of the <bind> of a <link>

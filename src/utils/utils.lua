@@ -1,18 +1,21 @@
 local colors = require('ansicolors')
 local lpeg = require('lpeg')
-local gbl = require('globals')
+local gbl = require('sncl.globals')
 
 local R, P = lpeg.R, lpeg.P
 
 local utils = {
-   lpegMatch = function(grammar, input)
-      local sT
-      if gbl._DEBUG_PEG then
-         sT = lpeg.match(require('pegdebug').trace(grammar), input)
-      else
-         sT = lpeg.match(grammar, input)
-      end
-      return sT
+
+   createSymbolTable = function()
+      return { --[[ Symbol Table ]]
+         presentation = {},
+         head = {},
+         link = {},
+         macro = {},
+         macroCall = {},
+         template = {},
+         padding = {},
+      }
    end,
 
    containValue = function(tbl, value)
@@ -48,11 +51,12 @@ local utils = {
       return tbl
    end,
 
-   printErro = function(errString, line)
-      line = line or gbl.parserLine
-      local file = gbl.inputFile or ''
-      io.write(colors('%{bright}'..file..':'..line..': %{red}erro:%{reset} '..errString..'\n'))
-      gbl.hasError = true
+   printErro = function(err_str, line)
+      line = line or gbl.parser_line
+      local file = gbl.input_file or ''
+      local erro = string.format("%s:%s:  %s\n", file, line, err_str)
+      gbl.erros = gbl.erros..erro
+      gbl.has_error = true
    end,
 
    checks = {

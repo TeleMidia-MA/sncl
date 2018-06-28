@@ -1,6 +1,6 @@
-local utils = require("utils")
-local ins = require('inspect')
 local lpeg = require('lpeg')
+local utils = require('sncl.utils')
+local ins = require('sncl.inspect')
 
 local resolveMacros = {
 

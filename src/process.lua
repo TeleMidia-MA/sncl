@@ -1,8 +1,8 @@
-local utils = require"utils"
-local ins = require"inspect"
-local lpeg = require"lpeg"
-local pT = require"parse-tree"
-require"macro"
+local lpeg = require('lpeg')
+local utils = require('sncl.utils')
+local ins = require('sncl.inspect')
+local pT = require('sncl.parse_tree')
+require('sncl.macro')
 --
 -- function resolveMacroPresentationSon(element, macro, call)
 --    local newEle = {_type = element._type, region = element.region, descriptor=element.descriptor, properties = {}, sons={}, father = call.father}

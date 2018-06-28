@@ -1,5 +1,5 @@
-local macro = require('macro')
-local utils = require('utils')
+local macro = require('sncl.macro')
+local utils = require('sncl.utils')
 
 local pre_process = {
 
