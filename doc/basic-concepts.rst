@@ -1,33 +1,41 @@
+=====================
 Basic Concepts of sNCL
 ======================
 
-sNCL (simpler Nested Context Language) follows the NCM model, which is a 
-conceptual model for the representation and handling of hypermedia documents.
-The model separates its elements in  **representation elements**, that defines
-the representation of a media object in time and  space and **relationship 
-elements**, that defines the relationship between the media objects.
+The NCM Model
+=============
 
-Thus, the elements in sNCL are divided in Representation elements and
-Relationship Elements.
+sNCL (simpler Nested Context Language) is a language made to ease the
+development of hypermedia applications for the Ginga-NCL middleware, which has
+as the standard language NCL (Nested Context Language), a XML application.
+The sNCL compiler translates sNCL files into NCL files, and then
+these NCL files can be played by the Ginga middleware.
+
+Since both are based on the same model, the NCM (Nested Context Model), many
+of the concepts of NCL are used in sNCL, however, sNCL introduces new elements,
+such as macros and templates, that are not comtemplated in the model.
+
+One of the basic entities of the NCM is a node, that can be either a Media
+node or a Composition node. Medias in sNCL be anything, from a image, video or
+audio to a Lua script, HTML document or Java code, the type of Media node is
+also called its subclass, which are used to better define the interpretation
+of the content. 
+
+A Media can have interfaces, which can be separated into properties, anchors,
+ports and switch ports. A anchor is a subset of the informations of the node,
+for example, a snippet of a video, or a part of a text file, and properties are
+informations like the color of the background of a media or its position on the
+screen.
+The switch and switch port interfaces are not yet implemented in sNCL, a table
+with the information of what elements are implemented, will be implemented
+or won't be implemented can be found at ().
+
+Another important element of the model is the Link element, which sets up
+temporal and spacial relationships between nodes.
 
 
-Representation Elements are:
-   1. Context
-   2. Media
-   3. Area
-   4. Switch
-   5. Region
-
-Relationship Elements are:
-   1. Link
-
-Reuse Elements:
-   1. Macro
-   2. Template
-
-As the name suggests, the language is composed of nested context. The whole 
-body of the document itself is seen as a context, the main context, in which
-the application starts, that can have other contexts inside it.
+Medias
+--------
 
 Contexts
 --------
