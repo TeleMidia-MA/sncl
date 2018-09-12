@@ -20,7 +20,7 @@ function beginParse(args)
    local snclInput = utils:readFile(args.input)
    if not snclInput then
       utils.printErro('Error reading input file')
-      return
+      return -1
    end
 
    --[[
@@ -49,7 +49,7 @@ function beginParse(args)
 
    if gbl.hasError then
       utils.printErro('Error in sncl file')
-      return
+      return -1
    end
    local outputFile = nil
    if args.output then
