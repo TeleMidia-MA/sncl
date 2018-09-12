@@ -39,7 +39,7 @@ build = {
       ["sncl.template"] = "src/templates.lua",
       ["sncl.pre_process"] = "src/pre-process.lua",
       ["sncl.resolve"] = "src/resolve.lua",
-      ["sncl.gen_lua"] = "src/ginga_lua.lua",
+      ["sncl.ltab"] = "src/ltab.lua",
       ["sncl.globals"] = "src/utils/globals.lua"
    },
    install = {

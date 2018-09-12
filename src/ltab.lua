@@ -1,6 +1,7 @@
 local ins = require('sncl.inspect')
 
-function genPort(port)
+-- @param port uma porta sNCL
+function makePort(port)
    local newPort = port.component.."@"
 
    if port.interface then
@@ -12,7 +13,8 @@ function genPort(port)
    return newPort
 end
 
-function genMedia(media)
+-- @param media uma media sNCL
+function makeMedia(media)
    local newMedia = {media._type, media.id, {}, {}}
 
    for name, value in pairs(media.properties) do
@@ -27,30 +29,29 @@ function genMedia(media)
    return newMedia
 end
 
-function genContext(context)
-   --print(ins.inspect(context))
+function make(context)
    -- Ports, Children and Links
    local newContext = {context._type, context.id, {}, {}, {}}
    for _, son in pairs(context.children) do
 
       if son._type == 'port' then
-         table.insert(newContext[3], genPort(son))
+         table.insert(newContext[3], makePort(son))
 
       elseif son._type == 'media' then
-         table.insert(newContext[4], genMedia(son))
+         table.insert(newContext[4], makeMedia(son))
 
       elseif son._type == 'context' then
-         table.insert(newContext[4], genContext(son))
+         table.insert(newContext[4], makeContext(son))
 
       elseif son._type == 'link' then
-         table.insert(newContext[5], genLink(son))
+         table.insert(newContext[5], makeLink(son))
       end
 
    end
    return newContext
 end
 
-function genLink(link)
+function makeLink(link)
    local newLink = {{}, {}}
 
    for _, condition in pairs(link.conditions) do
@@ -68,31 +69,31 @@ function genLink(link)
    return newLink
 end
 
-function genLua(snclTable)
+function makeLtab(sncl_table)
    ncl = {
       'context',
       'ncl',
       {}, -- Ports
-      {}, -- Media, Context, ule
+      {}, -- Media, Context, rule
       {{}, {}}, -- Link
    }
 
-   for _, element in pairs(snclTable.presentation) do
+   for _, element in pairs(sncl_table.presentation) do
       if not element.father then
          if element._type == 'port' then
-            table.insert(ncl[3], genPort(element))
+            table.insert(ncl[3], makePort(element))
 
          elseif element._type == 'media' then
-            table.insert(ncl[4], genMedia(element))
+            table.insert(ncl[4], makeMedia(element))
 
          elseif element._type == 'context' then
-            table.insert(ncl[4], genContext(element))
+            table.insert(ncl[4], makeContext(element))
 
          elseif element._type == 'link' then
-            table.insert(ncl[5], genLink(element))
+            table.insert(ncl[5], makeLink(element))
          end
       end
    end
-   print(ins.inspect(ncl))
+   return ncl
 end
 

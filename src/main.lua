@@ -1,10 +1,11 @@
 local utils = require('sncl.utils')
 local gbl = require('sncl.globals')
-local ins = require('sncl.inspect')
-local pp = require('sncl.pre_process')
-local gen = require('sncl.gen')
-local gen_lua = require('sncl.gen_lua')
-local grammar = require('sncl.grammar')
+local grammar = require('sncl.grammar') -- definicao da gramatica
+local pp = require('sncl.pre_process') -- processamento de macros, templates
+local ltab = require('sncl.ltab') -- geracao da tabela ltab
+local gen = require('sncl.gen') -- geracao do codigo ncl
+local ins = require('sncl.inspect') -- print melhor de tabelas
+
 --local lyaml = require('lyaml')
 require('sncl.pegdebug')
 require('sncl.macro')
@@ -18,13 +19,14 @@ function sncl.genNCL(sncl)
       return sncl, gbl.erros, nil
    end
 
-   -- Resolve macros and templates
+   -- resolve macros and templates
    pp.pre_process(symbol_tbl)
 
-   -- For ltab on Ginga
-   --genLua(symbol_tbl)
+   -- for ltab on Ginga
+   local ltab_table = makeLtab(symbol_tbl)
+   print(ins.inspect(ltab_table))
 
-   -- Generate the NCL from the Lua table
+   -- generate the NCL from the Lua table
    local NCL = gen:genNCL(symbol_tbl)
    if gbl.has_error then
       utils.printErro('Error in sncl file')
