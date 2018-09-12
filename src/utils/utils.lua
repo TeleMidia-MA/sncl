@@ -15,6 +15,18 @@ utils.checks = {
    types = P'context'+P'media'+P'area'+P'region'+P'macro'
 }
 
+function utils.createSymbolTable()
+   return { --[[ Symbol Table ]]
+      presentation = {},
+      head = {},
+      link = {},
+      macro = {},
+      macroCall = {},
+      template = {},
+      padding = {},
+   }
+end
+
 function utils.lpegMatch(grammar, input)
    local sT
    if gbl._DEBUG_PEG then
