@@ -54,6 +54,7 @@ function beginParse(args)
 
    if args.show_symbol then
       print("Symbol Table:", ins.inspect(symbol_tbl))
+      return -1
    end
 
    --[[

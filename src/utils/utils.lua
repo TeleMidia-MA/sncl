@@ -4,69 +4,69 @@ local gbl = require('sncl.globals')
 
 local R, P = lpeg.R, lpeg.P
 
-local utils = {
 
-   createSymbolTable = function()
-      return { --[[ Symbol Table ]]
-         presentation = {},
-         head = {},
-         link = {},
-         macro = {},
-         macroCall = {},
-         template = {},
-         padding = {},
-      }
-   end,
+local utils = {}
 
-   containValue = function(tbl, value)
-      for _, val in pairs(tbl) do
-         if val == value then
-            return true
-         end
-      end
-      return false
-   end,
-
-   getIndex = function(tbl, value)
-      for pos, val in pairs(tbl) do
-         if val == value then
-            return pos
-         end
-      end
-      return nil
-   end,
-
-   getElementsWithClass = function(elements, class)
-      local tbl = {}
-      for pos, val in pairs(elements) do
-         -- When the elements from the yaml are parsed,
-         -- they come without the id
-         if not val.id then
-            val.id = pos
-         end
-         if val.class == class then
-            table.insert(tbl, val)
-         end
-      end
-      return tbl
-   end,
-
-   printErro = function(err_str, line)
-      line = line or gbl.parser_line
-      local file = gbl.input_file or ''
-      local erro = string.format("%s:%s:  %s\n", file, line, err_str)
-      gbl.erros = gbl.erros..erro
-      gbl.has_error = true
-   end,
-
-   checks = {
-      buttons = R'09'+R'AZ'+P'*'+P'#'+P'MENU'+P'INFO'+P'GUIDE'+P'CURSOR_DOWN'
-      +P'CURSOR_LEFT'+P'CURSOR_RIGHT'+P'CURSOR_UP'+P'CHANNEL_DOWN'+P'CHANNEL_UP'
-      +P'VOLUME_DOWN'+P'VOLUME_UP'+P'ENTER'+P'RED'+P'GREEN'+P'YELLOW'+P'BLUE'
-      +P'BLACK'+P'EXIT'+P'POWER'+P'REWIND'+P'STOP'+P'EJECT'+P'PLAY'+P'RECORD'+P'PAUSE',
-      types = P'context'+P'media'+P'area'+P'region'+P'macro'
-   },
+utils.checks = {
+   buttons = R'09'+R'AZ'+P'*'+P'#'+P'MENU'+P'INFO'+P'GUIDE'+P'CURSOR_DOWN'
+   +P'CURSOR_LEFT'+P'CURSOR_RIGHT'+P'CURSOR_UP'+P'CHANNEL_DOWN'+P'CHANNEL_UP'
+   +P'VOLUME_DOWN'+P'VOLUME_UP'+P'ENTER'+P'RED'+P'GREEN'+P'YELLOW'+P'BLUE'
+   +P'BLACK'+P'EXIT'+P'POWER'+P'REWIND'+P'STOP'+P'EJECT'+P'PLAY'+P'RECORD'+P'PAUSE',
+   types = P'context'+P'media'+P'area'+P'region'+P'macro'
 }
+
+function utils.lpegMatch(grammar, input)
+   local sT
+   if gbl._DEBUG_PEG then
+      sT = lpeg.match(require('pegdebug').trace(grammar), input)
+   else
+      sT = lpeg.match(grammar, input)
+   end
+   return sT
+end
+
+function utils.containValue(tbl, value)
+   for _, val in pairs(tbl) do
+      if val == value then
+         return true
+      end
+   end
+   return false
+end
+
+function utils.getIndex(tbl, value)
+   for pos, val in pairs(tbl) do
+      if val == value then
+         return pos
+      end
+   end
+   return nil
+end
+
+function utils.getElementsWithClass(elements, class)
+   local tbl = {}
+   for pos, val in pairs(elements) do
+      -- When the elements from the yaml are parsed,
+      -- they come without the id
+      if not val.id then
+         val.id = pos
+      end
+      if val.class == class then
+         table.insert(tbl, val)
+      end
+
+   end
+   return tbl
+end
+
+function utils.printErro(errString, line)
+   line = line or gbl.parserLine
+   local file = gbl.inputFile or ''
+   io.write(colors('%{bright}'..file..':'..line..': %{red}erro:%{reset} '..errString..'\n'))
+   gbl.hasError = true
+end
+
+
 function utils:addProperty(element, name, value)
    if name ~= '_type' then
       if element.properties[name] then
@@ -114,8 +114,6 @@ function utils:getNumberOfParents(ele, nFathers)
    end
    return nFathers
 end
-
-
 
 function utils:readFile(file)
    file = io.open(file, 'r')
