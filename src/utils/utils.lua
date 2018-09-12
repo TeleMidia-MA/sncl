@@ -1,8 +1,9 @@
 local colors = require('ansicolors')
 local lpeg = require('lpeg')
-local gbl = require('globals')
+local gbl = require('sncl.globals')
 
 local R, P = lpeg.R, lpeg.P
+
 
 local utils = {}
 
@@ -53,6 +54,7 @@ function utils.getElementsWithClass(elements, class)
       if val.class == class then
          table.insert(tbl, val)
       end
+
    end
    return tbl
 end

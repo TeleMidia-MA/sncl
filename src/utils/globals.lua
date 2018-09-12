@@ -1,8 +1,9 @@
 local globals = {
-   inputFile = nil,
-   hasError = false,
+   input_file = nil,
+   has_error = false,
+   parser_line = 0,
+   erros = "",
    _DEBUG_PEG = false,
-   parserLine = 0,
 }
 
 return globals

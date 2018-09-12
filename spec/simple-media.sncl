@@ -1,0 +1,5 @@
+media media1
+   left: 50%
+   top: 50%
+   type: "image/jpeg"
+end

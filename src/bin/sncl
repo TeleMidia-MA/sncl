@@ -1,6 +1,6 @@
 #!/usr/bin/env lua
 
-require("main")
+require("sncl")
 
 local argparse = require("argparse")
 
