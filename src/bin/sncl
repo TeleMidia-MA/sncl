@@ -6,7 +6,7 @@ local argparse = require("argparse")
 
 local parser = argparse() {
    name = "sncl",
-   description = "A sNCl compiler to NCL",
+   description = "A sNCL compiler to NCL or ltab", 
 }
 
 parser:argument("input", "sNCL Input File")
@@ -16,7 +16,8 @@ parser:option("-o --output", "Set the output NCL file")
 parser:option("-t --template", "Set the template file")
    :overwrite(false)
 parser:flag("-p --play", "Play the file in ginga")
-parser:flag("-s --show_symbol", "Print the generated symbol table")
+parser:flag("-s --show_symbol_table", "Print the generated symbol table")
+parser:flag("-l --to_ltab", "Convert sNCL to ltab")
 
 local args = parser:parse()
 

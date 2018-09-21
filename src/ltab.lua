@@ -29,7 +29,7 @@ function makeMedia(media)
    return newMedia
 end
 
-function make(context)
+function makeContext(context)
    -- Ports, Children and Links
    local newContext = {context._type, context.id, {}, {}, {}}
    for _, son in pairs(context.children) do
