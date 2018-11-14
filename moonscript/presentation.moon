@@ -1,4 +1,3 @@
-__DEBUG__ = true
 class Presentation
    -- Extends: Media, Context, Area
    new:(id) =>
@@ -14,7 +13,7 @@ class Presentation
       return true
 
    addAttribute:(name, value) =>
-      assert(@@attributes[name] == true,
+      assert(@@attributes[name],
          "Invalid attribute #{name} on #{@__class.__name} #{@id}")
       if @attributes == nil
          @attributes = {}
@@ -26,7 +25,7 @@ class Presentation
       return false
 
    addChildren:(child) =>
-      assert(@@children[child.__class.__name] == true,
+      assert(@@children[child.__class.__name],
          "#{child.__class.__name} cannot be children of #{@__class.__name}")
       if not @children
          @children = {}
@@ -48,11 +47,11 @@ class Presentation
          for k, v in pairs(@children)
             child_ncl ..= v\toNcl(indent.."   ")
 
-      return "\n#{indent}<#{@__class.__name\lower!} id=\"#{@id}\"#{if attributes_ncl then attributes_ncl else ""}>#{if child_ncl then child_ncl else ""}\n#{indent}</#{@__class.__name\lower!}>"
+      return "\n#{indent}<#{@__class.__name\lower!} id=\"#{@id}\"#{if attributes_ncl then attributes_ncl else "" }>#{if child_ncl then child_ncl else ""}\n#{indent}</#{@__class.__name\lower!}>"
 
 
 class Context extends Presentation
-   @@attributes = {refer: true}
+   @@attributes = {"refer": true}
    @@children = {"Context": true, "Media":true, "Link": true}
 
    new:(id, attributes) =>
@@ -63,7 +62,7 @@ class Context extends Presentation
 
 
 class Media extends Presentation
-   @@attributes = {src: true, type: true, refer: true, instance: true, descriptor: true}
+   @@attributes = {"src": true, "type": true, "refer": true, "instance": true, "descriptor": true}
    @@children = {"Area": true}
 
    new:(id, attributes) =>
@@ -74,9 +73,9 @@ class Media extends Presentation
 
 
 class Area extends Presentation
-   @@attributes = {coords:true, begins:true, end:true, beginText:true,
-      endText:true, beginPosition:true, endPosition:true, first:true,
-      last:true, label:true, clip:true}
+   @@attributes = {"coords":true, "begins":true, "end":true, "beginText":true,
+      "endText":true, "beginPosition":true, "endPosition":true, "first":true,
+      "last":true, "label":true, "clip":true}
    @@children = nil
 
    new:(id, attributes) =>
@@ -84,6 +83,5 @@ class Area extends Presentation
       if attributes
          for k, v in pairs(attributes)
             super\addAttribute(k, v)
-
 
 {:Context, :Media, :Area}

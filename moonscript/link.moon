@@ -2,11 +2,16 @@ class Bind
    new:(role, component, attributes) =>
       assert(role != nil, "#{@__class.__name} cannot have empty role")
       assert(component != nil, "#{@__class.__name} cannot have empty component")
-      assert(@@roles[role] == true,
+      assert(@@roles[role],
          "Role #{role} invalid on component #{@__class.__name}")
-      -- TODO: Assert that component exists
       @role = role
       @component = component
+
+   checkComponent:(symbolTable, component) =>
+      return true
+
+   checkInterface:(symbolTable, component) =>
+      return true
 
    toNcl:(indent) =>
       return "\n#{indent}<bind role=\"#{@role}\" component=\"#{@component}\">"
@@ -43,7 +48,7 @@ class Link
 
    new:(condition, action) =>
       if condition then @conditions = {condition}
-      if actions then @actions = {action}
+      if action then @actions = {action}
       @parameters = {}
       @xconnector = ""
 
