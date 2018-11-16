@@ -1,5 +1,11 @@
 context context1
-   media media2
+   media media1
+      area area1
+         left: 50
+         up: 100
+      end
+      right: 200
+      down: 205
    end
 end
 

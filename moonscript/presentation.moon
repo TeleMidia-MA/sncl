@@ -5,6 +5,8 @@ class Presentation
          print("Creating ", @__class.__name)
       assert id != nil
       @id = id
+      @children = {}
+      @properties = {}
 
    addProperty:(name, value) =>
       return true
@@ -27,12 +29,13 @@ class Presentation
    addChildren:(child) =>
       assert(@@children[child.__class.__name],
          "#{child.__class.__name} cannot be children of #{@__class.__name}")
-      if not @children
-         @children = {}
-      if child.__class.__name == "Link"
-         table.insert(@children, child)
-      else
-         @children[child.id] = child
+      switch child.__class.__name
+         when 'Link'
+            table.insert(@children, child)
+         when 'Property'
+            table.insert(@properties, child)
+         else
+            @children[child.id] = child
 
    toNcl:(indent="") =>
       local attributes_ncl
@@ -52,7 +55,7 @@ class Presentation
 
 class Context extends Presentation
    @@attributes = {"refer": true}
-   @@children = {"Context": true, "Media":true, "Link": true}
+   @@children = {"Context": true, "Media":true, "Link": true, 'Property': true}
 
    new:(id, attributes) =>
       super(id)
@@ -63,7 +66,7 @@ class Context extends Presentation
 
 class Media extends Presentation
    @@attributes = {"src": true, "type": true, "refer": true, "instance": true, "descriptor": true}
-   @@children = {"Area": true}
+   @@children = {"Area": true, 'Property': true}
 
    new:(id, attributes) =>
       super(id)
@@ -76,7 +79,7 @@ class Area extends Presentation
    @@attributes = {"coords":true, "begins":true, "end":true, "beginText":true,
       "endText":true, "beginPosition":true, "endPosition":true, "first":true,
       "last":true, "label":true, "clip":true}
-   @@children = nil
+   @@children = {'Property': true}
 
    new:(id, attributes) =>
       super(id)
