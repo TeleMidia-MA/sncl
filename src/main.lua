@@ -1,10 +1,12 @@
 local utils = require('sncl.utils')
 local gbl = require('sncl.globals')
-local grammar = require('sncl.grammar') -- definicao da gramatica
-local pp = require('sncl.pre_process') -- processamento de macros, templates
-local ltab = require('sncl.ltab') -- geracao da tabela ltab
-local gen = require('sncl.gen') -- geracao do codigo ncl
-local ins = require('sncl.inspect') -- print melhor de tabelas
+
+local grammar = require('sncl.grammar')
+--local pp = require('sncl.pre_process')
+local ltab = require('sncl.ltab')
+local nclGeneration = require('sncl.generation')
+
+local ins = require('sncl.inspect')
 
 --local lyaml = require('lyaml')
 require('sncl.pegdebug')
@@ -12,71 +14,68 @@ require('sncl.macro')
 
 local sncl = {}
 
-function sncl.genLtab(sNCL)
-   local symbol_table
-   -- Checar se ta sendo passado uma string ou uma tabela
-   if type(sNCL) == "string" then
-      symbol_table = grammar.lpegMatch(grammar, sNCL)
-      if not symbol_table then
-         utils.printErro('Error parsing document', gbl.parser_line)
-         return sncl, gbl.erros, nil
-      end
-   elseif type(sNCL) == "table" then
-      symbol_table = sNCL
-   end
-
-   local ltab_table = makeLtab(symbol_table)
-   return ltab_table
+function sncl:init()
+  return self
 end
 
-function sncl.genNCL(symbol_table)
+--function sncl:generateLTab(input)
+--   local symbolsTable
+--   -- Checar se ta sendo passado uma string ou uma tabela
+--   if type(input) == "string" then
+--      symbolsTable = grammar.lpegMatch(input)
+--      if not symbolsTable then
+--         utils.printErro('Error parsing document: ', gbl.parser_line)
+--         return sncl, gbl.errors, nil
+--      end
+--   elseif type(input) == "table" then
+--      symbolsTable = input
+--   end
+--   return makeLtab(symbolsTable)
+--end
+
+function sncl:generateNCL(symbolsTable)
    -- resolve macros and templates
-   --pp.pre_process(symbol_tbl)
+   -- pp.pre_process(symbol_tbl)
 
    -- generate the ncl from the Lua table
-   local ncl = gen:genNCL(symbol_table)
-   if gbl.has_error then
-      utils.printErro('Error in sncl file')
-      return gbl.erros, nil
+   local ncl = nclGeneration:generateNCL(symbolsTable)
+   if gbl.hasError then
+      utils.printError('Error in sncl file')
+      return gbl.errors, nil
    end
-
    return ncl
 end
 
 --- The main function of the compiler
 -- @param args the arguments of the command line
-function beginParse(args)
+function sncl:beginParse(args)
    gbl.input_file = args.input
-
-   -- le o arquivo sncl de entrada
    local sncl_input = utils:readFile(args.input)
-   -- se houve erro, retorna os erros
    if not sncl_input then
       utils.printErro('Error reading input file')
       return gbl.erros
    end
    -- gerar a tabela Lua que representa o sncl
-   local symbol_tbl = grammar.lpegMatch(grammar, sncl_input)
-   if not symbol_tbl then
-      utils.printErro('Error parsing document', gbl.parser_line)
-      return sncl, gbl.erros, nil
+   local symbolsTable = grammar.lpegMatch(sncl_input)
+   if not symbolsTable then
+      utils.printError('Error parsing document: ', gbl.parser_line)
+      return sncl, gbl.errors, nil
    end
 
    -- gerar o ltab
-   if args.to_ltab then
-      ltab = sncl.genLtab(symbol_tbl)
-      return ltab
-   end
+--   if args.to_ltab then
+--      ltab = sncl.generage(symbol_tbl)
+--      return ltab
+--   end
 
-   -- gera o ncl, se houver erro, retorna os erros
-   local ncl = sncl.genNCL(symbol_tbl)
+   local ncl = self:generateNCL(symbolsTable)
    if not ncl then
-      return gbl.erros
+      return gbl.errors
    end
 
    -- se o usuario passou a opcao "-s", imprimir a tabela de simbolos
    if args.show_symbol_table then
-      print("Symbol Table:", ins.inspect(symbol_tbl))
+      print("Symbol Table:", ins.inspect(symbolsTable))
    end
 
    --[[

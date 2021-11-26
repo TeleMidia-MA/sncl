@@ -1,0 +1,4 @@
+codefromstrings = false
+runreport = true
+deletestats = false
+modules = { }

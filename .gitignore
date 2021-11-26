@@ -3,3 +3,4 @@ html/*
 *.ncl
 /.metadata/
 log
+**/tags

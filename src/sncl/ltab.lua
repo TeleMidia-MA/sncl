@@ -1,4 +1,4 @@
-local ins = require('sncl.inspect')
+-- local ins = require('sncl.inspect')
 
 -- @param port uma porta sNCL
 function makePort(port)
