@@ -1,6 +1,10 @@
-*.rock
 html/*
-*.ncl
 /.metadata/
 log
 **/tags
+
+*.ncl
+*.rock
+
+luacov.report.out
+luacov.stats.out
