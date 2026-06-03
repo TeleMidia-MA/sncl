@@ -43,7 +43,7 @@ Contexts
 In NCL, 
 
 The compile process:
-------------------
+--------------------
 The compiler first turns the sNCl file in a Lua table (called symbol table), that
 is indexed by the Ids of the elements. This table is then used to generate the
 final NCL document.
@@ -51,7 +51,8 @@ final NCL document.
 For example, this sNCL file:
 
 .. code-block:: lua
-   :linenos
+   :linenos:
+   
    media media1
       type: "text/html"
       left: 50%

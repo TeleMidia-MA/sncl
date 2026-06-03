@@ -1,14 +1,14 @@
 Media Element
 =============
 
-The media element defines an media object, that can be an image, video, text and
+The media element defines a media object, that can be an image, video, text and
 even HTML documents or Lua scripts.
 
 Its syntax is defined as:
 
 ::
 
-   Media = "media" * Id *(Comentario + MacroCall + Area + Propriedade)^0 * end
+   Media = "media" * Id * (Comentario + Area + Propriedade)^0 * "end"
    Area = "area" * Id * (Comentario + Propriedade)^0 * "end"
 
 It is identified univocally by the **id** field, for example, the code below
@@ -69,7 +69,7 @@ Anchors can represent:
    * Temporal portions of continuous media content (begin, end, coords, first, last)
    * Textual segments
 
-For example, a temporal portion of a video can used like the example below. When the
+For example, a temporal portion of a video can be used like the example below. When the
 *media1* gets in 20s, *media2* will start.
 
 .. code-block:: lua
