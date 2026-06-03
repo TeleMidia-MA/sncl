@@ -10,7 +10,7 @@ function nclGeneration:conditions(conditions, indent, properties)
       if val > 1 then
          result = result..(' max="unbounded" qualifier="and"')
       end
-      if utils.containValue(properties, '__keyValue') and pos == 'onSelection' then
+      if utils.containsValue(properties, '__keyValue') and pos == 'onSelection' then
          result = result..' key="$__keyValue"'
       end
       result = result..string.format('>%s   </simpleCondition>', indent)
@@ -42,10 +42,10 @@ function nclGeneration:xconnector(xconnector, indent)
    end
    if nConds > 1 then
       result = result..string.format('%s   <compoundCondition operator="and" >', indent)
-      result = result..self.conditions(xconnector.condition, indent, xconnector.properties)
+      result = result..self:conditions(xconnector.condition, indent, xconnector.properties)
       result = result..string.format('%s   </compoundCondition>', indent)
    else
-      result = result..self.genConditions(xconnector.condition, indent, xconnector.properties)
+      result = result..self:conditions(xconnector.condition, indent, xconnector.properties)
    end
 
    local nActs = 0
@@ -54,10 +54,10 @@ function nclGeneration:xconnector(xconnector, indent)
    end
    if nActs > 1 then
       result = result..string.format('%s   <compoundAction operator="par" >', indent)
-      result = result..self.genActions(xconnector.action, indent)
+      result = result..self:actions(xconnector.action, indent)
       result = result..string.format('%s   </compoundAction>', indent)
    else
-      result = result..self.genActions(xconnector.action, indent)
+      result = result..self:actions(xconnector.action, indent)
    end
    for _, value in pairs(xconnector.properties) do
       result = result..string.format('%s   <connectorParam name="%s" />', indent, value)
@@ -67,14 +67,21 @@ function nclGeneration:xconnector(xconnector, indent)
    return result
 end
 
-function nclGeneration.region(region, indent)
+function nclGeneration:region(region, indent)
    local result = string.format('%s <region id="%s"', indent, region.id)
    if region.properties then
       for name, value in pairs(region.properties) do
          result = result..string.format(' %s="%s"', name, value)
       end
    end
-   result = result..'/>'
+   result = result..'>'
+
+   for _, son in pairs(region.children) do
+      result = result..self:region(son, indent..'  ')
+   end
+
+   result = result..string.format('%s </region>', indent)
+   
    return result
 end
 
@@ -83,7 +90,7 @@ function nclGeneration:descriptor(descriptor, indent)
    return result
 end
 
-function nclGeneration:head(indent, symbolsTable)
+function nclGeneration:head(symbolsTable, indent)
    local result = ""
    local has_conn, has_rg, has_desc = false, false, false
 
@@ -95,12 +102,12 @@ function nclGeneration:head(indent, symbolsTable)
       if val._type == "xconnector"then
          has_conn = true
          connector_base = connector_base..self:xconnector(val, indent.."   ")
-      elseif val._type == "region" then
+      elseif val._type == "region" and not val.father then
          has_rg = true
-         region_base = region_base..self.genRegion(val, indent.."   ")
+         region_base = region_base..self:region(val, indent.."   ")
       elseif val._type == "descriptor" then
          has_desc = true
-         descriptor_base = descriptor_base..self.genDesc(val, indent.."   ")
+         descriptor_base = descriptor_base..self:descriptor(val, indent.."   ")
       end
    end
    if has_conn then
@@ -150,7 +157,7 @@ function nclGeneration.bind(element, symbolsTable, indent)
    result = result..'>'
    if element.properties then
       for name, value in pairs(element.properties) do
-         result = result..string.format('%s   <bindParam name="%s" value="%s" >', indent, name, value)
+         result = result..utils:formatWithoutQuotes('%s   <bindParam name="%s" value="%s" />', indent, name, value)
       end
    end
    result = result..string.format('%s</bind>', indent)
@@ -162,10 +169,10 @@ function nclGeneration:link(element, symbolsTable, indent)
    local result = string.format('%s<link xconnector="%s" >', indent, element.xconnector)
 
    for _, act in pairs(element.actions) do
-      result = result..self.bind(act,indent..'   ', symbolsTable)
+      result = result..self.bind(act, symbolsTable, indent..'   ')
    end
    for _, cond in pairs(element.conditions) do
-      result = result..self.bind(cond, indent..'   ', symbolsTable)
+      result = result..self.bind(cond, symbolsTable, indent..'   ')
    end
    if element.properties then
       for name, value in pairs(element.properties) do
@@ -177,11 +184,27 @@ function nclGeneration:link(element, symbolsTable, indent)
    return result
 end
 
+function nclGeneration:area(element, indent)
+   local result = string.format('%s<area id="%s"', indent, element.id)
+
+   if element.properties then
+      for name, value in pairs(element.properties) do
+         result = result..string.format(' %s="%s"', name, value)
+      end
+   end
+
+   result = result..' />'
+   return result
+end
+
 function nclGeneration:presentation(element, symbolsTable, indent)
    if element._type == 'macro-call' or element._type == 'for' then
       return ''
    end
 
+   if element._type == 'area' then
+      return self:area(element, indent)
+   end
    -- Check if the refered region is decladed
    if element.region then
       if not symbolsTable.head[element.region] then
@@ -218,9 +241,9 @@ function nclGeneration:presentation(element, symbolsTable, indent)
    if element.children then
       for _, son in pairs(element.children) do
          if son._type == 'link' then
-            result = result..self:genLink(son, indent..'   ', symbolsTable)
+            result = result..self:link(son, symbolsTable, indent..'   ')
          else
-            result = result..self:genPresentation(son, indent..'   ', symbolsTable)
+            result = result..self:presentation(son, symbolsTable, indent..'   ')
          end
       end
    end
@@ -235,32 +258,32 @@ function nclGeneration:body(symbolsTable, indent)
    for _, ele in pairs(symbolsTable.presentation) do
       if ele._type and not ele.father then
          if ele._type == 'link' then
-            result = result..self:genLink(ele, indent, symbolsTable)
+            result = result..self:link(ele, symbolsTable, indent)
          else
-            result = result..self:genPresentation(ele, indent, symbolsTable)
+            result = result..self:presentation(ele, symbolsTable, indent)
          end
       end
    end
 
    for _, ele in pairs(symbolsTable.link) do
       if not ele.father then
-         result = result..self:genLink(ele, indent, symbolsTable)
+         result = result..self:link(ele, symbolsTable, indent)
       end
    end
 
    return result
 end
 
-function nclGeneration:genNCL(symbolsymbolsTableable)
+function nclGeneration:generateNCL(symbolTable)
    local indent = '\n   '
    local result = [[<?xml version="1.0" encoding="ISO-8859-1"?>
 <ncl id="main" xmlns="http://www.ncl.org.br/NCL3.0/EDTVProfile">]]
    result = result..indent..'<head>'
-   result = result..self:head(indent..'   ', symbolsymbolsTableable)
+   result = result..self:head(symbolTable, indent..'   ')
    result = result..indent..'</head>'
    result = result..indent..'<body>'
-   result = result..self:body(indent..'   ', symbolsymbolsTableable)
-   result = result..indent..'</body>\n</result>'
+   result = result..self:body(symbolTable, indent..'   ')
+   result = result..indent..'</body>\n</ncl>'
    return result
 end
 

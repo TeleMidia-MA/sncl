@@ -1,6 +1,6 @@
 #!/usr/bin/env lua
 
-require("sncl")
+local sncl = require("sncl")
 
 local argparse = require("argparse")
 
@@ -21,4 +21,4 @@ parser:flag("-l --to_ltab", "Convert sNCL to ltab")
 
 local args = parser:parse()
 
-beginParse(args)
+sncl:beginParse(args)

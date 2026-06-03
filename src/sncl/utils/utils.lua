@@ -62,17 +62,32 @@ function utils.getElementsWithClass(elements, class)
 end
 
 function utils.printError(errorString, line)
-  line = line or gbl.parserLine
-  local file = gbl.inputFile or ''
+  line = line or gbl.parser_line
+  local file = gbl.input_file or ''
   io.write(colors('%{bright}'..file..':'..line..': %{red}erro:%{reset} '..errorString..'\n'))
-  gbl.hasError = true
+  gbl.has_error = true
 end
 
-function utils:addProperty(element, name, value)
-  if name == "_type" then return nil end
+function utils:addProperty(element, name, value, removeQuotes)
+  -- Default is false
+  removeQuotes = removeQuotes or false
+
+  if name == "_type" or name == "line" then return nil end
+
+  if removeQuotes then
+    value = utils:removeQuotes(value)
+  end
+
   if not element.properties then element.properties = {} end
+  
   if element.properties[name] then
     return error(string.format("Property %s already declared", name))
+  end
+
+  if name == "src" then
+    element.src = value
+  elseif name == "type" then
+    element.type = value
   else
     element.properties[name] = value
   end
@@ -83,6 +98,24 @@ function utils:isIdUsed(id, symbolsTable)
     return true
   end
   return false
+end
+
+function utils:removeQuotes(value)
+  if (value == nil) then return nil end
+
+  newValue = string.gsub(value, '^"(.-)"$', "%1")
+  return newValue
+end
+
+function utils:formatWithoutQuotes(fmt, ...)
+  local args = {...}
+  local cleaned = {}
+
+  for _, value in pairs(args) do
+    table.insert(cleaned, self:removeQuotes(value))
+  end
+
+  return string.format(fmt, table.unpack(cleaned))
 end
 
 function utils:isMacroSon(element)
@@ -106,7 +139,7 @@ end
 function utils:readFile(file)
   file = io.open(file, 'r')
   if not file then
-    self.printErro('Error opening input file')
+    self.printError('Error opening input file')
     return nil
   end
   local fileContent = file:read('*a')
@@ -120,7 +153,7 @@ end
 function utils:writeFile(file, content)
   file = io.open(file, "w")
   if not file then
-    self.printErro('Error creating output file')
+    self.printError('Error creating output file')
     return nil
   end
   io.output(file)

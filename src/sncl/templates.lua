@@ -21,7 +21,7 @@ local resolveTemplates = {
                for pos, val in pairs(eles[i]) do 
                   if type(val) == "table" then -- Se for uma table, é um elemento
                   else
-                     if utils.containValue(parameters, pos) then
+                     if utils.containsValue(parameters, pos) then
                         call.arguments[utils.getIndex(parameters, pos)] = eles[i][pos]
                      end
                   end

@@ -5,7 +5,7 @@ function resolve:makeDescriptor(regionName, symbolsTable)
   local newDescriptor = {
     _type = "descriptor",
     region = regionName,
-    id = '__desc'..regionName
+    id = '__desc__'..regionName
   }
   symbolsTable.head[newDescriptor.id] = newDescriptor
   return newDescriptor.id
@@ -39,10 +39,10 @@ function resolve:makeConnector(link, symbolsTable)
   }
 
   for _, cond in pairs(link.conditions) do
-    self.makeConnBind(newConn, cond)
+    self:makeConnectorBind(newConn, cond)
   end
   for _, act in pairs(link.actions) do
-    self.makeConnBind(newConn, act)
+    self:makeConnectorBind(newConn, act)
   end
   if link.properties then
     for name, _ in pairs(link.properties) do
